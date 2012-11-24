@@ -50,7 +50,7 @@ love.graphics.setBackgroundColor(0, 0, 0)
 if not love.graphics.newCanvas then
   -- Support love2d versions before 0.8
   love.graphics.newCanvas = love.graphics.newFramebuffer
-  love.graphics.setCanvas = function () end
+  love.graphics.setCanvas = love.graphics.setRenderTarget
 end
 canvas = love.graphics.newCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
 canvas:setFilter("nearest", "nearest")
