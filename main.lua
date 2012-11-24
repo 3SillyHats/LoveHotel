@@ -46,6 +46,8 @@ love.graphics.setMode(
 )
 love.graphics.setBackgroundColor(0, 0, 0)
 
+love.mouse.setVisible(false)
+
 -- Create the canvas
 if not love.graphics.newCanvas then
   -- Support love2d versions before 0.8
