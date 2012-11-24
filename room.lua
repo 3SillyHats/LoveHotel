@@ -3,23 +3,9 @@
 local entity = require("entity")
 local resource = require("resource")
 local event = require("event")
+local sprite = require("sprite")
 
 local M = {}
-
-M.new = function (roomType, pos)
-  --Create an entity and get the id for the new room
-  local roomId = entity.new()
-  local img = resource.get("img/rooms/utility.png")
-
-  --Add a sprite component for the room
-  entity.addComponent(id, sprite.new(roomId,
-    img, img:getWidth(), img:getHeight()))
-  --Add position component
-  entity.addComponent(id, posComponent(roomId, pos))
-
-  --Function returns the rooms id
-  return roomId
-end
 
 local posComponent = function (id, pos)
   --Create a new component for position stuff
@@ -44,6 +30,21 @@ local posComponent = function (id, pos)
     end)
 
   return component
+end
+
+M.new = function (roomType, pos)
+  --Create an entity and get the id for the new room
+  local roomId = entity.new()
+  local img = resource.get("img/rooms/utility.png")
+
+  --Add a sprite component for the room
+  entity.addComponent(roomId, sprite.new(roomId,
+    img, img:getWidth(), img:getHeight()))
+  --Add position component
+  entity.addComponent(roomId, posComponent(roomId, pos))
+
+  --Function returns the rooms id
+  return roomId
 end
 
 return M
