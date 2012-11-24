@@ -7,17 +7,18 @@ local M = {}
 local training = false
 local current = 1
 local inputs = {
-  "a",
-  "b",
-  "left",
-  "right",
-  "up",
-  "down",
+  "a", -- 206, 130
+  "b", -- 174, 130
+  "left", -- 42, 120
+  "right", -- 70, 120
+  "up", -- 54, 108
+  "down", -- 54, 134
 }
 
 event.subscribe("training.begin", 0, function ()
   training = true
   current = 1
+  event.notify("training.current", 0, current)
 end)
 
 local map = {
@@ -30,6 +31,8 @@ local trainNext = function ()
   if current > #inputs then
     training = false
     event.notify("training.end", 0)
+   else
+	event.notify("training.current", 0, current)
   end
 end
 

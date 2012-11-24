@@ -7,9 +7,9 @@ local M = {}
 
 local draw = function (self)
   if self.flipped then
-    love.graphics.drawq(self.image, self.quad, self.x + self.width, self.y, 0, -1, 1)
+    love.graphics.drawq(self.image, self.quad, self.x + self.width, self.y, 0, -1, 1, self.originX, self.originY)
   else
-    love.graphics.drawq(self.image, self.quad, self.x, self.y)
+    love.graphics.drawq(self.image, self.quad, self.x, self.y, 0, 1, 1, self.originX, self.originY)
   end
 end
 
@@ -54,23 +54,25 @@ local play = function (self, animation, flipped)
   end
 end
 
-M.new = function (id, image, width, height, animations, playing)
+M.new = function (id, t)
 	local sprite = entity.newComponent({
     entity = id,
     x = 0,
     y = 0,
-    image = image,
-    width = width,
-    height = height,
-    animations = animations,
-    playing = playing,
+    image = t.image,
+    width = t.width,
+    height = t.height,
+    originX = t.originX or 0,
+    originY = t.originY or 0,
+    animations = t.animations or nil,
+    playing = t.playing or nil,
     frame = 0,
     timer = 0,
     flipped = false,
     quad = love.graphics.newQuad(
       0, 0,
-      width, height,
-      image:getWidth(), image:getHeight()
+      t.width, t.height,
+      t.image:getWidth(), t.image:getHeight()
     ),
     
     draw = draw,

@@ -82,22 +82,23 @@ local frameQuad = love.graphics.newQuad(
 -- XXX: Test entity
 local tester = entity.new(2)
 entity.addComponent(tester, sprite.new(
-  tester,
-  resource.get("img/typing1.png"),
-  24, 24,
-  {
-    idle = {
-      first = 0,
-      last = 0,
-      speed = 1,
+  tester, {
+    image = resource.get("img/typing1.png"),
+    width = 24, height = 24,
+    animations = {
+      idle = {
+        first = 0,
+        last = 0,
+        speed = 1,
+      },
+      typing = {
+        first = 0,
+        last = 3,
+        speed = .1,
+      },
     },
-    typing = {
-      first = 0,
-      last = 3,
-      speed = .1,
-    },
-  },
-  "idle"
+    playing = "idle"
+  }
 ))
 entity.addComponent(tester, entity.newComponent({
   update = function (self, dt)
@@ -116,7 +117,39 @@ local gui = menu.new(2)
 -- Input training
 
 local controller = entity.new(1)
-entity.addComponent(controller, sprite.new(controller, resource.get("img/controller.png"), CANVAS_WIDTH, CANVAS_HEIGHT))
+entity.addComponent(controller, sprite.new(controller, {
+  image = resource.get("img/controller.png"),
+  width = CANVAS_WIDTH, height = CANVAS_HEIGHT
+}))
+
+local inputLocations = {
+  {x=207, y=130},
+  {x=175, y=130},
+  {x=42, y=120},
+  {x=70, y=120},
+  {x=56, y=108},
+  {x=56, y=134},
+}
+local arrow = entity.new(1)
+entity.addComponent(arrow, sprite.new(
+  arrow, {
+    image = resource.get("img/arrow.png"),
+    width = 24, height = 24,
+    animations = {
+      idle = {
+        first = 0,
+        last = 7,
+        speed = .1
+      },
+    },
+    playing = "idle",
+    originX = 12,
+    originY = 24,
+  }
+))
+event.subscribe("training.current", 0, function (current)
+  event.notify("sprite.move", arrow, inputLocations[current])
+end)
 
 local endTraining = function()
   event.notify("state.enter", 0, 2)

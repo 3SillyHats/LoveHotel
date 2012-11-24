@@ -53,8 +53,11 @@ M.new = function (state, roomType, pos)
   local img = resource.get("img/rooms/" .. room.image)
 
   --Add a sprite component for the room
-  entity.addComponent(roomId, sprite.new(roomId,
-    img, img:getWidth(), img:getHeight()))
+  entity.addComponent(roomId, sprite.new(roomId, {
+    image = img,
+    width = img:getWidth(),
+    height = img:getHeight()
+  }))
   --Add position component
   entity.addComponent(roomId, posComponent(roomId, pos))
   --Add info component
