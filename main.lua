@@ -46,16 +46,19 @@ love.graphics.setMode(
 love.graphics.setBackgroundColor(0, 0, 0)
 
 -- Create the canvas
-canvas = nil
-if love.graphics.newCanvas then
-  canvas = love.graphics.newCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
-else
-  canvas = love.graphics.newFramebuffer(CANVAS_WIDTH, CANVAS_HEIGHT)
+if not love.graphics.newCanvas then
+  -- Support love2d versions before 0.8
+  love.graphics.newCanvas = love.graphics.newFramebuffer
+  love.graphics.setCanvas = function () end
 end
+canvas = love.graphics.newCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
 canvas:setFilter("nearest", "nearest")
 
 -- Create the pixel effect
-if love.graphics.newPixelEffect then
+if not love.graphics.newPixelEffect then
+  -- Support love2d versions before 0.8
+  love.graphics.setPixelEffect = function () end
+else
   pixelEffect = resource.get("pfx/nes.glsl")
   pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
   pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
