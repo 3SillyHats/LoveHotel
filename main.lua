@@ -3,11 +3,14 @@
 -- Constants
 CANVAS_WIDTH = 256
 CANVAS_HEIGHT = 224
+ROOM_INDENT = 16
+FLOOR_OFFSET = 80
 
 local event = require("event")
 local entity = require("entity")
 local resource = require("resource")
 local sprite = require ("sprite")
+local room = require("room")
 
 conf = {}
 
@@ -89,6 +92,11 @@ entity.addComponent(tester, entity.newComponent({
     event.notify("sprite.play", tester, "typing")
   end
 }))
+event.notify("sprite.move", tester, {x = 50, y = 50})
+
+--Myles's Room Test
+local roomTest = room.new("Toilet", {roomNum = 3, floorNum = 1})
+event.notify("scroll", 0, 2)
 
 love.draw = function ()
   -- Draw to canvas without scaling
