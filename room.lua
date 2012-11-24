@@ -1,10 +1,12 @@
--- room file
+--The room "object" file
 
+--Load required files and such
 local entity = require("entity")
 local resource = require("resource")
 local event = require("event")
 local sprite = require("sprite")
 
+--Create the module
 local M = {}
 
 --Position Component
@@ -39,6 +41,7 @@ local infoComponent = function (info)
   --then store the info table into it.
   local component = entity.newComponent(info)
 
+  --Return the room info table.
   return component
 end
 
@@ -61,4 +64,5 @@ M.new = function (roomType, pos)
   return roomId
 end
 
+--Return the module
 return M
