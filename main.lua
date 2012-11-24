@@ -12,6 +12,7 @@ local input = require("input")
 local resource = require("resource")
 local sprite = require ("sprite")
 local room = require("room")
+local menu = require("menu")
 
 conf = {}
 
@@ -65,7 +66,7 @@ else
   pixelEffect = resource.get("pfx/nes.glsl")
   pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
   pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-  pixelEffect:send("rubyOutputSize", {conf.screen.width, conf.screen.height})
+  pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
 end
 
 -- Create screen frame
@@ -79,7 +80,7 @@ local frameQuad = love.graphics.newQuad(
 )
 
 -- XXX: Test entity
-local tester = entity.new()
+local tester = entity.new(2)
 entity.addComponent(tester, sprite.new(
   tester,
   resource.get("img/typing1.png"),
@@ -107,10 +108,22 @@ entity.addComponent(tester, entity.newComponent({
 event.notify("sprite.move", tester, {x = 50, y = 50})
 
 --Myles's Room Test
-local roomTest = room.new("Utility", {roomNum = 3, floorNum = 1})
+local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
 event.notify("scroll", 0, 2)
 
--- Begin input training
+local gui = menu.new(2)
+
+-- Input training
+
+local controller = entity.new(1)
+entity.addComponent(controller, sprite.new(controller, resource.get("img/controller.png"), CANVAS_WIDTH, CANVAS_HEIGHT))
+
+local endTraining = function()
+  event.notify("state.enter", 0, 2)
+  event.unsubscribe("training.end", 0, endTraining)
+end
+event.subscribe("training.end", 0, endTraining)
+
 event.notify("training.begin", 0)
 
 love.draw = function ()
@@ -128,6 +141,7 @@ love.draw = function ()
   love.graphics.setCanvas()
   
   -- Draw the screen frame
+  love.graphics.setColor(255,255,255)
   love.graphics.drawq(
     frameImage, frameQuad,
     0, 0,
@@ -163,7 +177,6 @@ love.update = function (dt)
   input.update(dt)
 end
 
--- XXX: temporary fix
 function love.keypressed(key)   -- we do not need the unicode, so we can leave it out
   if key == "escape" then
     love.event.push("quit")   -- actually causes the app to quit
@@ -184,5 +197,3 @@ love.joystickreleased = function (joystick, button)
   input.joystickReleased(joystick, button)
 end
 
-event.subscribe("pressed", 0, function (key) print("p "..key) end)
-event.subscribe("released", 0, function (key) print("r "..key) end)

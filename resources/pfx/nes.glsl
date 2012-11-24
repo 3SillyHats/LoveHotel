@@ -12,7 +12,7 @@ uniform vec2 rubyInputSize;
 uniform vec2 rubyOutputSize;
 
 const float base_brightness = .9;
-const vec2 sine_comp = vec2(0.02, 0.2);
+const vec2 sine_comp = vec2(0.05, 0.15);
 
 vec4 effect(vec4 color, sampler2D texture,
     vec2 texture_coords, vec2 screen_coords)

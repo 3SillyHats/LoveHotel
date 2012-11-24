@@ -1,25 +1,41 @@
 -- entity.lua
 
+local event = require("event")
+
 local M = {}
 
+local currentState = 1
 local entities = {}
 local nextId = 1
 local deleted = {}
 
-M.new = function ()
+event.subscribe("state.enter", 0, function (state)
+  if state ~= currentState then
+    event.notify("state.exit", currentState)
+    currentState = state
+  end
+end)
+
+M.new = function (state)
+  local state = state or currentState
   local entity = {
     id = nextId,
     components = {},
   }
   nextId = nextId + 1
-  table.insert(entities, entity)
+  if not entities[state] then
+    entities[state] = {}
+  end
+  table.insert(entities[state], entity)
   return entity.id
 end
 
 local get = function (id)
-  for _,entity in ipairs(entities) do
-    if entity.id == id then
-      return entity
+  for _,e in pairs(entities) do
+    for _,entity in ipairs(e) do
+      if entity.id == id then
+        return entity
+      end
     end
   end
 end
@@ -29,29 +45,37 @@ M.delete = function (id)
 end
 
 M.draw = function ()
-  for _,entity in ipairs(entities) do
-    for _,component in ipairs(entity.components) do
-      component:draw()
+  if entities[currentState] then
+    for _,entity in ipairs(entities[currentState]) do
+      for _,component in ipairs(entity.components) do
+        component:draw()
+      end
     end
   end
 end
 
 M.update = function (dt)
-  for _,entity in ipairs(entities) do
-    for _,component in ipairs(entity.components) do
-      component:update(dt)
+  if entities[currentState] then
+    for _,entity in ipairs(entities[currentState]) do
+      for _,component in ipairs(entity.components) do
+        component:update(dt)
+      end
     end
-  end
   
-  -- Remove deleted entities from entities list
-  table.sort(deleted)
-  local index = #entities
-  while #deleted > 0 do
-    if entities[index].id == deleted[#deleted] then
-      table.remove(entities, index)
-      table.remove(deleted, #deleted)
+    -- Remove deleted entities from entities list
+    table.sort(deleted)
+    local index = #entities[currentState]
+    local notDeleted = 0
+    while #deleted-notDeleted > 0 and index >= 1 do
+      while notDeleted > #deleted - 1 and entities[index].id < deleted[#deleted-notDeleted] do
+        notDeleted = notDeleted + 1
+      end
+      if entities[index].id == deleted[#deleted-notDeleted] then
+        table.remove(entities[currentState], index)
+        table.remove(deleted[currentState], #deleted-notDeleted)
+      end
+      index = index - 1
     end
-    index = index - 1
   end
 end
 

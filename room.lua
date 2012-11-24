@@ -46,9 +46,9 @@ local infoComponent = function (info)
 end
 
 --Room constructor
-M.new = function (roomType, pos)
+M.new = function (state, roomType, pos)
   --Create an entity and get the id for the new room
-  local roomId = entity.new()
+  local roomId = entity.new(state)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
   local img = resource.get("img/rooms/" .. room.image)
 
