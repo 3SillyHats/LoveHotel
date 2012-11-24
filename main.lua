@@ -53,6 +53,16 @@ pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
 pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
 pixelEffect:send("rubyOutputSize", {conf.screen.width, conf.screen.height})
 
+-- Create screen frame
+local frameImage = resource.get("img/frame.png")
+frameImage:setWrap("repeat", "repeat")
+local frameQuad = love.graphics.newQuad(
+  0, 0,
+  conf.screen.width / conf.screen.scale,
+  conf.screen.height / conf.screen.scale,
+  frameImage:getWidth(), frameImage:getHeight()
+)
+
 -- XXX: Test entity
 local tester = entity.new()
 entity.addComponent(tester, sprite.new(
@@ -85,12 +95,30 @@ love.draw = function ()
   love.graphics.setCanvas(canvas)
   love.graphics.clear()
   love.graphics.setPixelEffect()
+  love.graphics.setColor(255, 255, 255)
 
   entity.draw()
   
   -- Draw to screen with scaling
   love.graphics.setCanvas()
+  
+  love.graphics.drawq(
+    frameImage, frameQuad,
+    0, 0,
+    0,
+    conf.screen.scale, conf.screen.scale
+  )
+  love.graphics.setColor(0, 0, 0)
+  love.graphics.rectangle(
+    "fill", 
+    conf.screen.x,
+    conf.screen.y,
+    CANVAS_WIDTH * conf.screen.scale,
+    CANVAS_HEIGHT * conf.screen.scale
+  )
+  
   love.graphics.setPixelEffect(pixelEffect)
+  love.graphics.setColor(255, 255, 255)
   love.graphics.draw(
     canvas,
     conf.screen.x,
