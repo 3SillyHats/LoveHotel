@@ -62,6 +62,11 @@ entity.addComponent(tester, sprite.new(
   {
     idle = {
       first = 0,
+      last = 0,
+      speed = 1,
+    },
+    typing = {
+      first = 0,
       last = 3,
       speed = .1,
     },
@@ -70,10 +75,10 @@ entity.addComponent(tester, sprite.new(
 ))
 entity.addComponent(tester, entity.newComponent({
   update = function (self, dt)
-    event.notify("sprite.play", tester, "idle")
+    event.notify("entity.move", tester, {x = 50, y = 50})
+    event.notify("sprite.play", tester, "typing")
   end
 }))
-event.notify("entity.move", tester, {x = 50, y = 50})
 
 love.draw = function ()
   -- Draw to canvas without scaling

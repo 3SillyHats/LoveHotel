@@ -82,6 +82,10 @@ M.new = function (id, image, width, height, animations, playing)
     sprite.x = e.x
     sprite.y = e.y
   end)
+  
+  event.subscribe("sprite.play", id, function (e)
+    sprite.playing = e
+  end)
 
   return sprite
 end
