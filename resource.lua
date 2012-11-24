@@ -28,6 +28,15 @@ loadRes[".glsl"] = function (name)
   end
   return pixelEffect
 end
+loadRes[".lua"] = function (name)
+  local script = love.filesystem.load(name)
+  local success, result = pcall(script)
+  if success then
+	return result
+  else
+    return nil
+  end
+end
 
 M.get = function (name)
   if not resources[name] then
