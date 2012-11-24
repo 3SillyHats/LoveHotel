@@ -7,6 +7,7 @@ local sprite = require("sprite")
 
 local M = {}
 
+--Position Component
 local posComponent = function (id, pos)
   --Create a new component for position stuff
   local component = entity.newComponent()
@@ -32,16 +33,29 @@ local posComponent = function (id, pos)
   return component
 end
 
+--Room information component
+local infoComponent = function (info)
+  --Create a new component to store information in,
+  --then store the info table into it.
+  local component = entity.newComponent(info)
+
+  return component
+end
+
+--Room constructor
 M.new = function (roomType, pos)
   --Create an entity and get the id for the new room
   local roomId = entity.new()
-  local img = resource.get("img/rooms/utility.png")
+  local room = resource.get("scr/" .. roomType)
+  local img = resource.get(room.image)
 
   --Add a sprite component for the room
   entity.addComponent(roomId, sprite.new(roomId,
     img, img:getWidth(), img:getHeight()))
   --Add position component
   entity.addComponent(roomId, posComponent(roomId, pos))
+  --Add info component
+  entity.addComponent(roomId, infoComponent(room))
 
   --Function returns the rooms id
   return roomId
