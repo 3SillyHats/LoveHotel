@@ -5,6 +5,7 @@ CANVAS_WIDTH = 256
 CANVAS_HEIGHT = 224
 
 local entity = require("entity")
+local res = require("res")
 
 conf = {}
 
@@ -45,15 +46,7 @@ canvas = love.graphics.newCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
 canvas:setFilter("nearest", "nearest")
 
 -- Create the pixel effect
-pixelEffect = nil
-local success, result = pcall(function ()
-	return love.graphics.newPixelEffect(
-	    love.filesystem.read("res/pfx/nes.glsl")
-	)
-end)
-if success then
-	pixelEffect = result
-end
+pixelEffect = res.get("pfx/nes.glsl")
 pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
 pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
 pixelEffect:send("rubyOutputSize", {conf.screen.width, conf.screen.height})
