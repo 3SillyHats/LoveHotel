@@ -4,8 +4,10 @@
 CANVAS_WIDTH = 256
 CANVAS_HEIGHT = 224
 
+local event = require("event")
 local entity = require("entity")
 local res = require("res")
+local sprite = require ("sprite")
 
 conf = {}
 
@@ -51,6 +53,28 @@ pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
 pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
 pixelEffect:send("rubyOutputSize", {conf.screen.width, conf.screen.height})
 
+-- XXX: Test entity
+local tester = entity.new()
+entity.addComponent(tester, sprite.new(
+  tester,
+  res.get("img/typing1.png"),
+  24, 24,
+  {
+    idle = {
+      first = 0,
+      last = 3,
+      speed = .1,
+    },
+  },
+  "idle"
+))
+entity.addComponent(tester, entity.newComponent({
+  update = function (self, dt)
+    event.notify("sprite.play", tester, "idle")
+  end
+}))
+event.notify("entity.move", tester, {x = 50, y = 50})
+
 love.draw = function ()
   -- Draw to canvas without scaling
   love.graphics.setCanvas(canvas)
@@ -58,11 +82,6 @@ love.draw = function ()
   love.graphics.setPixelEffect()
 
   entity.draw()
-  
-  love.graphics.setColor(255, 255 , 0)
-  love.graphics.rectangle("fill", 0, 0, 256, 224)
-  love.graphics.setColor(0, 128, 128)
-  love.graphics.rectangle("fill", 1, 1, 254, 222)
   
   -- Draw to screen with scaling
   love.graphics.setCanvas()

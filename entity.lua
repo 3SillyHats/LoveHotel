@@ -57,6 +57,7 @@ end
 
 local componentDraw = function (self) end
 local componentUpdate = function (self, dt) end
+
 M.newComponent = function (prototype)
   local component = {
     draw = componentDraw,
