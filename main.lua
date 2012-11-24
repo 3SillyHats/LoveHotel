@@ -66,7 +66,7 @@ else
   pixelEffect = resource.get("pfx/nes.glsl")
   pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
   pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-  pixelEffect:send("rubyOutputSize", {conf.screen.width, conf.screen.height})
+  pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
 end
 
 -- Create screen frame
@@ -113,13 +113,17 @@ event.notify("scroll", 0, 2)
 
 local gui = menu.new(2)
 
+-- Input training
+
+local controller = entity.new(1)
+entity.addComponent(controller, sprite.new(controller, resource.get("img/controller.png"), CANVAS_WIDTH, CANVAS_HEIGHT))
+
 local endTraining = function()
   event.notify("state.enter", 0, 2)
   event.unsubscribe("training.end", 0, endTraining)
 end
 event.subscribe("training.end", 0, endTraining)
 
--- Begin input training
 event.notify("training.begin", 0)
 
 love.draw = function ()
