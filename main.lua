@@ -8,6 +8,7 @@ FLOOR_OFFSET = 80
 
 local event = require("event")
 local entity = require("entity")
+local input = require("input")
 local resource = require("resource")
 local sprite = require ("sprite")
 local room = require("room")
@@ -107,6 +108,9 @@ event.notify("sprite.move", tester, {x = 50, y = 50})
 local roomTest = room.new("Utility", {roomNum = 3, floorNum = 1})
 event.notify("scroll", 0, 2)
 
+-- Begin input training
+event.notify("training.begin", 0)
+
 love.draw = function ()
   -- Draw to canvas without scaling
   love.graphics.setCanvas(canvas)
@@ -154,6 +158,7 @@ end
 
 love.update = function (dt)
   entity.update(dt)
+  input.update(dt)
 end
 
 -- XXX: temporary fix
@@ -161,4 +166,20 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
   if key == "escape" then
     love.event.push("quit")   -- actually causes the app to quit
   end
+  input.keyPressed(joystick, button)
 end
+
+love.keyreleased = function (joystick, button)
+  input.keyReleased(joystick, button)
+end
+
+love.joystickpressed = function (joystick, button)
+  input.joystickPressed(joystick, button)
+end
+
+love.joystickreleased = function (joystick, button)
+  input.joystickReleased(joystick, button)
+end
+
+event.subscribe("pressed", 0, function (key) print("p "..key) end)
+event.subscribe("released", 0, function (key) print("r "..key) end)
