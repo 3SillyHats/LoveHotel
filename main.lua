@@ -6,7 +6,7 @@ CANVAS_HEIGHT = 224
 
 local event = require("event")
 local entity = require("entity")
-local res = require("res")
+local resource = require("resource")
 local sprite = require ("sprite")
 
 conf = {}
@@ -48,7 +48,7 @@ canvas = love.graphics.newCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
 canvas:setFilter("nearest", "nearest")
 
 -- Create the pixel effect
-pixelEffect = res.get("pfx/nes.glsl")
+pixelEffect = resource.get("pfx/nes.glsl")
 pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
 pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
 pixelEffect:send("rubyOutputSize", {conf.screen.width, conf.screen.height})
@@ -57,7 +57,7 @@ pixelEffect:send("rubyOutputSize", {conf.screen.width, conf.screen.height})
 local tester = entity.new()
 entity.addComponent(tester, sprite.new(
   tester,
-  res.get("img/typing1.png"),
+  resource.get("img/typing1.png"),
   24, 24,
   {
     idle = {
