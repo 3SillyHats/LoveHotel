@@ -12,6 +12,7 @@ local input = require("input")
 local resource = require("resource")
 local sprite = require ("sprite")
 local room = require("room")
+local menu = require("menu")
 
 conf = {}
 
@@ -110,6 +111,8 @@ event.notify("sprite.move", tester, {x = 50, y = 50})
 local roomTest = room.new("Utility", {roomNum = 3, floorNum = 1})
 event.notify("scroll", 0, 2)
 
+local gui = menu.new()
+
 -- Begin input training
 event.notify("training.begin", 0)
 
@@ -128,6 +131,7 @@ love.draw = function ()
   love.graphics.setCanvas()
   
   -- Draw the screen frame
+  love.graphics.setColor(255,255,255)
   love.graphics.drawq(
     frameImage, frameQuad,
     0, 0,
@@ -163,7 +167,6 @@ love.update = function (dt)
   input.update(dt)
 end
 
--- XXX: temporary fix
 function love.keypressed(key)   -- we do not need the unicode, so we can leave it out
   if key == "escape" then
     love.event.push("quit")   -- actually causes the app to quit
@@ -184,5 +187,3 @@ love.joystickreleased = function (joystick, button)
   input.joystickReleased(joystick, button)
 end
 
-event.subscribe("pressed", 0, function (key) print("p "..key) end)
-event.subscribe("released", 0, function (key) print("r "..key) end)

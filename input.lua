@@ -25,7 +25,7 @@ local map = {
   joysticks = {},
 }
 
-trainNext = function ()
+local trainNext = function ()
   print(inputs[current])
   current = current + 1
   if current > #inputs then
@@ -156,7 +156,8 @@ M.update = function (dt)
             if (hat == 'u' or hat == 'd' or hat == 'l' or hat == 'r') and map.joysticks[i].hats[hat] then
               event.notify("pressed", 0, map.joysticks[i].hats[hat])
             end
-            if (oldHat[i][j] == 'u' or oldHat[i][j] == 'd' or oldHat[i][j] == 'l' or oldHat[i][j] == 'r') and map.joysticks[i].hats[oldHat[i][j]] then
+            if (oldHat[i][j] == 'u' or oldHat[i][j] == 'd' or oldHat[i][j] == 'l' or oldHat[i][j] == 'r')
+                and map.joysticks[i].hats[oldHat[i][j]] then
               event.notify("released", 0, map.joysticks[i].hats[oldHat[i][j]])
             end
           end
