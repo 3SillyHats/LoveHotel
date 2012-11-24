@@ -46,7 +46,12 @@ love.graphics.setMode(
 love.graphics.setBackgroundColor(0, 0, 0)
 
 -- Create the canvas
-canvas = love.graphics.newCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
+canvas = nil
+if love.graphics.newCanvas then
+  canvas = love.graphics.newCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
+else
+  canvas = love.graphics.newFramebuffer(CANVAS_WIDTH, CANVAS_HEIGHT)
+end
 canvas:setFilter("nearest", "nearest")
 
 -- Create the pixel effect
@@ -109,12 +114,14 @@ love.draw = function ()
   -- Draw to screen with scaling
   love.graphics.setCanvas()
   
+  -- Draw the screen frame
   love.graphics.drawq(
     frameImage, frameQuad,
     0, 0,
     0,
     conf.screen.scale, conf.screen.scale
   )
+  -- Fill the screen area black for pixel effect
   love.graphics.setColor(0, 0, 0)
   love.graphics.rectangle(
     "fill", 
