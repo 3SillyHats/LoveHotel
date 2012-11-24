@@ -1,4 +1,4 @@
--- res.lua
+-- resource.lua
 
 local M = {}
 
@@ -32,7 +32,7 @@ end
 M.get = function (name)
   if not resources[name] then
     local extension = findPattern(name, "\.[^.]+$")
-    resources[name] = loadRes[extension]("res/" .. name)
+    resources[name] = loadRes[extension]("resources/" .. name)
   end
   return resources[name]
 end
