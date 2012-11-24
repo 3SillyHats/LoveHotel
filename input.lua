@@ -36,7 +36,7 @@ end
 
 M.keyPressed = function (key)
   if training then
-    if not map.keys[key] then
+    if key ~= nil and not map.keys[key] then
       map.keys[key] = inputs[current]
       trainNext()
     end

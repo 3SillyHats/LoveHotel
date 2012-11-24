@@ -163,14 +163,14 @@ end
 
 -- XXX: temporary fix
 function love.keypressed(key)   -- we do not need the unicode, so we can leave it out
+  input.keyPressed(key)
   if key == "escape" then
     love.event.push("quit")   -- actually causes the app to quit
   end
-  input.keyPressed(joystick, button)
 end
 
-love.keyreleased = function (joystick, button)
-  input.keyReleased(joystick, button)
+love.keyreleased = function (key)
+  input.keyReleased(key)
 end
 
 love.joystickpressed = function (joystick, button)
