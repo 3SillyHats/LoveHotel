@@ -13,12 +13,14 @@ local inputs = {
   "right", -- 70, 120
   "up", -- 54, 108
   "down", -- 54, 134
+  "start", -- 
+  "select", -- 
 }
 
 event.subscribe("training.begin", 0, function ()
   training = true
   current = 1
-  event.notify("training.current", 0, current)
+  event.notify("training.current", 0, inputs[current])
 end)
 
 local map = {
@@ -31,8 +33,8 @@ local trainNext = function ()
   if current > #inputs then
     training = false
     event.notify("training.end", 0)
-   else
-	event.notify("training.current", 0, current)
+  else
+    event.notify("training.current", 0, inputs[current])
   end
 end
 

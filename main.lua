@@ -3,8 +3,8 @@
 -- Constants
 CANVAS_WIDTH = 256
 CANVAS_HEIGHT = 224
-ROOM_INDENT = 16
-FLOOR_OFFSET = 80
+ROOM_INDENT = 32*0.5
+FLOOR_OFFSET = 32*2.5
 
 local event = require("event")
 local entity = require("entity")
@@ -123,12 +123,14 @@ entity.addComponent(controller, sprite.new(controller, {
 }))
 
 local inputLocations = {
-  {x=207, y=130},
-  {x=175, y=130},
-  {x=42, y=120},
-  {x=70, y=120},
-  {x=56, y=108},
-  {x=56, y=134},
+  a={x=207, y=130},
+  b={x=175, y=130},
+  left={x=42, y=120},
+  right={x=70, y=120},
+  up={x=56, y=108},
+  down={x=56, y=134},
+  start={x=135, y=132},
+  select={x=110, y=132},
 }
 local arrow = entity.new(1)
 entity.addComponent(arrow, sprite.new(
