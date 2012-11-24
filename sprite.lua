@@ -78,7 +78,7 @@ M.new = function (id, image, width, height, animations, playing)
     play = play,
   })
   
-  event.subscribe("entity.move", id, function (e)
+  event.subscribe("sprite.move", id, function (e)
     sprite.x = e.x
     sprite.y = e.y
   end)

@@ -5,11 +5,15 @@ local M = {}
 local resources = {}
 
 local findPattern = function (text, pattern, start)
-    return string.sub(text, string.find(text, pattern, start))
+  return string.sub(text, string.find(text, pattern, start))
 end
 
 local loadRes = {}
-loadRes[".png"] = love.graphics.newImage
+loadRes[".png"] = function (name)
+  local image = love.graphics.newImage(name)
+  image:setFilter("nearest", "nearest")
+  return image
+end
 loadRes[".wav"] = function (name)
   love.audio.newSource(name, "static")
 end
@@ -27,6 +31,15 @@ loadRes[".glsl"] = function (name)
     pixelEffect = result
   end
   return pixelEffect
+end
+loadRes[".lua"] = function (name)
+  local script = love.filesystem.load(name)
+  local success, result = pcall(script)
+  if success then
+	return result
+  else
+    return nil
+  end
 end
 
 M.get = function (name)

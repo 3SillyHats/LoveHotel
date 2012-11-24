@@ -11,8 +11,8 @@ uniform vec2 rubyInputSize;
 // the output size (eg. x2, so 640x480)
 uniform vec2 rubyOutputSize;
 
-const float base_brightness = .95;
-const vec2 sine_comp = vec2(0.05, 0.15);
+const float base_brightness = .9;
+const vec2 sine_comp = vec2(0.02, 0.2);
 
 vec4 effect(vec4 color, sampler2D texture,
     vec2 texture_coords, vec2 screen_coords)

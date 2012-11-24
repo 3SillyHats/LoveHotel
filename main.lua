@@ -3,11 +3,15 @@
 -- Constants
 CANVAS_WIDTH = 256
 CANVAS_HEIGHT = 224
+ROOM_INDENT = 16
+FLOOR_OFFSET = 80
 
 local event = require("event")
 local entity = require("entity")
+local input = require("input")
 local resource = require("resource")
 local sprite = require ("sprite")
+local room = require("room")
 
 conf = {}
 
@@ -40,18 +44,29 @@ love.graphics.setMode(
   conf.screen.height,
   conf.screen.fullscreen
 )
-love.graphics.setDefaultImageFilter("nearest", "nearest")
 love.graphics.setBackgroundColor(0, 0, 0)
 
+love.mouse.setVisible(false)
+
 -- Create the canvas
+if not love.graphics.newCanvas then
+  -- Support love2d versions before 0.8
+  love.graphics.newCanvas = love.graphics.newFramebuffer
+  love.graphics.setCanvas = love.graphics.setRenderTarget
+end
 canvas = love.graphics.newCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
 canvas:setFilter("nearest", "nearest")
 
 -- Create the pixel effect
-pixelEffect = resource.get("pfx/nes.glsl")
-pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-pixelEffect:send("rubyOutputSize", {conf.screen.width, conf.screen.height})
+if not love.graphics.newPixelEffect then
+  -- Support love2d versions before 0.8
+  love.graphics.setPixelEffect = function () end
+else
+  pixelEffect = resource.get("pfx/nes.glsl")
+  pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+  pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+  pixelEffect:send("rubyOutputSize", {conf.screen.width, conf.screen.height})
+end
 
 -- Create screen frame
 local frameImage = resource.get("img/frame.png")
@@ -89,12 +104,22 @@ entity.addComponent(tester, entity.newComponent({
     event.notify("sprite.play", tester, "typing")
   end
 }))
+event.notify("sprite.move", tester, {x = 50, y = 50})
+
+--Myles's Room Test
+local roomTest = room.new("Utility", {roomNum = 3, floorNum = 1})
+event.notify("scroll", 0, 2)
+
+-- Begin input training
+event.notify("training.begin", 0)
 
 love.draw = function ()
   -- Draw to canvas without scaling
   love.graphics.setCanvas(canvas)
   love.graphics.clear()
-  love.graphics.setPixelEffect()
+  if love.graphics.newPixelEffect then
+    love.graphics.setPixelEffect()
+  end
   love.graphics.setColor(255, 255, 255)
 
   entity.draw()
@@ -102,12 +127,14 @@ love.draw = function ()
   -- Draw to screen with scaling
   love.graphics.setCanvas()
   
+  -- Draw the screen frame
   love.graphics.drawq(
     frameImage, frameQuad,
     0, 0,
     0,
     conf.screen.scale, conf.screen.scale
   )
+  -- Fill the screen area black for pixel effect
   love.graphics.setColor(0, 0, 0)
   love.graphics.rectangle(
     "fill", 
@@ -117,7 +144,9 @@ love.draw = function ()
     CANVAS_HEIGHT * conf.screen.scale
   )
   
-  love.graphics.setPixelEffect(pixelEffect)
+  if love.graphics.newPixelEffect then
+    love.graphics.setPixelEffect(pixelEffect)
+  end
   love.graphics.setColor(255, 255, 255)
   love.graphics.draw(
     canvas,
@@ -131,11 +160,29 @@ end
 
 love.update = function (dt)
   entity.update(dt)
+  input.update(dt)
 end
 
 -- XXX: temporary fix
 function love.keypressed(key)   -- we do not need the unicode, so we can leave it out
   if key == "escape" then
     love.event.push("quit")   -- actually causes the app to quit
+    love.event.push("q")
   end
+  input.keyPressed(key)
 end
+
+love.keyreleased = function (key)
+  input.keyReleased(key)
+end
+
+love.joystickpressed = function (joystick, button)
+  input.joystickPressed(joystick, button)
+end
+
+love.joystickreleased = function (joystick, button)
+  input.joystickReleased(joystick, button)
+end
+
+event.subscribe("pressed", 0, function (key) print("p "..key) end)
+event.subscribe("released", 0, function (key) print("r "..key) end)
