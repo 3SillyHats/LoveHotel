@@ -95,7 +95,7 @@ entity.addComponent(tester, entity.newComponent({
 event.notify("sprite.move", tester, {x = 50, y = 50})
 
 --Myles's Room Test
-local roomTest = room.new("Toilet", {roomNum = 3, floorNum = 1})
+local roomTest = room.new("Utility", {roomNum = 3, floorNum = 1})
 event.notify("scroll", 0, 2)
 
 love.draw = function ()

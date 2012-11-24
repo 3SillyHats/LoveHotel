@@ -46,8 +46,8 @@ end
 M.new = function (roomType, pos)
   --Create an entity and get the id for the new room
   local roomId = entity.new()
-  local room = resource.get("scr/" .. roomType)
-  local img = resource.get(room.image)
+  local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
+  local img = resource.get("img/rooms/" .. room.image)
 
   --Add a sprite component for the room
   entity.addComponent(roomId, sprite.new(roomId,
