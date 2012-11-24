@@ -39,8 +39,8 @@ end
 
 local M = {}
 
-M.new = function ()
-  local id = entity.new()
+M.new = function (state)
+  local id = entity.new(state)
     
   entity.addComponent(id, hud(id))
   

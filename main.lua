@@ -80,7 +80,7 @@ local frameQuad = love.graphics.newQuad(
 )
 
 -- XXX: Test entity
-local tester = entity.new()
+local tester = entity.new(2)
 entity.addComponent(tester, sprite.new(
   tester,
   resource.get("img/typing1.png"),
@@ -108,10 +108,16 @@ entity.addComponent(tester, entity.newComponent({
 event.notify("sprite.move", tester, {x = 50, y = 50})
 
 --Myles's Room Test
-local roomTest = room.new("Utility", {roomNum = 3, floorNum = 1})
+local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
 event.notify("scroll", 0, 2)
 
-local gui = menu.new()
+local gui = menu.new(2)
+
+local endTraining = function()
+  event.notify("state.enter", 0, 2)
+  event.unsubscribe("training.end", 0, endTraining)
+end
+event.subscribe("training.end", 0, endTraining)
 
 -- Begin input training
 event.notify("training.begin", 0)

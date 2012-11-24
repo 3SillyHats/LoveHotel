@@ -26,7 +26,6 @@ local map = {
 }
 
 local trainNext = function ()
-  print(inputs[current])
   current = current + 1
   if current > #inputs then
     training = false
