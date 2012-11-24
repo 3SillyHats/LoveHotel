@@ -43,7 +43,6 @@ love.graphics.setMode(
   conf.screen.height,
   conf.screen.fullscreen
 )
-love.graphics.setDefaultImageFilter("nearest", "nearest")
 love.graphics.setBackgroundColor(0, 0, 0)
 
 -- Create the canvas

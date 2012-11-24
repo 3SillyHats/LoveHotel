@@ -5,11 +5,15 @@ local M = {}
 local resources = {}
 
 local findPattern = function (text, pattern, start)
-    return string.sub(text, string.find(text, pattern, start))
+  return string.sub(text, string.find(text, pattern, start))
 end
 
 local loadRes = {}
-loadRes[".png"] = love.graphics.newImage
+loadRes[".png"] = function (name)
+  local image = love.graphics.newImage(name)
+  image:setFilter("nearest", "nearest")
+  return image
+end
 loadRes[".wav"] = function (name)
   love.audio.newSource(name, "static")
 end
