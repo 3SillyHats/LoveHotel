@@ -29,16 +29,16 @@ M.delete = function (id)
 end
 
 M.draw = function ()
-  for _,entity in ipairs(entities)
-    for _,component in ipairs(entity.components)
+  for _,entity in ipairs(entities) do
+    for _,component in ipairs(entity.components) do
       component:draw()
     end
   end
 end
 
 M.update = function (dt)
-  for _,entity in ipairs(entities)
-    for _,component in ipairs(entity.components)
+  for _,entity in ipairs(entities) do
+    for _,component in ipairs(entity.components) do
       component:update(dt)
     end
   end
