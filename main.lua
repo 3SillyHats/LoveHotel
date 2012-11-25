@@ -14,8 +14,14 @@ local sprite = require ("sprite")
 local room = require("room")
 local menu = require("menu")
 local ai = require("ai")
+local builder = require("builder")
 
 conf = {}
+
+gScrollPos = 1
+event.subscribe("scroll", 0, function (scrollPos)
+  gScrollPos = scroll
+end)
 
 -- Setup the window
 local setupScreen = function (modes)
@@ -115,7 +121,7 @@ entity.addComponent(tester, ai.new(tester, {
 
 --Myles's Room Test
 local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
-event.notify("scroll", 0, 2)
+local builderTest = builder.new(2, "Utility", {roomNum = 4, floorNum = 1})
 
 --Menu spacing values
 local mainMenuY = 32*6.5

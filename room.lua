@@ -5,35 +5,10 @@ local entity = require("entity")
 local resource = require("resource")
 local event = require("event")
 local sprite = require("sprite")
+local transform = require("transform")
 
 --Create the module
 local M = {}
-
---Position Component
-local posComponent = function (id, pos)
-  --Create a new component for position stuff
-  local component = entity.newComponent()
-
-  --Load the tower position into the component
-  component.pos = pos
-
-  --[[Subscribe to the scroll event so that the rooms screen
-  position gets updated when the tower is scrolled.
-  The callback method transforms from tower position to
-  screen position, and notifies "sprite.move"--]]
-  event.subscribe("scroll", 0,
-    function (scrollPos)
-      local screenPos = {
-        x = (component.pos.roomNum - 1) * 32 + ROOM_INDENT,
-        y = (scrollPos - component.pos.floorNum) * 32 + FLOOR_OFFSET,
-      }
-
-      event.notify("sprite.move", id, screenPos)
-
-    end)
-
-  return component
-end
 
 --Room information component
 local infoComponent = function (info)
@@ -59,7 +34,7 @@ M.new = function (state, roomType, pos)
     height = img:getHeight()
   }))
   --Add position component
-  entity.addComponent(roomId, posComponent(roomId, pos))
+  entity.addComponent(roomId, transform.new(roomId, pos))
   --Add info component
   entity.addComponent(roomId, infoComponent(room))
 
