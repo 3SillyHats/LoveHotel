@@ -117,11 +117,15 @@ entity.addComponent(tester, ai.new(tester, {
 local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
 event.notify("scroll", 0, 2)
 
-local gui = menu.new(2, 32*6.5)
+--Menu spacing values
+local mainMenuY = 32*6.5
+local subMenuY = 32*6
+
+local gui = menu.new(2, mainMenuY)
 --The Build button, opens build menu
 menu.addButton(gui, menu.newButton("build", function ()
   --Create the build menu
-  local buildMenu = menu.new(2, 32*6)
+  local buildMenu = menu.new(2, subMenuY)
 
   --Build Janitors Closet button
   menu.addButton(buildMenu, menu.newButton("janitor", function ()
@@ -147,7 +151,18 @@ menu.addButton(gui, menu.newButton("destroy", function ()
 end))
 --The Hire button, for hiring staff
 menu.addButton(gui, menu.newButton("hire", function ()
-  print("You're Hired!")
+  --Create the hire menu
+  local hireMenu = menu.new(2, subMenuY)
+
+  --Hire a janitor
+  menu.addButton(hireMenu, menu.newButton("janitor", function ()
+    print("Janitor Hired")
+  end))
+
+  --The back button deletes the hire menu
+  menu.setBack(hireMenu, function ()
+    entity.delete(hireMenu)
+  end)
 end))
 --The back button, quits the game at the moment
 menu.setBack(gui, function ()
