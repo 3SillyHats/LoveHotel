@@ -74,10 +74,14 @@ M.new = function (state, roomType, pos)
     width = img:getWidth(),
     height = img:getHeight(),
     --Use the clean room back layer
-    quad = love.graphics.newQuad(
-      0, 0, img:getWidth(), 32,
-      img:getWidth(), img:getHeight()
-    ),
+    animation = {
+      idle = {
+        first = 1,
+        last = 1,
+        speed = 1,
+      },
+    },
+    playing = idle,
   }))
   --Add a sprite for the front layer of the room
   entity.addComponent(id, sprite.new(id, {
@@ -85,10 +89,14 @@ M.new = function (state, roomType, pos)
     width = img:getWidth(),
     height = img:getHeight(),
     --Used the closed door front layer
-    quad = love.graphics.newQuad(
-      0, 32*(room.aniFrames+1), img:getWidth(), 32,
-      img:getWidth(), img:getHeight()
-    ),
+    animation = {
+      idle = {
+        first = room.aniFrames+2,
+        last = room.aniFrames+2,
+        speed = 1,
+      },
+    },
+    playing = idle,
   }))
   --Add an outline component for the room
   entity.addComponent(id, outline(id, {
