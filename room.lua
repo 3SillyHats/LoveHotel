@@ -17,7 +17,9 @@ local infoComponent = function (id, info, pos)
   local component = entity.newComponent(info)
   
   local check = function (t)
-    if t.floorNum == pos.floorNum and t.roomNum >= pos.roomNum and t.roomNum < pos.roomNum + info.width then
+    if t.floorNum == pos.floorNum and
+        t.roomNum >= pos.roomNum - 0.5 and
+        t.roomNum <= pos.roomNum - 0.5 + info.width then
       t.callback(id)
     end
   end
