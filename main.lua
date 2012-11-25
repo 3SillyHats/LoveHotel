@@ -112,7 +112,17 @@ event.notify("sprite.move", tester, {x = 50, y = 50})
 local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
 event.notify("scroll", 0, 2)
 
-local gui = menu.new(2)
+local gui = menu.new(2, 32*6)
+menu.addButton(gui, menu.newButton(function ()
+  print("Hello")
+end))
+menu.addButton(gui, menu.newButton(function ()
+  print("World")
+end))
+menu.setBack(gui, function ()
+  love.event.push("quit")   -- actually causes the app to quit
+  love.event.push("q")
+end)
 
 -- Input training
 
