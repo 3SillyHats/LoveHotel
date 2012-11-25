@@ -131,6 +131,7 @@ local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
 local mainMenuY = 32*6.5
 local subMenuY = 32*6
 
+
 local gui = menu.new(2, mainMenuY)
 --The Build button, opens build menu
 menu.addButton(gui, menu.newButton("build", function ()
@@ -138,22 +139,33 @@ menu.addButton(gui, menu.newButton("build", function ()
   
   --Create the build menu
   local buildMenu = menu.new(2, subMenuY)
-
+  
   --Build Utility Room button
   menu.addButton(buildMenu, menu.newButton("utility", function ()
     menu.disable(buildMenu)
 
     local buildUtility = builder.new(2, "utility", {roomNum = 1, floorNum = 1})
+    
+    local back = function () end
+    
+    local function onBuild ()
+      event.unsubscribe("pressed", 0, back)
+      event.unsubscribe("build", buildUtility, onBuild)
+      menu.enable(buildMenu)
+      entity.delete(buildUtility)
+    end
 
-    local function back (key)
+    back = function (key)
       if key == "b" then
         event.unsubscribe("pressed", 0, back)
+        event.unsubscribe("build", buildUtility, onBuild)
         menu.enable(buildMenu)
         entity.delete(buildUtility)
       end
     end
 
     event.subscribe("pressed", 0, back)
+    event.subscribe("build", buildUtility, onBuild)
   end))
   --Build Flower Room button
   menu.addButton(buildMenu, menu.newButton("flower", function ()
@@ -166,7 +178,6 @@ menu.addButton(gui, menu.newButton("build", function ()
 
   --The back button deletes the build menu
   menu.setBack(buildMenu, function ()
-    print("back", buildMenu)
     entity.delete(buildMenu)
     menu.enable(gui)
   end)
