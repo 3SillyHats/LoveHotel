@@ -107,5 +107,13 @@ M.new = function (state, roomType, pos)
   return roomId
 end
 
+M.getPos = function (id)
+  local pos
+  event.notify("entity.pos", id, function (e)
+    pos = e
+  end)
+  return pos
+end
+
 --Return the module
 return M

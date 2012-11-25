@@ -46,15 +46,21 @@ M.new = function (id, pos, offset)
     component.pos = pos
     updatePos()
   end
+
+  local getPos = function (callback)
+    callback(component.pos)
+  end
   
   local function delete ()
     event.unsubscribe("scroll", 0, scroll)
     event.unsubscribe("entity.move", id, move)
+    event.unsubscribe("entity.pos", id, getPos)
     event.unsubscribe("delete", id, delete)
   end
   
   event.subscribe("scroll", 0, scroll)
   event.subscribe("entity.move", id, move)
+  event.subscribe("entity.pos", id, getPos)
   event.subscribe("delete", id, delete)
 
   return component

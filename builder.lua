@@ -93,8 +93,8 @@ local placer = function (id, type, pos, width, cost, t)
         local pos = {roomNum = component.room, floorNum = component.floor}
         local room = room.new(2, type, pos)
         money = money - cost
-        event.notify("build", id, {id=room, pos=pos})
-        event.notify("build", 0, {id=room, pos=pos})
+        event.notify("build", id, {id=room, pos=pos, type=type})
+        event.notify("build", 0, {id=room, pos=pos, type=type})
       end
     end
   end
