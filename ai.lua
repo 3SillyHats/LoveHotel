@@ -118,6 +118,9 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
     end
   end
   goal.process = function (self, dt)
+    if self.moveTo.floorNum ~= self.pos.floorNum then
+      return "failed"
+    end
     if math.abs(self.moveTo.roomNum - self.pos.roomNum) < self.speed*dt then
       local result = goto{
         roomNum = self.moveTo.roomNum,
@@ -161,7 +164,13 @@ local addMoveToGoal = function (self, moveFrom, moveTo, moveSpeed)
   goal.pos = moveFrom
   goal.speed = moveSpeed
   
-  local seekGoal = newSeekGoal(self, moveFrom, moveTo, moveSpeed)
+  local seekGoal = newSeekGoal(self, moveFrom, {roomNum = 20, floorNum = 1}, moveSpeed)
+  goal:addSubgoal(seekGoal)
+  
+  seekGoal = newSeekGoal(self, {roomNum = 7.5, floorNum = 1}, {roomNum = 1, floorNum = 1}, moveSpeed)
+  goal:addSubgoal(seekGoal)
+  
+  seekGoal = newSeekGoal(self, {roomNum = 1, floorNum = 1}, moveTo, moveSpeed)
   goal:addSubgoal(seekGoal)
   
   goal.getDesirability = function (self, t)
