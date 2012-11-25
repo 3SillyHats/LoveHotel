@@ -183,6 +183,10 @@ menu.addButton(gui, menu.newButton("build", function ()
   menu.addButton(buildMenu, menu.newButton("heart", function ()
     buildRoom("heart", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
   end))
+  --Build Tropical Room
+  menu.addButton(buildMenu, menu.newButton("tropical", function ()
+    buildRoom("tropical", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
+  end))
 
   --The back button deletes the build menu
   menu.setBack(buildMenu, function ()
