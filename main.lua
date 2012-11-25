@@ -123,7 +123,7 @@ entity.addComponent(tester, ai.new(tester, {
 
 --Myles's Room Test
 local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
-local builderTest = builder.new(2, "Utility", {roomNum = 4, floorNum = 1})
+local buildUtility = builder.new(2, "utility", {roomNum = 1, floorNum = 1})
 
 --Menu spacing values
 local mainMenuY = 32*6.5
@@ -137,9 +137,9 @@ menu.addButton(gui, menu.newButton("build", function ()
   --Create the build menu
   local buildMenu = menu.new(2, subMenuY)
 
-  --Build Janitors Closet button
-  menu.addButton(buildMenu, menu.newButton("janitor", function ()
-    print("Building Janitors Closet")
+  --Build Utility Room button
+  menu.addButton(buildMenu, menu.newButton("utility", function ()
+    print("Building Utility Room")
   end))
   --Build Flower Room button
   menu.addButton(buildMenu, menu.newButton("flower", function ()

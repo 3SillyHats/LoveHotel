@@ -9,7 +9,7 @@ local buttLoc = {
   build = 1,
   destroy = 2,
   hire = 3,
-  janitor = 4,
+  utility = 4,
   flower = 5,
   heart = 6,
 }
