@@ -26,6 +26,8 @@ event.subscribe("scroll", 0, function (scrollPos)
   gScrollPos = scrollPos
 end)
 
+money = 1000
+
 -- Setup the window
 local setupScreen = function (modes)
   table.sort(modes, function (a, b)
@@ -131,6 +133,34 @@ local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
 local mainMenuY = 32*6.5
 local subMenuY = 32*6
 
+
+local buildRoom = function (type, pos, baseMenu)
+  menu.disable(baseMenu)
+
+  local buildUtility = builder.new(2, type, pos)
+    
+  local back = function () end
+    
+  local function onBuild ()
+    event.unsubscribe("pressed", 0, back)
+    event.unsubscribe("build", buildUtility, onBuild)
+    menu.enable(baseMenu)
+    entity.delete(buildUtility)
+  end
+
+  back = function (key)
+    if key == "b" then
+      event.unsubscribe("pressed", 0, back)
+      event.unsubscribe("build", buildUtility, onBuild)
+      menu.enable(baseMenu)
+      entity.delete(buildUtility)
+    end
+  end
+
+  event.subscribe("pressed", 0, back)
+  event.subscribe("build", buildUtility, onBuild)
+end
+
 local gui = menu.new(2, mainMenuY)
 --The Build button, opens build menu
 menu.addButton(gui, menu.newButton("build", function ()
@@ -138,35 +168,22 @@ menu.addButton(gui, menu.newButton("build", function ()
   
   --Create the build menu
   local buildMenu = menu.new(2, subMenuY)
-
+  
   --Build Utility Room button
   menu.addButton(buildMenu, menu.newButton("utility", function ()
-    menu.disable(buildMenu)
-
-    local buildUtility = builder.new(2, "utility", {roomNum = 1, floorNum = 1})
-
-    local function back (key)
-      if key == "b" then
-        event.unsubscribe("pressed", 0, back)
-        menu.enable(buildMenu)
-        entity.delete(buildUtility)
-      end
-    end
-
-    event.subscribe("pressed", 0, back)
+    buildRoom("utility", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
   end))
   --Build Flower Room button
   menu.addButton(buildMenu, menu.newButton("flower", function ()
-    print("Building Flower Room")
+    buildRoom("flower", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
   end))
   --Build Heart Room
   menu.addButton(buildMenu, menu.newButton("heart", function ()
-    print("Building Heart Room")
+    buildRoom("heart", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
   end))
 
   --The back button deletes the build menu
   menu.setBack(buildMenu, function ()
-    print("back", buildMenu)
     entity.delete(buildMenu)
     menu.enable(gui)
   end)
@@ -273,6 +290,26 @@ hudCom.draw = function (self)
   )
 end
 entity.addComponent(hudBar, hudCom)
+
+-- Create the money display
+local moneyFont = love.graphics.newImageFont(
+  resource.get("img/font.png"),
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$"
+)
+local moneyDisplay = entity.new(STATE_PLAY)
+entity.setOrder(moneyDisplay, 100)
+local moneyCom = entity.newComponent()
+moneyCom.draw = function (self)
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.setFont(moneyFont)
+  love.graphics.printf(
+    "$" .. money,
+    200, CANVAS_HEIGHT - 24,
+    56,
+    "right"
+  )
+end
+entity.addComponent(moneyDisplay, moneyCom)
 
 love.draw = function ()
   -- Draw to canvas without scaling

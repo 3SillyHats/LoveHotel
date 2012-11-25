@@ -61,7 +61,7 @@ M.new = function (state, roomType, pos)
         speed = 1,
       },
     },
-    playing = clean,
+    playing = "clean",
   }))
   --Add a sprite component for the front layer of the room
   entity.addComponent(roomId, sprite.new(roomId, {
@@ -70,29 +70,29 @@ M.new = function (state, roomType, pos)
     height = imgHeight,
     animations = {
       opened = {
-        first = 3,
-        last = 3,
+        first = 2,
+        last = 2,
         speed = 1,
       },
       closed = {
-        first = room.aniFrames+2,
-        last = room.aniFrames+2,
+        first = room.aniFrames+1,
+        last = room.aniFrames+1,
         speed = 1,
       },
       closing = {
-        first = 3,
-        last = room.aniFrames+2,
-        speed = 1,
-        goto = closed,
+        first = 2,
+        last = room.aniFrames+1,
+        speed = 0.2,
+        goto = "closed",
       },
       opening = {
-        first = room.aniFrames+2,
-        last = 3,
-        speed = 1,
-        goto = opened,
+        first = room.aniFrames+1,
+        last = 2,
+        speed = 0.2,
+        goto = "opened",
       },
     },
-    playing = opened,
+    playing = "opening",
   }))
 
   --Add position component

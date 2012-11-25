@@ -12,10 +12,10 @@ local room = require("room")
 --Create the module
 local M = {}
 
-local placer = function (id, type, width, cost)
+local placer = function (id, type, pos, width, cost)
   local component = entity.newComponent({
-    room = 4,
-    floor = gScrollPos,
+    room = pos.roomNum,
+    floor = pos.floorNum,
     width = width,
     cost = cost,
   })
@@ -53,13 +53,14 @@ local placer = function (id, type, width, cost)
         updatePosition()
       end
     elseif key == "right" then
-      if component.room < 7 then
+      if component.room+component.width <= 7 then
         component.room = component.room + 1
         updatePosition()
       end
     elseif key == "a" then
       if clear then
         local room = room.new(2, type, {roomNum = component.room, floorNum = component.floor})
+        event.notify("build", id)
       end
     end
   end
@@ -133,35 +134,20 @@ M.new = function (state, roomType, pos)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
   local img = resource.get("img/rooms/" .. room.image)
 
-  --Add a sprite component for back layer the room
-  entity.addComponent(id, sprite.new(id, {
-    image = img,
-    width = img:getWidth(),
-    height = 32,
-    --Use the clean room back layer
-    animation = {
-      clean = {
-        first = 1,
-        last = 1,
-        speed = 1,
-      },
-    },
-    playing = clean,
-  }))
   --Add a sprite for the front layer of the room
   entity.addComponent(id, sprite.new(id, {
     image = img,
     width = img:getWidth(),
     height = 32,
     --Used the closed door front layer
-    animation = {
+    animations = {
       closed = {
-        first = room.aniFrames+2,
-        last = room.aniFrames+2,
+        first = room.aniFrames+1,
+        last = room.aniFrames+1,
         speed = 1,
       },
     },
-    playing = closed,
+    playing = "closed",
   }))
   --Add an outline component for the room
   entity.addComponent(id, outline(id, {
@@ -171,7 +157,7 @@ M.new = function (state, roomType, pos)
   --Add position component
   entity.addComponent(id, transform.new(id, pos))
   --Add placer component
-  entity.addComponent(id, placer(id, roomType, room.width, room.cost))
+  entity.addComponent(id, placer(id, roomType, pos, room.width, room.cost))
 
   --Function returns the rooms id
   return id
