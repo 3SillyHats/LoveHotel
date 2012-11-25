@@ -7,19 +7,23 @@ local resource = require("resource")
 local event = require("event")
 local sprite = require("sprite")
 local transform = require("transform")
+local room = require("room")
 
 --Create the module
 local M = {}
 
-local placer = function (id, width, cost)
+local placer = function (id, type, width, cost)
   local component = entity.newComponent({
     room = 4,
     floor = gScrollPos,
     width = width,
     cost = cost,
   })
+  
+  local clear = true
     
   local updatePosition = function()
+    clear = true
     event.notify("entity.move", id, {roomNum = component.room, floorNum = component.floor})
     
     for i = 1,component.width do
@@ -27,6 +31,7 @@ local placer = function (id, width, cost)
         roomNum = component.room + i - 1,
         floorNum = component.floor,
         callback = function (otherId)
+          clear = false,
           event.notify("room.conflict", id, otherId)
         end,
       })
@@ -45,7 +50,9 @@ local placer = function (id, width, cost)
         updatePosition()
       end
     elseif key == "a" then
-      
+      if clear then
+        local room = room.new(2, type, {roomNum = component.room, floorNum = component.floor})
+      end
     end
   end)
 
@@ -138,7 +145,7 @@ M.new = function (state, roomType, pos)
   --Add position component
   entity.addComponent(id, transform.new(id, pos))
   --Add placer component
-  entity.addComponent(id, placer(id, room.width, room.cost))
+  entity.addComponent(id, placer(id, roomType, room.width, room.cost))
 
   --Function returns the rooms id
   return id
