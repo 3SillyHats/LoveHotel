@@ -11,7 +11,7 @@ local deleted = {}
 
 event.subscribe("state.enter", 0, function (state)
   if state ~= currentState then
-    event.notify("state.exit", currentState)
+    event.notify("state.exit",0,  currentState)
     currentState = state
   end
 end)
@@ -21,6 +21,7 @@ M.new = function (state)
   local entity = {
     id = nextId,
     components = {},
+    z = 0
   }
   nextId = nextId + 1
   if not entities[state] then
@@ -46,7 +47,17 @@ end
 
 M.draw = function ()
   if entities[currentState] then
-    for _,entity in ipairs(entities[currentState]) do
+	-- Sort entities by z
+	local sorted = {}
+	for _,entity in ipairs(entities[currentState]) do
+	  table.insert(sorted, entity)
+	end
+	table.sort(sorted, function (a, b)
+	  return a.z < b.z
+	end)
+	
+	-- Draw sorted
+    for _,entity in ipairs(sorted) do
       for _,component in ipairs(entity.components) do
         component:draw()
       end
@@ -97,6 +108,10 @@ end
 
 M.addComponent = function (id, component)
   table.insert(get(id).components, component)
+end
+
+M.setOrder = function (id, z)
+  get(id).z = z
 end
 
 return M

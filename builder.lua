@@ -110,6 +110,7 @@ end
 M.new = function (state, roomType, pos)
   --Create an entity and get the id for the new room
   local id = entity.new(state)
+  entity.setOrder(id, 100)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
   local img = resource.get("img/rooms/" .. room.image)
 

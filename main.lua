@@ -6,6 +6,9 @@ CANVAS_HEIGHT = 224
 ROOM_INDENT = 32*0.5
 FLOOR_OFFSET = 32*2.5
 
+STATE_TRAIN = 1
+STATE_PLAY = 2
+
 local event = require("event")
 local entity = require("entity")
 local input = require("input")
@@ -109,7 +112,7 @@ entity.addComponent(tester, sprite.new(
     playing = "idle"
   }
 ))
---[[entity.addComponent(tester, entity.newComponent({
+entity.addComponent(tester, entity.newComponent({
   update = function (self, dt)
     event.notify("entity.move", tester, {x = 50, y = 50})
     event.notify("sprite.play", tester, "typing")
@@ -119,7 +122,7 @@ entity.addComponent(tester, ai.new(tester, {
   subgoals = {
     ai.newMoveToGoal({x = 0, y = 0})
   }
-}))--]]
+}))
 
 --Myles's Room Test
 local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
@@ -169,7 +172,7 @@ menu.addButton(gui, menu.newButton("build", function ()
 end))
 --The Destroy button, for deleting rooms
 menu.addButton(gui, menu.newButton("destroy", function ()
-  print("World")
+  print("Destroy something")
 end))
 --The Hire button, for hiring staff
 menu.addButton(gui, menu.newButton("hire", function ()
@@ -251,12 +254,24 @@ event.subscribe("pressed", 0, function (key)
   end
 end)
 
+-- Create the hud bar
 local hudQuad = love.graphics.newQuad(
   0, 64,
   CANVAS_WIDTH, 32,
   resource.get("img/hud.png"):getWidth(),
   resource.get("img/hud.png"):getHeight()
 )
+local hudBar = entity.new(STATE_PLAY)
+entity.setOrder(hudBar, 90)
+local hudCom = entity.newComponent()
+hudCom.draw = function (self)
+  love.graphics.drawq(
+    resource.get("img/hud.png"), hudQuad,
+    0, CANVAS_HEIGHT - 32,
+    0
+  )
+end
+entity.addComponent(hudBar, hudCom)
 
 love.draw = function ()
   -- Draw to canvas without scaling
@@ -266,13 +281,6 @@ love.draw = function ()
     love.graphics.setPixelEffect()
   end
   love.graphics.setColor(255, 255, 255)
-
-  -- Draw the menu bar
-  love.graphics.drawq(
-    resource.get("img/hud.png"), hudQuad,
-    0, CANVAS_HEIGHT - 32,
-    0
-  )
 
   entity.draw()
   

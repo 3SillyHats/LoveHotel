@@ -88,6 +88,7 @@ local huds = {}
 --Create a new hud menu
 M.new = function (state, pos)
   local id = entity.new(state)
+  entity.setOrder(id, 100)
   
   huds[id] = hud(id, pos)
   
