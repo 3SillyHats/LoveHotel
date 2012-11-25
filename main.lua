@@ -240,6 +240,13 @@ event.subscribe("pressed", 0, function (key)
   end
 end)
 
+local hudQuad = love.graphics.newQuad(
+  0, 64,
+  CANVAS_WIDTH, 32,
+  resource.get("img/hud.png"):getWidth(),
+  resource.get("img/hud.png"):getHeight()
+)
+
 love.draw = function ()
   -- Draw to canvas without scaling
   love.graphics.setCanvas(canvas)
@@ -248,6 +255,13 @@ love.draw = function ()
     love.graphics.setPixelEffect()
   end
   love.graphics.setColor(255, 255, 255)
+
+  -- Draw the menu bar
+  love.graphics.drawq(
+    resource.get("img/hud.png"), hudQuad,
+    0, CANVAS_HEIGHT - 32,
+    0
+  )
 
   entity.draw()
   
