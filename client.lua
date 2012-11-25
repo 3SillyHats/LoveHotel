@@ -147,12 +147,14 @@ local com = entity.newComponent({
     end)
     if #rooms > 0 then
       self.target = rooms[math.random(1,#rooms)].id
+    else
+      self.target = nul
     end
   end,
   spawn = function (self)
-    M.new(self.target)
-    local id = M.new(self.target)
-    event.notify("entity.move", id, {roomNum = -1, floorNum = 1})
+    if self.target then
+      M.new(self.target)
+    end
   end,
   update = function (self, dt)
     if self.timer <= 0 then
