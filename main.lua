@@ -20,7 +20,7 @@ conf = {}
 
 gScrollPos = 1
 event.subscribe("scroll", 0, function (scrollPos)
-  gScrollPos = scroll
+  gScrollPos = scrollPos
 end)
 
 -- Setup the window
@@ -224,6 +224,16 @@ event.subscribe("training.end", 0, endTraining)
 
 event.notify("training.begin", 0)
 event.notify("training.load", 0)
+
+event.subscribe("pressed", 0, function (key)
+  if key == "up" then
+    event.notify("scroll", 0 , gScrollPos + 1)
+  elseif key == "down" then
+    if gScrollPos > 1 then
+      event.notify("scroll", 0 , gScrollPos - 1)
+    end
+  end
+end)
 
 love.draw = function ()
   -- Draw to canvas without scaling

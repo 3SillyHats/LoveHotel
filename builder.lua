@@ -14,7 +14,7 @@ local M = {}
 local placer = function (id, width, cost)
   local component = entity.newComponent({
     room = 4,
-    level = gScrollPos,
+    floor = gScrollPos,
     width = width,
     cost = cost,
   })
@@ -23,24 +23,20 @@ local placer = function (id, width, cost)
     if key == "left" then
       if component.room > 1 then
         component.room = component.room - 1
+        event.notify("entity.move", id, {roomNum = component.room, floorNum = component.floor})
       end
     elseif key == "right" then
       if component.room < 7 then
         component.room = component.room + 1
+        event.notify("entity.move", id, {roomNum = component.room, floorNum = component.floor})
       end
-    elseif key == "up" then
-      component.level = component.level + 1
-    elseif key == "down" then
-      if component.level > 1 then
-        component.level = component.level - 1
-      end
-    else
-      return
     end
-
-    event.notify("entity.move", id, {roomNum = component.room, floorNum = component.level})
   end)
 
+  event.subscribe("scroll", 0, function (scrollPos)
+    component.floor = scrollPos
+    event.notify("entity.move", id, {roomNum = component.room, floorNum = component.floor})
+  end)
   return component
 end
 
