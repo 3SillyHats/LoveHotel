@@ -135,23 +135,38 @@ M.new = function (target)
 end
 
 local spawner = entity.new(2)
+local itime = math.random(SPAWN_MIN, SPAWN_MAX)
 local com = entity.newComponent({
-  timer = 0,
+  timer = itime,
+  timer2 = itime + .25,
+  target = nil,
+  pick_room = function (self)
+    local rooms = {}
+    event.notify("room.unoccupied", 0, function (id,type)
+      table.insert(rooms,{id=id, type=type})
+    end)
+    if #rooms > 0 then
+      self.target = rooms[math.random(1,#rooms)].id
+    end
+  end,
+  spawn = function (self)
+    M.new(self.target)
+    local id = M.new(self.target)
+    event.notify("entity.move", id, {roomNum = -1, floorNum = 1})
+  end,
   update = function (self, dt)
     if self.timer <= 0 then
       self.timer = math.random(SPAWN_MIN, SPAWN_MAX)
-      local rooms = {}
-      event.notify("room.unoccupied", 0, function (id,type)
-      table.insert(rooms,{id=id, type=type})
-      end)
-      if #rooms > 0 then
-        local target = rooms[math.random(1,#rooms)].id
-        M.new(target)
-        local id = M.new(target)
-        event.notify("entity.move", id, {roomNum = -1, floorNum = 1})
-      end
+      self.pick_room(self)
+      self.spawn(self)
     else
       self.timer = self.timer - dt
+    end
+    if self.timer2 <= 0 then
+      self.timer2 = self.timer + .25
+      self.spawn(self)
+    else
+      self.timer2 = self.timer2 - dt
     end
   end,
 })
