@@ -26,6 +26,7 @@ local placer = function (id, type, pos, width, cost, t)
   
   local clear = true
   local support = 0
+  local occupation = 0
   local new = true
 
   local okay = function ()
@@ -85,8 +86,10 @@ local placer = function (id, type, pos, width, cost, t)
       end
     elseif key == "a" then
       if okay() then
-        local room = room.new(2, type, {roomNum = component.room, floorNum = component.floor})
-        event.notify("build", id)
+        local pos = {roomNum = component.room, floorNum = component.floor}
+        local room = room.new(2, type, pos)
+        event.notify("build", id, {id=room, pos=pos})
+        event.notify("build", 0, {id=room, pos=pos})
       else
         print(support, component.width, clear)
       end

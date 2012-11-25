@@ -264,13 +264,38 @@ event.subscribe("training.end", 0, endTraining)
 event.notify("training.begin", 0)
 event.notify("training.load", 0)
 
+local floorOccupation = 1
+
 event.subscribe("pressed", 0, function (key)
-  if key == "up" then
+  if key == "up" and floorOccupation > 0 then
     event.notify("scroll", 0 , gScrollPos + 1)
-  elseif key == "down" then
-    if gScrollPos > 1 then
-      event.notify("scroll", 0 , gScrollPos - 1)
-    end
+  elseif key == "down" and gScrollPos > 1 then
+    event.notify("scroll", 0 , gScrollPos - 1)
+  else
+    return
+  end
+
+  floorOccupation = 0
+  for i = 1,7 do
+    event.notify("room.check", 0, {
+      roomNum = i,
+      floorNum = gScrollPos,
+      callback = function (otherId)
+        floorOccupation = floorOccupation + 1
+      end,
+    })
+  end
+end)
+
+event.subscribe("build", 0, function (t)
+  if t.pos.floorNum == gScrollPos then
+    floorOccupation = floorOccupation + 1
+  end
+end)
+
+event.subscribe("destroy", 0, function (t)
+  if t.pos.floorNum == gScrollPos then
+    floorOccupation = floorOccupation - 1
   end
 end)
 
