@@ -26,14 +26,14 @@ M.new = function (state, roomType, pos)
   local roomId = entity.new(state)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
   local img = resource.get("img/rooms/" .. room.image)
-  local width = img:getWidth()
-  local height = 32
+  local imgWidth = img:getWidth()
+  local imgHeight = 32
 
   --Add a sprite component for the back layer of the room
   entity.addComponent(roomId, sprite.new(roomId, {
     image = img,
-    width = width,
-    height = height,
+    width = imgWidth,
+    height = imgHeight,
     animations = {
       clean = {
         first = 0,
@@ -51,8 +51,8 @@ M.new = function (state, roomType, pos)
   --Add a sprite component for the front layer of the room
   entity.addComponent(roomId, sprite.new(roomId, {
     image = img,
-    width = width,
-    height = height,
+    width = imgWidth,
+    height = imgHeight,
     animations = {
       opened = {
         first = 3,
