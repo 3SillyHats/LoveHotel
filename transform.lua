@@ -33,7 +33,7 @@ M.new = function (id, pos, offset)
       updatePos()
     end)
 
-  event.subscribe("entity.move", 0,
+  event.subscribe("entity.move", id,
     function (pos)
       component.pos = pos
       updatePos()

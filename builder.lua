@@ -11,6 +11,39 @@ local transform = require("transform")
 --Create the module
 local M = {}
 
+local placer = function (id, width, cost)
+  local component = entity.newComponent({
+    room = 4,
+    level = gScrollPos,
+    width = width,
+    cost = cost,
+  })
+  
+  event.subscribe("pressed", 0, function (key)
+    if key == "left" then
+      if component.room > 1 then
+        component.room = component.room - 1
+      end
+    elseif key == "right" then
+      if component.room < 7 then
+        component.room = component.room + 1
+      end
+    elseif key == "up" then
+      component.level = component.level + 1
+    elseif key == "down" then
+      if component.level > 1 then
+        component.level = component.level - 1
+      end
+    else
+      return
+    end
+
+    event.notify("entity.move", id, {roomNum = component.room, floorNum = component.level})
+  end)
+
+  return component
+end
+
 local outline = function (id, t)
   local component = entity.newComponent({
     x = 0,
@@ -55,6 +88,8 @@ M.new = function (state, roomType, pos)
   }))
   --Add position component
   entity.addComponent(id, transform.new(id, pos))
+  --Add placer component
+  entity.addComponent(id, placer(id, room.width, room.cost))
 
   --Function returns the rooms id
   return id
