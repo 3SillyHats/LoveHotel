@@ -326,6 +326,27 @@ moneyCom.draw = function (self)
 end
 entity.addComponent(moneyDisplay, moneyCom)
 
+-- Create the backdrop
+local backdrop = entity.new(STATE_PLAY)
+local bdImg = resource.get("img/backdrop.png")
+entity.setOrder(backdrop, -100)
+local bdCom = entity.newComponent()
+bdCom.draw = function (self)
+  love.graphics.setColor(188, 184, 252)
+  love.graphics.rectangle(
+    "fill",
+    0, 0,
+    CANVAS_WIDTH, CANVAS_HEIGHT
+  )
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.draw(
+    bdImg,
+    0, 160 + (gScrollPos * 32) - bdImg:getHeight(),
+    0
+  )
+end
+entity.addComponent(backdrop, bdCom)
+
 love.draw = function ()
   -- Draw to canvas without scaling
   love.graphics.setCanvas(canvas)
