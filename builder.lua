@@ -12,10 +12,10 @@ local room = require("room")
 --Create the module
 local M = {}
 
-local placer = function (id, type, width, cost, onBuild)
+local placer = function (id, type, pos, width, cost)
   local component = entity.newComponent({
-    room = 4,
-    floor = gScrollPos,
+    room = pos.roomNum,
+    floor = pos.floorNum,
     width = width,
     cost = cost,
   })
@@ -53,7 +53,7 @@ local placer = function (id, type, width, cost, onBuild)
         updatePosition()
       end
     elseif key == "right" then
-      if component.room < 7 then
+      if component.room+component.width <= 7 then
         component.room = component.room + 1
         updatePosition()
       end
@@ -127,7 +127,7 @@ local outline = function (id, t)
 end
 
 --Constructor
-M.new = function (state, roomType, pos, onBuild)
+M.new = function (state, roomType, pos)
   --Create an entity and get the id for the new room
   local id = entity.new(state)
   entity.setOrder(id, 100)
@@ -172,7 +172,7 @@ M.new = function (state, roomType, pos, onBuild)
   --Add position component
   entity.addComponent(id, transform.new(id, pos))
   --Add placer component
-  entity.addComponent(id, placer(id, roomType, room.width, room.cost, onBuild))
+  entity.addComponent(id, placer(id, roomType, pos, room.width, room.cost))
 
   --Function returns the rooms id
   return id
