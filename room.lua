@@ -5,41 +5,31 @@ local entity = require("entity")
 local resource = require("resource")
 local event = require("event")
 local sprite = require("sprite")
+local transform = require("transform")
 
 --Create the module
 local M = {}
 
---Position Component
-local posComponent = function (id, pos)
-  --Create a new component for position stuff
-  local component = entity.newComponent()
-
-  --Load the tower position into the component
-  component.pos = pos
-
-  --[[Subscribe to the scroll event so that the rooms screen
-  position gets updated when the tower is scrolled.
-  The callback method transforms from tower position to
-  screen position, and notifies "sprite.move"--]]
-  event.subscribe("scroll", 0,
-    function (scrollPos)
-      local screenPos = {
-        x = (component.pos.roomNum - 1) * 32 + ROOM_INDENT,
-        y = (scrollPos - component.pos.floorNum) * 32 + FLOOR_OFFSET,
-      }
-
-      event.notify("sprite.move", id, screenPos)
-
-    end)
-
-  return component
-end
-
 --Room information component
-local infoComponent = function (info)
+local infoComponent = function (id, info, pos)
   --Create a new component to store information in,
   --then store the info table into it.
   local component = entity.newComponent(info)
+  
+  local check = function (t)
+    if t.floorNum == pos.floorNum and t.roomNum >= pos.roomNum and t.roomNum < pos.roomNum + info.width then
+      t.callback(id)
+    end
+  end
+  
+  event.subscribe("room.check", 0, check)
+  
+  local function delete ()
+    event.unsubscribe("room.check", 0, check)
+    event.unsubscribe("room.check", id, delete)
+  end
+  
+  event.subscribe("room.check", id, delete)
 
   --Return the room info table.
   return component
@@ -51,14 +41,64 @@ M.new = function (state, roomType, pos)
   local roomId = entity.new(state)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
   local img = resource.get("img/rooms/" .. room.image)
+  local imgWidth = img:getWidth()
+  local imgHeight = 32
 
-  --Add a sprite component for the room
-  entity.addComponent(roomId, sprite.new(roomId,
-    img, img:getWidth(), img:getHeight()))
+  --Add a sprite component for the back layer of the room
+  entity.addComponent(roomId, sprite.new(roomId, {
+    image = img,
+    width = imgWidth,
+    height = imgHeight,
+    animations = {
+      clean = {
+        first = 0,
+        last = 0,
+        speed = 1,
+      },
+      dirty = {
+        first = 1,
+        last = 1,
+        speed = 1,
+      },
+    },
+    playing = "clean",
+  }))
+  --Add a sprite component for the front layer of the room
+  entity.addComponent(roomId, sprite.new(roomId, {
+    image = img,
+    width = imgWidth,
+    height = imgHeight,
+    animations = {
+      opened = {
+        first = 2,
+        last = 2,
+        speed = 1,
+      },
+      closed = {
+        first = room.aniFrames+1,
+        last = room.aniFrames+1,
+        speed = 1,
+      },
+      closing = {
+        first = 2,
+        last = room.aniFrames+1,
+        speed = 0.2,
+        goto = "closed",
+      },
+      opening = {
+        first = room.aniFrames+1,
+        last = 2,
+        speed = 0.2,
+        goto = "opened",
+      },
+    },
+    playing = "opening",
+  }))
+
   --Add position component
-  entity.addComponent(roomId, posComponent(roomId, pos))
+  entity.addComponent(roomId, transform.new(roomId, pos))
   --Add info component
-  entity.addComponent(roomId, infoComponent(room))
+  entity.addComponent(roomId, infoComponent(roomId, room, pos))
 
   --Function returns the rooms id
   return roomId

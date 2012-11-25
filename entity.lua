@@ -11,7 +11,7 @@ local deleted = {}
 
 event.subscribe("state.enter", 0, function (state)
   if state ~= currentState then
-    event.notify("state.exit", currentState)
+    event.notify("state.exit",0,  currentState)
     currentState = state
   end
 end)
@@ -21,6 +21,7 @@ M.new = function (state)
   local entity = {
     id = nextId,
     components = {},
+    z = 0
   }
   nextId = nextId + 1
   if not entities[state] then
@@ -46,7 +47,17 @@ end
 
 M.draw = function ()
   if entities[currentState] then
-    for _,entity in ipairs(entities[currentState]) do
+	-- Sort entities by z
+	local sorted = {}
+	for _,entity in ipairs(entities[currentState]) do
+	  table.insert(sorted, entity)
+	end
+	table.sort(sorted, function (a, b)
+	  return a.z < b.z
+	end)
+	
+	-- Draw sorted
+    for _,entity in ipairs(sorted) do
       for _,component in ipairs(entity.components) do
         component:draw()
       end
@@ -67,12 +78,14 @@ M.update = function (dt)
     local index = #entities[currentState]
     local notDeleted = 0
     while #deleted-notDeleted > 0 and index >= 1 do
-      while notDeleted > #deleted - 1 and entities[index].id < deleted[#deleted-notDeleted] do
+      while notDeleted < #deleted - 1 and entities[currentState][index].id < deleted[#deleted-notDeleted] do
         notDeleted = notDeleted + 1
       end
-      if entities[index].id == deleted[#deleted-notDeleted] then
+      if entities[currentState][index].id == deleted[#deleted-notDeleted] then
+        local id = entities[currentState][index].id
         table.remove(entities[currentState], index)
-        table.remove(deleted[currentState], #deleted-notDeleted)
+        table.remove(deleted, #deleted-notDeleted)
+        event.notify("delete", id)
       end
       index = index - 1
     end
@@ -97,6 +110,10 @@ end
 
 M.addComponent = function (id, component)
   table.insert(get(id).components, component)
+end
+
+M.setOrder = function (id, z)
+  get(id).z = z
 end
 
 return M

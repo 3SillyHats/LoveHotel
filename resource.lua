@@ -36,7 +36,7 @@ loadRes[".lua"] = function (name)
   local script = love.filesystem.load(name)
   local success, result = pcall(script)
   if success then
-	return result
+    return result
   else
     return nil
   end
