@@ -5,10 +5,11 @@ local sprite = require("sprite")
 local resource = require("resource")
 local ai = require("ai")
 local transform = require("transform")
+local room = require("room")
 
 local M = {}
 
-M.new = function ()
+M.new = function (target)
   local id = entity.new(2)
   entity.setOrder(id, 50)
   isMale = math.random(0,1)  --randomize male or female
@@ -122,15 +123,36 @@ M.new = function ()
     }
   ))
 
-  local pos = {roomNum = -1.5, floorNum = 1}
+  local pos = {roomNum = -.5, floorNum = 1}
   entity.addComponent(id, transform.new(
     id, pos, {x = 16, y = 30}
   ))
   local aiComponent = ai.new(id)
   entity.addComponent(id, aiComponent)
-  aiComponent:addMoveToGoal(pos, {roomNum = 3, floorNum = 1}, STAFF_MOVE)
+  aiComponent:addMoveToGoal(pos, room.getPos(target), STAFF_MOVE)
   
   return id
 end
+
+local spawner = entity.new(2)
+local com = entity.newComponent({
+  timer = 0,
+  update = function (self, dt)
+    if self.timer <= 0 then
+      self.timer = math.random(SPAWN_MIN, SPAWN_MAX)
+      local rooms = {}
+      event.notify("room.unoccupied", 0, function (id,type)
+      table.insert(rooms,{id=id, type=type})
+      end)
+      local target = rooms[math.random(1,#rooms)].id
+      M.new(target)
+      local id = M.new(target)
+      event.notify("entity.move", id, {roomNum = -1, floorNum = 1})
+    else
+      self.timer = self.timer - dt
+    end
+  end,
+})
+entity.addComponent(spawner, com)
 
 return M

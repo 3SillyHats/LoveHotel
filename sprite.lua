@@ -50,7 +50,7 @@ local update = function (self, dt)
 end
 
 local play = function (self, animation)
-  if self.playing ~= animation then
+  if self.animations[animation] and self.playing ~= animation then
       self.playing = animation
       self.frame = 0
       self.timer = 0

@@ -26,8 +26,15 @@ local infoComponent = function (id, info, pos)
   
   event.subscribe("room.check", 0, check)
   
+  local unoccupied = function (callback)
+    callback(id, info.type)
+  end
+  
+  event.subscribe("room.unoccupied", 0, unoccupied)
+  
   local function delete ()
     event.unsubscribe("room.check", 0, check)
+    event.unsubscribe("room.unoccupied", 0, unoccupied)
     event.unsubscribe("room.check", id, delete)
   end
   

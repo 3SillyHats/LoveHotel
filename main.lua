@@ -10,6 +10,8 @@ STATE_TRAIN = 1
 STATE_PLAY = 2
 
 STAFF_MOVE = 1
+SPAWN_MIN = 10
+SPAWN_MAX = 20
 
 local event = require("event")
 local entity = require("entity")
@@ -21,6 +23,7 @@ local menu = require("menu")
 local ai = require("ai")
 local builder = require("builder")
 local staff = require("staff")
+local client = require("client")
 
 conf = {}
 
