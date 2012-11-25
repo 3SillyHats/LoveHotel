@@ -118,26 +118,40 @@ local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
 event.notify("scroll", 0, 2)
 
 local gui = menu.new(2, 32*6)
+--The Build button, opens build menu
 menu.addButton(gui, menu.newButton("build", function ()
-  print("Hello")
+  --Create the build menu
   local buildMenu = menu.new(2, 32*5)
 
-  menu.addButton(buildMenu, menu.newButton("build", function ()
-    print("Building in Build")
+  --Build Janitors Closet button
+  menu.addButton(buildMenu, menu.newButton("janitor", function ()
+    print("Building Janitors Closet")
+  end))
+  --Build Flower Room button
+  menu.addButton(buildMenu, menu.newButton("flower", function ()
+    print("Building Flower Room")
+  end))
+  --Build Heart Room
+  menu.addButton(buildMenu, menu.newButton("heart", function ()
+    print("Building Heart Room")
   end))
 
+  --The back button deletes the build menu
   menu.setBack(buildMenu, function ()
     entity.delete(buildMenu)
   end)
 end))
+--The Destroy button, for deleting rooms
 menu.addButton(gui, menu.newButton("destroy", function ()
   print("World")
 end))
+--The Hire button, for hiring staff
 menu.addButton(gui, menu.newButton("hire", function ()
   print("You're Hired!")
 end))
+--The back button, quits the game at the moment
 menu.setBack(gui, function ()
-  --love.event.push("quit")   -- actually causes the app to quit
+  --love.event.push("quit")
   --love.event.push("q")
 end)
 
