@@ -80,6 +80,8 @@ local infoComponent = function (id, info, pos)
       return
     end
     
+    component.occupied = component.occupied + 1
+    
     event.notify("sprite.hide", e.id, true)
     event.notify("sprite.play", id, "closing")
     e.callback(true)
