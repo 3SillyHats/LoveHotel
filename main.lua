@@ -120,6 +120,15 @@ event.notify("scroll", 0, 2)
 local gui = menu.new(2, 32*6)
 menu.addButton(gui, menu.newButton("build", function ()
   print("Hello")
+  local buildMenu = menu.new(2, 32*5)
+
+  menu.addButton(buildMenu, menu.newButton("build", function ()
+    print("Building in Build")
+  end))
+
+  menu.setBack(buildMenu, function ()
+    entity.delete(buildMenu)
+  end)
 end))
 menu.addButton(gui, menu.newButton("destroy", function ()
   print("World")
@@ -128,8 +137,8 @@ menu.addButton(gui, menu.newButton("hire", function ()
   print("You're Hired!")
 end))
 menu.setBack(gui, function ()
-  love.event.push("quit")   -- actually causes the app to quit
-  love.event.push("q")
+  --love.event.push("quit")   -- actually causes the app to quit
+  --love.event.push("q")
 end)
 
 -- Input training

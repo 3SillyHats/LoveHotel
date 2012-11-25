@@ -70,9 +70,9 @@ M.update = function (dt)
       while notDeleted > #deleted - 1 and entities[index].id < deleted[#deleted-notDeleted] do
         notDeleted = notDeleted + 1
       end
-      if entities[index].id == deleted[#deleted-notDeleted] then
+      if entities[currentState][index].id == deleted[#deleted-notDeleted] then
         table.remove(entities[currentState], index)
-        table.remove(deleted[currentState], #deleted-notDeleted)
+        table.remove(deleted, #deleted-notDeleted)
       end
       index = index - 1
     end
