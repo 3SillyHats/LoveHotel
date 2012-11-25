@@ -9,6 +9,8 @@ FLOOR_OFFSET = 32*2.5
 STATE_TRAIN = 1
 STATE_PLAY = 2
 
+STAFF_MOVE = 1
+
 local event = require("event")
 local entity = require("entity")
 local input = require("input")
@@ -18,6 +20,7 @@ local room = require("room")
 local menu = require("menu")
 local ai = require("ai")
 local builder = require("builder")
+local staff = require("staff")
 
 conf = {}
 
@@ -93,41 +96,6 @@ local frameQuad = love.graphics.newQuad(
   frameImage:getWidth(), frameImage:getHeight()
 )
 
--- XXX: Test entity
---[[
-local tester = entity.new(2)
-entity.addComponent(tester, sprite.new(
-  tester, {
-    image = resource.get("img/typing1.png"),
-    width = 24, height = 24,
-    animations = {
-      idle = {
-        first = 0,
-        last = 0,
-        speed = 1,
-      },
-      typing = {
-        first = 3,
-        last = 0,
-        speed = .1,
-      },
-    },
-    playing = "idle"
-  }
-))
-entity.addComponent(tester, entity.newComponent({
-  update = function (self, dt)
-    event.notify("entity.move", tester, {x = 50, y = 50})
-    event.notify("sprite.play", tester, "typing")
-  end
-}))
-entity.addComponent(tester, ai.new(tester, {
-  subgoals = {
-    ai.newMoveToGoal({x = 0, y = 0})
-  }
-}))
---]]
-
 --Myles's Room Test
 local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
 
@@ -183,6 +151,10 @@ menu.addButton(gui, menu.newButton("build", function ()
   menu.addButton(buildMenu, menu.newButton("heart", function ()
     buildRoom("heart", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
   end))
+  --Build Tropical Room
+  menu.addButton(buildMenu, menu.newButton("tropical", function ()
+    buildRoom("tropical", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
+  end))
 
   --The back button deletes the build menu
   menu.setBack(buildMenu, function ()
@@ -196,6 +168,9 @@ menu.addButton(gui, menu.newButton("destroy", function ()
 end))
 --The Hire button, for hiring staff
 menu.addButton(gui, menu.newButton("hire", function ()
+  staff.new()
+
+  --[[ HIRE MENU
   menu.disable(gui)
   --Create the hire menu
   local hireMenu = menu.new(2, subMenuY)
@@ -210,6 +185,7 @@ menu.addButton(gui, menu.newButton("hire", function ()
 	  menu.enable(gui)
     entity.delete(hireMenu)
   end)
+  --]]
 end))
 --The back button, quits the game at the moment
 menu.setBack(gui, function ()
@@ -264,13 +240,38 @@ event.subscribe("training.end", 0, endTraining)
 event.notify("training.begin", 0)
 event.notify("training.load", 0)
 
+local floorOccupation = 1
+
 event.subscribe("pressed", 0, function (key)
-  if key == "up" then
+  if key == "up" and floorOccupation > 0 then
     event.notify("scroll", 0 , gScrollPos + 1)
-  elseif key == "down" then
-    if gScrollPos > 1 then
-      event.notify("scroll", 0 , gScrollPos - 1)
-    end
+  elseif key == "down" and gScrollPos > 1 then
+    event.notify("scroll", 0 , gScrollPos - 1)
+  else
+    return
+  end
+
+  floorOccupation = 0
+  for i = 1,7 do
+    event.notify("room.check", 0, {
+      roomNum = i,
+      floorNum = gScrollPos,
+      callback = function (otherId)
+        floorOccupation = floorOccupation + 1
+      end,
+    })
+  end
+end)
+
+event.subscribe("build", 0, function (t)
+  if t.pos.floorNum == gScrollPos then
+    floorOccupation = floorOccupation + 1
+  end
+end)
+
+event.subscribe("destroy", 0, function (t)
+  if t.pos.floorNum == gScrollPos then
+    floorOccupation = floorOccupation - 1
   end
 end)
 

@@ -12,6 +12,7 @@ local buttLoc = {
   utility = 4,
   flower = 5,
   heart = 6,
+  tropical = 7,
 }
 
 local defaultAction = function ()

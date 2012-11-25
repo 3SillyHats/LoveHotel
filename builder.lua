@@ -26,10 +26,15 @@ local placer = function (id, type, pos, width, cost, t)
   
   local clear = true
   local support = 0
+  local occupation = 0
   local new = true
 
   local okay = function ()
-    return clear and (support == component.width or component.floor == 1)
+    return (
+      clear and
+      (support == component.width or component.floor == 1) and
+      cost <= money
+    )
   end
   
   component.draw = function (self)
@@ -85,10 +90,11 @@ local placer = function (id, type, pos, width, cost, t)
       end
     elseif key == "a" then
       if okay() then
-        local room = room.new(2, type, {roomNum = component.room, floorNum = component.floor})
-        event.notify("build", id)
-      else
-        print(support, component.width, clear)
+        local pos = {roomNum = component.room, floorNum = component.floor}
+        local room = room.new(2, type, pos)
+        money = money - cost
+        event.notify("build", id, {id=room, pos=pos})
+        event.notify("build", 0, {id=room, pos=pos})
       end
     end
   end

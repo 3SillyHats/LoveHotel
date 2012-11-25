@@ -7,7 +7,7 @@ local M = {}
 
 local activate = function (self) end
 
-local process = function (self)
+local process = function (self, dt)
   -- Remove all completed and failed goals from the front of
   -- the subgoals list
   while #self.subgoals > 0 and
@@ -64,24 +64,8 @@ local update = function (self, dt)
   }
   self.currentGoal = self.goalEvaluator.arbitrate(self, desirabilityFactors)
   if self.currentGoal then    
-    self.currentGoal.process(self)
+    self.currentGoal:process(dt)
   end
-end
-
-M.new = function (id, t)
-  local com = entity.newComponent({
-    entity = id,
-    currentGoal = nil,
-    
-    update = update,
-  })
-  com.goalEvaluator = M.newGoal(com)
-  com.goalEvaluator.arbitrate = arbitrate
-  for _,sg in ipairs(t.subgoals) do
-    goalEvaluator:addSubgoal(sg)
-  end
-
-  return com
 end
 
 M.newGoal = function (com)
@@ -99,19 +83,52 @@ M.newGoal = function (com)
   }
 end
 
-M.newMoveToGoal = function (moveTo)
-  local goal = M.newGoal()
+local addMoveToGoal = function (self, moveFrom, moveTo, moveSpeed)
+  local goal = M.newGoal(self)
   goal.moveTo = moveTo
-  local process = goal.process
-  goal.process = function (self)
-    event.notify("sprite.move", self.component.entity, {
-      x = 0, y = 0,
-    })
-    process(self)
+  goal.pos = moveFrom
+  goal.speed = moveSpeed
+  goal.process = function (self, dt)
+    if math.abs(self.moveTo.roomNum - self.pos.roomNum) < self.speed*dt then
+      event.notify("entity.move", self.component.entity, {
+        roomNum = self.moveTo.roomNum, floorNum = self.pos.floorNum,
+      })
+      return "complete"
+    else
+      local delta = self.speed*dt
+      if self.moveTo.roomNum < self.pos.roomNum then
+        delta = delta * -1
+      end
+      event.notify("entity.move", self.component.entity, {
+        roomNum = self.pos.roomNum + delta, floorNum = self.pos.floorNum,
+      })
+      return "active"
+    end
   end
+  event.subscribe("entity.move", goal.component.entity, function (pos)
+    goal.pos.roomNum = pos.roomNum
+    goal.pos.floorNum = pos.floorNum
+  end)
   goal.getDesirability = function (self, t)
     return t.horniness
   end
+  
+  self.goalEvaluator:addSubgoal(goal)
+end
+
+M.new = function (id)
+  local com = entity.newComponent({
+    entity = id,
+    currentGoal = nil,
+    
+    update = update,
+    addGoal = addGoal,
+    addMoveToGoal = addMoveToGoal,
+  })
+  com.goalEvaluator = M.newGoal(com)
+  com.goalEvaluator.arbitrate = arbitrate
+
+  return com
 end
 
 return M
