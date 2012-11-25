@@ -75,13 +75,13 @@ M.new = function (state, roomType, pos)
     height = 32,
     --Use the clean room back layer
     animation = {
-      idle = {
+      clean = {
         first = 1,
         last = 1,
         speed = 1,
       },
     },
-    playing = idle,
+    playing = clean,
   }))
   --Add a sprite for the front layer of the room
   entity.addComponent(id, sprite.new(id, {
@@ -90,18 +90,18 @@ M.new = function (state, roomType, pos)
     height = 32,
     --Used the closed door front layer
     animation = {
-      idle = {
+      closed = {
         first = room.aniFrames+2,
         last = room.aniFrames+2,
         speed = 1,
       },
     },
-    playing = idle,
+    playing = closed,
   }))
   --Add an outline component for the room
   entity.addComponent(id, outline(id, {
     width = img:getWidth(),
-    height = 32
+    height = 32,
   }))
   --Add position component
   entity.addComponent(id, transform.new(id, pos))
