@@ -80,10 +80,11 @@ end
 --The buttType is to define the sprite image
 M.newButton = function (buttType, callback)
   local index = buttLoc[buttType]
+  local img = resource.get("img/hud.png")
 
   local button = {
     action = callback or defaultAction,
-    image = resource.get("img/hud.png"),
+    image = img,
     quadS = love.graphics.newQuad(
       16*(index - 1), 16, 16, 16,
       img:getWidth(), img:getHeight()
