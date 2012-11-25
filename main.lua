@@ -167,7 +167,7 @@ menu.addButton(gui, menu.newButton("hire", function ()
   local hireMenu = menu.new(2, subMenuY)
 
   --Hire a janitor
-  menu.addButton(hireMenu, menu.newButton("janitor", function ()
+  menu.addButton(hireMenu, menu.newButton("utility", function ()
     print("Janitor Hired")
   end))
 
