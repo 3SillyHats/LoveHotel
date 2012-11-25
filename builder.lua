@@ -54,10 +54,7 @@ local outline = function (id, t)
   
   component.draw = function (self)
     love.graphics.setColor(0,114,0)
-    love.graphics.line(self.x, self.y, self.x+self.width-1, self.y)
-    love.graphics.line(self.x+self.width-1, self.y, self.x+self.width-1, self.y+self.height)
-    love.graphics.line(self.x+self.width-1, self.y+self.height-1, self.x, self.y+self.height-1)
-    love.graphics.line(self.x, self.y+self.height-1, self.x, self.y)
+    love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
   end
   
   event.subscribe("sprite.move", id, function (pos)
