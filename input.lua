@@ -17,16 +17,22 @@ local inputs = {
   "up",
 }
 
+local map = {
+  keys = {},
+  joysticks = {},
+}
+
 event.subscribe("training.begin", 0, function ()
   training = true
   current = 1
   event.notify("training.current", 0, inputs[current])
 end)
 
-local map = {
-  keys = {},
-  joysticks = {},
-}
+event.subscribe("training.load", 0, function (t)
+  training = false
+  current = nil
+  event.notify("training.end", 0)
+end)
 
 local trainNext = function ()
   current = current + 1
