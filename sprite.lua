@@ -6,11 +6,13 @@ local entity = require("entity")
 local M = {}
 
 local draw = function (self)
-  love.graphics.setColor(255,255,255)
-  if self.flipped then
-    love.graphics.drawq(self.image, self.quad, self.x + self.width, self.y, 0, -1, 1, self.originX, self.originY)
-  else
-    love.graphics.drawq(self.image, self.quad, self.x, self.y, 0, 1, 1, self.originX, self.originY)
+  if not self.hidden then
+    love.graphics.setColor(255,255,255)
+    if self.flipped then
+      love.graphics.drawq(self.image, self.quad, self.x, self.y, 0, -1, 1, self.originX, self.originY)
+    else
+      love.graphics.drawq(self.image, self.quad, self.x, self.y, 0, 1, 1, self.originX, self.originY)
+    end
   end
 end
 
@@ -47,13 +49,24 @@ local update = function (self, dt)
   )
 end
 
-local play = function (self, animation, flipped)
-  self.flipped = flipped or false
+local play = function (self, animation)
   if self.playing ~= animation then
       self.playing = animation
       self.frame = 0
       self.timer = 0
   end
+end
+
+local flip = function (self, f)
+  if f == nil then
+    self.flipped = not self.flipped
+  else
+    self.flipped = f and true
+  end
+end
+
+local hide = function (self, h)
+  self.hidden = h and true
 end
 
 M.new = function (id, t)
@@ -71,6 +84,7 @@ M.new = function (id, t)
     frame = 0,
     timer = 0,
     flipped = false,
+    hidden = false,
     quad = love.graphics.newQuad(
       0, 0,
       t.width, t.height,
@@ -80,6 +94,8 @@ M.new = function (id, t)
     draw = draw,
     update = update,
     play = play,
+    flip = flip,
+    hide = hide,
   })
   
   -- Setup arrays of animation frames
@@ -105,17 +121,29 @@ M.new = function (id, t)
   end
   
   local play = function (e)
-    sprite.playing = e
+    sprite:play(e)
+  end
+  
+  local flip = function (e)
+    sprite:flip(e)
+  end
+  
+  local hide = function (e)
+    sprite:hide(e)
   end
   
   local function delete (e)
     event.unsubscribe("sprite.move", id, move)
     event.unsubscribe("sprite.play", id, play)
+    event.unsubscribe("sprite.flip", id, flip)
+    event.unsubscribe("sprite.hide", id, hide)
     event.unsubscribe("delete", id, delete)
   end
   
   event.subscribe("sprite.move", id, move)
   event.subscribe("sprite.play", id, play)
+  event.subscribe("sprite.flip", id, flip)
+  event.subscribe("sprite.hide", id, hide)
   event.subscribe("delete", id, delete)
 
   return sprite
