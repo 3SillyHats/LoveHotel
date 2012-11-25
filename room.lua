@@ -71,9 +71,9 @@ M.new = function (state, roomType, pos)
         goto = closed,
       },
       opening = {
-        first = 3,
-        last = room.aniFrames+2,
-        speed = -1,
+        first = room.aniFrames+2,
+        last = 3,
+        speed = 1,
         goto = opened,
       },
     },
