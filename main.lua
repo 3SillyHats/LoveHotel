@@ -9,6 +9,8 @@ FLOOR_OFFSET = 32*2.5
 STATE_TRAIN = 1
 STATE_PLAY = 2
 
+STAFF_MOVE = 1
+
 local event = require("event")
 local entity = require("entity")
 local input = require("input")

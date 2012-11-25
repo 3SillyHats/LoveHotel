@@ -14,6 +14,7 @@ M.new = function ()
     id, {
       image = resource.get("img/typing1.png"),
       width = 24, height = 24,
+      originX = 8, originY = 24,
       animations = {
         idle = {
           first = 0,
@@ -26,32 +27,16 @@ M.new = function ()
           speed = .1,
         },
       },
-      playing = "idle"
+      playing = "idle",
     }
   ))
+  local pos = {roomNum = -1.5, floorNum = 1}
   entity.addComponent(id, transform.new(
-    id, {roomNum = -1.5, floorNum = 1}, {x = 16, y = 30}
+    id, pos, {x = 16, y = 30}
   ))
-  local com = entity.newComponent({
-    roomNum = -1.5,
-    floorNum = 1,
-    update = function (self, dt)
-      event.notify("entity.move", id, {
-        roomNum = self.roomNum + 1*dt,
-        floorNum = self.floorNum
-      })
-    end
-  })
-  event.subscribe("entity.move", id, function (pos)
-    com.roomNum = pos.roomNum
-    com.floorNum = pos.floorNum
-  end)
-  entity.addComponent(id, com)
-  --[[entity.addComponent(id, ai.new(id, {
-    subgoals = {
-      ai.newMoveToGoal({x = 0, y = 0})
-    }
-  })--]]
+  local aiComponent = ai.new(id)
+  entity.addComponent(id, aiComponent)
+  aiComponent:addMoveToGoal(pos, {roomNum = 4, floorNum = 1}, STAFF_MOVE)
   
   return id
 end
