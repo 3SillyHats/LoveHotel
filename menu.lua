@@ -42,21 +42,21 @@ local hud = function (id, pos)
   component.enabled = true
   component.back = defaultAction
   
-  event.subscribe("addButton", id, function (button)
+  component.addButton = function (self, button)
     table.insert(buttons, button)
-  end)
+  end
   
-  event.subscribe("setBack", id, function (callback)
+  component.setBack = function (self, callback)
     component.back = callback
-  end)
+  end
   
-  event.subscribe("menu.enable", id, function ()
+  component.enable =  function (self)
     component.enabled = true
-  end)
+  end
   
-  event.subscribe("menu.disable", id, function ()
+  component.disable = function (self)
     component.enabled = false
-  end)
+  end
   
   event.subscribe("pressed", 0, function (key)
     if component.enabled then
@@ -83,11 +83,15 @@ end
 
 local M = {}
 
+local huds = {}
+
 --Create a new hud menu
 M.new = function (state, pos)
   local id = entity.new(state)
-    
-  entity.addComponent(id, hud(id, pos))
+  
+  huds[id] = hud(id, pos)
+  
+  entity.addComponent(id, huds[id])
   
   return id
 end
@@ -119,19 +123,19 @@ M.newButton = function (buttType, callback)
 end
 
 M.addButton = function (id, button)
-  event.notify("addButton", id, button)
+  huds[id]:addButton(button)
 end
 
 M.setBack = function(id, callback)
-  event.notify("setBack", id, callback)
+  huds[id]:setBack(callback)
 end
 
 M.enable = function(id)
-  event.notify("menu.enable", id)
+  huds[id]:enable()
 end
 
 M.disable = function(id)
-  event.notify("menu.disable", id)
+  huds[id]:disable()
 end
 
 return M

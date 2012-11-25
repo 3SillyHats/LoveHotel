@@ -109,7 +109,7 @@ entity.addComponent(tester, sprite.new(
     playing = "idle"
   }
 ))
-entity.addComponent(tester, entity.newComponent({
+--[[entity.addComponent(tester, entity.newComponent({
   update = function (self, dt)
     event.notify("entity.move", tester, {x = 50, y = 50})
     event.notify("sprite.play", tester, "typing")
@@ -119,7 +119,7 @@ entity.addComponent(tester, ai.new(tester, {
   subgoals = {
     ai.newMoveToGoal({x = 0, y = 0})
   }
-}))
+}))--]]
 
 --Myles's Room Test
 local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
@@ -131,20 +131,20 @@ local subMenuY = 32*6
 local gui = menu.new(2, mainMenuY)
 --The Build button, opens build menu
 menu.addButton(gui, menu.newButton("build", function ()
-  event.notify("menu.disable", gui)
+  menu.disable(gui)
   
   --Create the build menu
   local buildMenu = menu.new(2, subMenuY)
 
   --Build Utility Room button
   menu.addButton(buildMenu, menu.newButton("utility", function ()
-    event.notify("menu.disable", buildMenu)
+    menu.disable(buildMenu)
 
     local buildUtility = builder.new(2, "utility", {roomNum = 1, floorNum = 1})
 
     local back = function (key)
       if key == "b" then
-        event.notify("menu.enable", buildMenu)
+        menu.enable(buildMenu)
         event.unsubscribe("pressed", 0, back)
         entity.delete(buildUtility)
       end
@@ -164,7 +164,7 @@ menu.addButton(gui, menu.newButton("build", function ()
   --The back button deletes the build menu
   menu.setBack(buildMenu, function ()
     entity.delete(buildMenu)
-    event.notify("menu.enable", gui)
+    menu.enable(gui)
   end)
 end))
 --The Destroy button, for deleting rooms
@@ -173,7 +173,7 @@ menu.addButton(gui, menu.newButton("destroy", function ()
 end))
 --The Hire button, for hiring staff
 menu.addButton(gui, menu.newButton("hire", function ()
-  event.notify("menu.disable", gui)
+  menu.disable(gui)
   --Create the hire menu
   local hireMenu = menu.new(2, subMenuY)
 
