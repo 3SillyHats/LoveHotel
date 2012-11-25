@@ -21,7 +21,7 @@ M.subscribe = function (event, id, callback)
   if not manager.events[event][id] then
     manager.events[event][id] = {}
   end
-  table.insert(manager.events[event][id], callback)
+  table.insert(manager.events[event][id], 1, callback)
 end
 
 M.unsubscribe = function (event, id, callback)
