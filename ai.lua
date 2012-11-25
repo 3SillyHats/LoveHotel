@@ -37,29 +37,81 @@ local getStatus = function (self)
   return self.status
 end
 
-local goal = {
-  subgoals = {},
-  status = "inactive",
-  
-  activate = activate,
-  process = process,
-  terminate = terminate,
-  getStatus = getStatus,
-}
-
-local update = function (self, dt)
-	self.goal:process()
+local addSubgoal = function (self, subgoal)
+  table.insert(self.subgoals, subgoal)
 end
 
-M.new = function (entity, t)
+local getDesirability = function (self, t)
+  return 0
+end
+
+local arbitrate = function (self, t)
+  local best = 0
+  local mostDesirable = nil
+  for _,goal in ipairs(self.goalEvaluator.subgoals) do
+    local d = goal:getDesirability(t)
+    if d >= best then
+      best = d
+      mostDesirable = goal
+    end
+  end
+  return mostDesirable
+end
+
+local update = function (self, dt)
+  local desirabilityFactors = {
+    horniness = 0.7,
+  }
+  self.currentGoal = self.goalEvaluator.arbitrate(self, desirabilityFactors)
+  if self.currentGoal then    
+    self.currentGoal.process(self)
+  end
+end
+
+M.new = function (id, t)
   local com = entity.newComponent({
-    entity = entity,
-    goal = goal,
+    entity = id,
+    currentGoal = nil,
     
     update = update,
   })
+  com.goalEvaluator = M.newGoal(com)
+  com.goalEvaluator.arbitrate = arbitrate
+  for _,sg in ipairs(t.subgoals) do
+    goalEvaluator:addSubgoal(sg)
+  end
 
   return com
+end
+
+M.newGoal = function (com)
+  return {
+    component = com,
+    subgoals = {},
+    status = "inactive",
+    
+    activate = activate,
+    process = process,
+    terminate = terminate,
+    getStatus = getStatus,
+    addSubgoal = addSubgoal,
+    getDesirability = getDesirability,
+  }
+end
+
+M.newMoveToGoal = function (moveTo)
+  local goal = M.newGoal()
+  goal.moveTo = moveTo
+  local process = goal.process
+  goal.process = function (self)
+    event.notify("sprite.move", self.component.entity, {
+      x = 0, y = 0,
+    })
+    process(self)
+  end
+  goal.getDesirability = function (self, t)
+    return t.horniness
+  end
 end
 
 return M

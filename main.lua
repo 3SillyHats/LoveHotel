@@ -13,6 +13,7 @@ local resource = require("resource")
 local sprite = require ("sprite")
 local room = require("room")
 local menu = require("menu")
+local ai = require("ai")
 
 conf = {}
 
@@ -106,7 +107,11 @@ entity.addComponent(tester, entity.newComponent({
     event.notify("sprite.play", tester, "typing")
   end
 }))
-event.notify("sprite.move", tester, {x = 50, y = 50})
+entity.addComponent(tester, ai.new(tester, {
+  subgoals = {
+    ai.newMoveToGoal({x = 0, y = 0})
+  }
+}))
 
 --Myles's Room Test
 local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
