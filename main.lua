@@ -18,6 +18,7 @@ local room = require("room")
 local menu = require("menu")
 local ai = require("ai")
 local builder = require("builder")
+local staff = require("staff")
 
 conf = {}
 
@@ -93,41 +94,6 @@ local frameQuad = love.graphics.newQuad(
   frameImage:getWidth(), frameImage:getHeight()
 )
 
--- XXX: Test entity
---[[
-local tester = entity.new(2)
-entity.addComponent(tester, sprite.new(
-  tester, {
-    image = resource.get("img/typing1.png"),
-    width = 24, height = 24,
-    animations = {
-      idle = {
-        first = 0,
-        last = 0,
-        speed = 1,
-      },
-      typing = {
-        first = 3,
-        last = 0,
-        speed = .1,
-      },
-    },
-    playing = "idle"
-  }
-))
-entity.addComponent(tester, entity.newComponent({
-  update = function (self, dt)
-    event.notify("entity.move", tester, {x = 50, y = 50})
-    event.notify("sprite.play", tester, "typing")
-  end
-}))
-entity.addComponent(tester, ai.new(tester, {
-  subgoals = {
-    ai.newMoveToGoal({x = 0, y = 0})
-  }
-}))
---]]
-
 --Myles's Room Test
 local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
 
@@ -200,6 +166,9 @@ menu.addButton(gui, menu.newButton("destroy", function ()
 end))
 --The Hire button, for hiring staff
 menu.addButton(gui, menu.newButton("hire", function ()
+  staff.new()
+
+  --[[ HIRE MENU
   menu.disable(gui)
   --Create the hire menu
   local hireMenu = menu.new(2, subMenuY)
@@ -214,6 +183,7 @@ menu.addButton(gui, menu.newButton("hire", function ()
 	  menu.enable(gui)
     entity.delete(hireMenu)
   end)
+  --]]
 end))
 --The back button, quits the game at the moment
 menu.setBack(gui, function ()

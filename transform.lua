@@ -18,8 +18,8 @@ M.new = function (id, pos, offset)
   
   local updatePos = function ()
     local screenPos = {
-      x = math.floor(component.pos.roomNum - 1) * 32 + offset.x + ROOM_INDENT,
-      y = math.floor(component.scroll - component.pos.floorNum) * 32 + offset.y + FLOOR_OFFSET,
+      x = math.floor((component.pos.roomNum - 1) * 32) + offset.x + ROOM_INDENT,
+      y = math.floor((component.scroll - component.pos.floorNum) * 32) + offset.y + FLOOR_OFFSET,
     }
     
     event.notify("sprite.move", id, screenPos)
