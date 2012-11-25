@@ -11,9 +11,19 @@ local M = {}
 M.new = function ()
   local id = entity.new(2)
   entity.setOrder(id, 50)
+  isMale = math.random(0,1) < .5  --randomize male or female
+  
+  local prefix = "resources/img/people_parts"
+  local nudes = love.filesystem.enumerate(nudeimg)
+  nudeimg = nudeimg .. nudes[math.random(1,#nudes)]
+  nudeimg = string.sub(nudeimg,10)
+  
+  local staffimg = "resources/img/people_parts"
+  
+  --add skin
   entity.addComponent(id, sprite.new(
     id, {
-      image = resource.get("img/people_parts/naked_white_man.png"),
+      image = resource.get(nudeimg),
       width = 24, height = 24,
       originX = 8, originY = 24,
       animations = {
@@ -31,13 +41,24 @@ M.new = function ()
       playing = "idle",
     }
   ))
-  local pos = {roomNum = -1.5, floorNum = 1}
+  
+  local pos = {roomNum = -1, floorNum = 1}
   entity.addComponent(id, transform.new(
     id, pos, {x = 16, y = 30}
   ))
+  entity.addComponent(id,entity.newComponent{
+    timer = 0,
+    update = function (self,dt)
+      self.timer = self.timer - dt
+      if self.timer <= 0 then
+        money = money - STAFF_WAGE
+        self.timer = self.timer + PAY_PERIOD
+      end
+    end,
+  })
   local aiComponent = ai.new(id)
+  aiComponent:addCleanGoal()
   entity.addComponent(id, aiComponent)
-  aiComponent:addMoveToGoal(pos, {roomNum = 4, floorNum = 2}, STAFF_MOVE)
   
   return id
 end

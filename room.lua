@@ -15,6 +15,8 @@ local infoComponent = function (id, info, pos)
   --Create a new component to store information in,
   --then store the info table into it.
   local component = entity.newComponent(info)
+  component.occupied = 0
+  component.messy = false
   
   local check = function (t)
     if math.ceil(t.floorNum) == pos.floorNum and
@@ -27,14 +29,81 @@ local infoComponent = function (id, info, pos)
   event.subscribe("room.check", 0, check)
   
   local unoccupied = function (callback)
-    callback(id, info.type)
+    if info.type ~= "elevator" and component.occupied == 0 and not component.messy then
+      callback(id, info.type)
+    end
   end
   
   event.subscribe("room.unoccupied", 0, unoccupied)
   
+  local dirtyRooms = function (callback)
+    if component.occupied == 0 and component.messy then
+      callback(id, info.type)
+    end
+  end
+  
+  event.subscribe("room.dirty", 0, dirtyRooms)
+  
+  local occupy = function (e)
+    if component.occupied < 2 then
+      component.occupied = component.occupied + 1
+      event.notify("sprite.hide", e.id, true)
+    end
+    if component.occupied == 2 then
+      event.notify("sprite.play", id, "closing")
+    end
+    e.callback(component.occupied < 2)
+  end
+  
+  event.subscribe("room.occupy", id, occupy)
+  
+  local depart = function (e)
+    if component.occupied > 0 then
+      component.occupied = component.occupied - 1
+    end
+    event.notify("sprite.play", e.id, "messy")
+    event.notify("sprite.hide", e.id, false)
+    if component.occupied <= 0 then
+      money = money + info.profit
+      component.occupied = 0
+      component.messy = true
+      event.notify("sprite.play", id, "dirty")
+      event.notify("sprite.play", id, "opening")
+    end
+  end
+  
+  event.subscribe("room.depart", id, depart)
+  
+  local beginClean = function (e)
+    if component.occupied > 0 then
+      e.callback(false)
+      return
+    end
+    
+    event.notify("sprite.hide", e.id, true)
+    event.notify("sprite.play", id, "closing")
+  end
+  
+  event.subscribe("room.beginClean", id, beginClean)
+  
+  local endClean = function (e)
+    component.occupied = 0
+    component.messy = false
+    
+    event.notify("sprite.hide", e.id, false)
+    event.notify("sprite.play", id, "clean")
+    event.notify("sprite.play", id, "opening")
+  end
+  
+  event.subscribe("room.endClean", id, endClean)
+  
   local function delete ()
     event.unsubscribe("room.check", 0, check)
     event.unsubscribe("room.unoccupied", 0, unoccupied)
+    event.unsubscribe("room.occupy", id, occupy)
+    event.unsubscribe("room.depart", id, depart)
+    event.unsubscribe("room.beginClean", id, beginClean)
+    event.unsubscribe("room.endClean", id, endClean)
     event.unsubscribe("room.check", id, delete)
   end
   

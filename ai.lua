@@ -16,13 +16,15 @@ end
 local process = function (self, dt)
   -- Remove all completed and failed goals from the front of
   -- the subgoals list
-  while #self.subgoals > 0 and
-      (self.subgoals[1]:getStatus() == "complete" or
-       self.subgoals[1]:getStatus() == "failed") do
+  while #self.subgoals > 0 and (self.subgoals[1]:getStatus() == "complete" or
+      self.subgoals[1]:getStatus() == "failed") do
     self.subgoals[1]:terminate()
     table.remove(self.subgoals, 1)
     if #self.subgoals > 0 then
       self.subgoals[1]:activate()
+      if self.subgoals[1]:getStatus() == "failed" then
+        return "failed"
+      end
     end
   end
   -- If any subgoals remain, process the one at the
@@ -32,13 +34,13 @@ local process = function (self, dt)
     self.subgoals[1].status = status
     -- If it finished but more remain, we should return
     -- the status 'active' ourselves
-    if status == "completed" and #self.subgoals > 1 then
+    if status == "complete" and #self.subgoals > 1 then
       return "active"
     end
     return status
   end
   -- No more subgoals
-  return "completed"
+  return "complete"
 end
 
 local terminate = function (self) end
@@ -69,9 +71,7 @@ local arbitrate = function (self, t)
 end
 
 local update = function (self, dt)
-  local desirabilityFactors = {
-    horniness = 0.7,
-  }
+  local desirabilityFactors = {}
   local newGoal = self.goalEvaluator.arbitrate(self, desirabilityFactors)
   if newGoal ~= self.currentGoal then
     if self.currentGoal then self.currentGoal:terminate() end
@@ -79,7 +79,11 @@ local update = function (self, dt)
     self.currentGoal = newGoal
   end
   if self.currentGoal then
-    self.currentGoal:process(dt)
+    local result = self.currentGoal:process(dt)
+    if result == "complete" or result == "failed" then
+      self.currentGoal:terminate()
+      self.currentGoal = nil
+    end
   end
 end
 
@@ -234,68 +238,235 @@ local groundFloorNode = function (pos)
   end
 end
 
-local addMoveToGoal = function (self, moveFrom, moveTo, moveSpeed)
+local newMoveToGoal = function (self, moveTo, moveSpeed)
   local goal = M.newGoal(self)
   goal.moveTo = moveTo
-  goal.pos = moveFrom
+  goal.pos = {}
   goal.speed = moveSpeed
   
-  local src,dst
-  if moveFrom.floorNum == 1 then
-    src = groundFloorNode(moveFrom.roomNum)
-  else
-    event.notify("room.check", 0, {
-      roomNum = moveFrom.roomNum,
-      floorNum = moveFrom.floorNum,
-      callback = function (id, type)
-        src = id
-      end,
-    })
-  end
-  if moveTo.floorNum == 1 then
-    dst = groundFloorNode(moveTo.roomNum)
-  else
-    event.notify("room.check", 0, {
-      roomNum = moveTo.roomNum,
-      floorNum = moveTo.floorNum,
-      callback = function (id, type)
-        dst = id
-      end,
-    })
-  end
-  local p
-  if src and dst then
-    p = path.get(src,dst)
-  end
-    
-  if not p then
-    goal.state = "failed"
-  else
-    local old = nil
-    for _,node in ipairs(p) do
-      local pos
-      if node >= 1 then
-        pos = room.getPos(node)
-      elseif node == 0 then
-        pos = {
-          roomNum = -0.5,
-          floorNum = 1,
-        }
-      else
-        pos = {
-          roomNum = -node,
-          floorNum = 1,
-        }
-      end
-      if old then
-        if old.floorNum == pos.floorNum then
-          goal:addSubgoal(newSeekGoal(self, old, pos, moveSpeed))
-        else
-          goal:addSubgoal(newElevatorGoal(self, old, pos))
-        end
-      end
-      old = pos
+  goal.activate = function ()
+    goal.pos = room.getPos(self.entity)
+    local src,dst
+    if goal.pos.floorNum == 1 then
+      src = groundFloorNode(goal.pos.roomNum)
+    else
+      event.notify("room.check", 0, {
+        roomNum = goal.pos.roomNum,
+        floorNum = goal.pos.floorNum,
+        callback = function (id, type)
+          src = id
+        end,
+      })
     end
+    if goal.moveTo.floorNum == 1 then
+      dst = groundFloorNode(goal.moveTo.roomNum)
+    else
+      event.notify("room.check", 0, {
+        roomNum = goal.moveTo.roomNum,
+        floorNum = goal.moveTo.floorNum,
+        callback = function (id, type)
+          dst = id
+        end,
+      })
+    end
+    
+    local p
+    if src and dst then
+      p = path.get(src,dst)
+    end
+    
+    
+    
+    if not p then
+      goal.state = "failed"
+    else
+      local old = nil
+      for _,node in ipairs(p) do
+        local pos
+        if node >= 1 then
+          pos = room.getPos(node)
+        elseif node == 0 then
+          pos = {
+            roomNum = -0.5,
+            floorNum = 1,
+          }
+        else
+          pos = {
+            roomNum = -node,
+            floorNum = 1,
+          }
+        end
+        if old then
+          if old.floorNum == pos.floorNum then
+            goal:addSubgoal(newSeekGoal(self, old, pos, moveSpeed))
+          else
+            goal:addSubgoal(newElevatorGoal(self, old, pos))
+          end
+        end
+        old = pos
+      end
+    end
+  end
+  
+  return goal
+end
+
+local newOccupyGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  
+  goal.process = function(self, dt)
+    local occupied = false
+    event.notify("room.occupy", target, {
+      id = self.component.entity,
+      callback = function (success)
+        occupied = success
+      end,
+    })
+    
+    if occupied then
+      return "complete"
+    else
+      return "failed"
+    end
+  end
+  
+  return goal
+end
+
+local newDepartGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  
+  goal.process = function(self, dt)
+    local occupied = false
+    event.notify("room.depart", target, {
+      id = self.component.entity,
+    })
+    
+    return "complete"
+  end
+  
+  return goal
+end
+  
+local newSleepGoal = function (self, t)
+  local goal = M.newGoal(self)
+  goal.time = t
+  
+  goal.process = function(self, dt)
+    goal.time = goal.time - dt
+    if goal.time <= 0 then
+      return "complete"
+    else
+      return "active"
+    end
+  end
+  
+  return goal
+end
+  
+local newDestroyGoal = function (self, t)
+  local goal = M.newGoal(self)
+  goal.time = t
+  
+  goal.process = function(self, dt)
+    entity.delete(self.component.entity)
+    return "complete"
+  end
+  
+  return goal
+end
+
+local addVisitGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+    
+  goal:addSubgoal(newMoveToGoal(self, room.getPos(target), CLIENT_MOVE))
+  goal:addSubgoal(newOccupyGoal(self, target))
+  goal:addSubgoal(newSleepGoal(self, SEX_TIME))
+  goal:addSubgoal(newDepartGoal(self, target))
+  goal:addSubgoal(newMoveToGoal(self, {roomNum = 0, floorNum = 1}, CLIENT_MOVE))
+  goal:addSubgoal(newDestroyGoal(self))
+    
+  goal.getDesirability = function (self, t)
+    return 1
+  end
+  
+  self.goalEvaluator:addSubgoal(goal)
+end
+
+local newBeginCleanGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  
+  goal.process = function(self, dt)
+    local cleaning = false
+    event.notify("room.beginClean", self.target, {
+      id = self.component.entity,
+      callback = function (res)
+        cleaning = res
+      end,
+    })
+    
+    if cleaning then
+      return "complete"
+    else
+      return "failed"
+    end
+  end
+  
+  goal.terminate = function (self)
+    self.target = nil
+  end
+  
+  return goal
+end
+
+local newEndCleanGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  
+  goal.process = function(self, dt)
+    event.notify("room.endClean", self.target, {
+      id = self.component.entity,
+    })
+    
+    return "complete"
+  end
+  
+  goal.terminate = function (self)
+    self.target = nil
+  end
+  
+  return goal
+end
+
+local addCleanGoal = function (self)
+  local goal = M.newGoal(self)
+  
+  local old_activate = goal.activate
+  goal.activate = function (self)
+    self.status = "active"
+    local target = nil
+    local rooms = {}
+    event.notify("room.dirty", 0, function (id,type)
+      table.insert(rooms,{id=id, type=type})
+    end)
+    if #rooms > 0 then
+      target = rooms[math.random(1,#rooms)].id
+    end
+    
+    if not target then
+      goal.status = "failed"
+      return
+    end
+    
+    goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), STAFF_MOVE))
+    goal:addSubgoal(newBeginCleanGoal(self.component, target))
+    goal:addSubgoal(newSleepGoal(self.component, CLEAN_TIME))
+    goal:addSubgoal(newEndCleanGoal(self.component, target))
+    old_activate(goal)
   end
     
   goal.getDesirability = function (self, t)
@@ -312,7 +483,8 @@ M.new = function (id)
     
     update = update,
     addGoal = addGoal,
-    addMoveToGoal = addMoveToGoal,
+    addVisitGoal = addVisitGoal,
+    addCleanGoal = addCleanGoal,
   })
   com.goalEvaluator = M.newGoal(com)
   com.goalEvaluator.arbitrate = arbitrate
@@ -322,7 +494,7 @@ end
 
 for i = 0, -6, -1 do
   path.addEdge(i, i-1, 1)
-  path.addEdge(i-1, 1, 1)
+  path.addEdge(i-1, i, 1)
 end
       
 event.subscribe("build", 0, function (t)

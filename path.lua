@@ -20,8 +20,6 @@ M.get = function (src, dst, heuristic)
   
   costs[src] = 0
   pq[1] = {0, src}
-  print(src)
-  print(dst)
   while #pq > 0 do
     table.sort(pq, function(a,b)
       return a[1] > b[1]
@@ -29,16 +27,13 @@ M.get = function (src, dst, heuristic)
     local next = table.remove(pq)
     local cost = next[1]
     local node = next[2]
-    print(cost, node)
     spt[node] = sf[node]
     
     if node == dst then
-      print("Found")
       local path = {dst}
       while path[1] ~= src do
         table.insert(path, 1, spt[path[1]])
       end
-      print(path)
       return path
     end
     

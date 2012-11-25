@@ -129,7 +129,7 @@ M.new = function (target)
   ))
   local aiComponent = ai.new(id)
   entity.addComponent(id, aiComponent)
-  aiComponent:addMoveToGoal(pos, room.getPos(target), STAFF_MOVE)
+  aiComponent:addVisitGoal(target)
   
   return id
 end
@@ -144,10 +144,12 @@ local com = entity.newComponent({
       event.notify("room.unoccupied", 0, function (id,type)
       table.insert(rooms,{id=id, type=type})
       end)
-      local target = rooms[math.random(1,#rooms)].id
-      M.new(target)
-      local id = M.new(target)
-      event.notify("entity.move", id, {roomNum = -1, floorNum = 1})
+      if #rooms > 0 then
+        local target = rooms[math.random(1,#rooms)].id
+        M.new(target)
+        local id = M.new(target)
+        event.notify("entity.move", id, {roomNum = -1, floorNum = 1})
+      end
     else
       self.timer = self.timer - dt
     end
