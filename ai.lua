@@ -22,9 +22,6 @@ local process = function (self, dt)
     table.remove(self.subgoals, 1)
     if #self.subgoals > 0 then
       self.subgoals[1]:activate()
-      if self.subgoals[1]:getStatus() == "failed" then
-        return "failed"
-      end
     end
   end
   -- If any subgoals remain, process the one at the

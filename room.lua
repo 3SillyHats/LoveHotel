@@ -82,6 +82,7 @@ local infoComponent = function (id, info, pos)
     
     event.notify("sprite.hide", e.id, true)
     event.notify("sprite.play", id, "closing")
+    e.callback(true)
   end
   
   event.subscribe("room.beginClean", id, beginClean)
