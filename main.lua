@@ -177,7 +177,6 @@ menu.setBack(gui, function ()
 end)
 
 -- Input training
-
 local controller = entity.new(1)
 entity.addComponent(controller, sprite.new(controller, {
   image = resource.get("img/controller.png"),
