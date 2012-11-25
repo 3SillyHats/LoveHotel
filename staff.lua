@@ -14,16 +14,77 @@ M.new = function ()
   isMale = math.random(0,1) < .5  --randomize male or female
   
   local prefix = "resources/img/people_parts"
+  local nudeimg = nil
+  local hairimg = nil
+  local staffimg = nil
+  if isMale==1 then
+    nudeimg = prefix .. "/man/nude/"
+    hairimg = prefix .. "/man/hair/"
+    staffimg = prefix .. "/man/staff/"
+  else
+    nudeimg = prefix .. "/woman/nude/"
+    hairimg = prefix .. "/man/hair/"
+    staffimg = prefix .. "/woman/staff/"
+  end
   local nudes = love.filesystem.enumerate(nudeimg)
+  local hairs = love.filesystem.enumerate(hairimg)
+  local staffs = love.filesystem.enumerate(staffimg)
   nudeimg = nudeimg .. nudes[math.random(1,#nudes)]
   nudeimg = string.sub(nudeimg,10)
-  
-  local staffimg = "resources/img/people_parts"
+  hairimg = hairimg .. hairs[math.random(1,#hairs)]
+  hairimg = string.sub(hairimg,10)
+  staffimg = staffimg .. staffs[math.random(1, #staffs)]
+  staffimg = string.sub(staffimg,10)
+  local haircolour = math.random(0,3)
   
   --add skin
   entity.addComponent(id, sprite.new(
     id, {
       image = resource.get(nudeimg),
+      width = 24, height = 24,
+      originX = 8, originY = 24,
+      animations = {
+        idle = {
+          first = 0,
+          last = 0,
+          speed = 1,
+        },
+        walking = {
+          first = 1,
+          last = 2,
+          speed = .2,
+        },
+      },
+      playing = "idle",
+    }
+  ))
+
+  --add hair
+  entity.addComponent(id, sprite.new(
+    id, {
+      image = resource.get(hairimg),
+      width = 24, height = 24,
+      originX = 8, originY = 24,
+      animations = {
+        neat = {
+          first = haircolour,
+          last = haircolour,
+          speed = 1,
+        },
+        messy = {
+          first = haircolour + 4,
+          last = haircolour + 4,
+          speed = 1,
+        },
+      },
+      playing = "neat",
+    }
+  ))
+
+  --add staff uniform
+  entity.addComponent(id, sprite.new(
+    id, {
+      image = resource.get(staffimg),
       width = 24, height = 24,
       originX = 8, originY = 24,
       animations = {
