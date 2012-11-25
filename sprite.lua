@@ -29,7 +29,7 @@ local update = function (self, dt)
     self.frame = self.frame + 1
     self.timer = self.timer - self.animations[self.playing].speed
   end
-  if self.frame >= frameCount then
+  while self.frame >= frameCount do
     if self.animations[self.playing].goto then
       self:play(self.animations[self.playing].goto, self.flipped)
     else
