@@ -37,7 +37,7 @@ M.new = function ()
   ))
   local aiComponent = ai.new(id)
   entity.addComponent(id, aiComponent)
-  aiComponent:addMoveToGoal(pos, {roomNum = 3, floorNum = 1}, STAFF_MOVE)
+  aiComponent:addMoveToGoal(pos, {roomNum = 2, floorNum = 3}, STAFF_MOVE)
   
   return id
 end

@@ -31,7 +31,7 @@ M.new = function (state)
   return entity.id
 end
 
-local get = function (id)
+M.get = function (id)
   for _,e in pairs(entities) do
     for _,entity in ipairs(e) do
       if entity.id == id then
@@ -109,11 +109,11 @@ M.newComponent = function (prototype)
 end
 
 M.addComponent = function (id, component)
-  table.insert(get(id).components, component)
+  table.insert(M.get(id).components, component)
 end
 
 M.setOrder = function (id, z)
-  get(id).z = z
+  M.get(id).z = z
 end
 
 return M

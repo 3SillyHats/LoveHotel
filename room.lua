@@ -17,10 +17,10 @@ local infoComponent = function (id, info, pos)
   local component = entity.newComponent(info)
   
   local check = function (t)
-    if t.floorNum == pos.floorNum and
+    if math.ceil(t.floorNum) == pos.floorNum and
         t.roomNum >= pos.roomNum - 0.5 and
         t.roomNum <= pos.roomNum - 0.5 + info.width then
-      t.callback(id)
+      t.callback(id, info.type)
     end
   end
   
@@ -42,6 +42,7 @@ M.new = function (state, roomType, pos)
   --Create an entity and get the id for the new room
   local roomId = entity.new(state)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
+  room.type = roomType
   local img = resource.get("img/rooms/" .. room.image)
   local imgWidth = img:getWidth()
   local imgHeight = 32

@@ -132,6 +132,9 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
       local delta = self.speed*dt
       if self.moveTo.roomNum < self.pos.roomNum then
         delta = delta * -1
+        event.notify("sprite.flip", goal.component.entity, true)
+      else
+        event.notify("sprite.flip", goal.component.entity, false)
       end
       local result = goto{
         roomNum = self.pos.roomNum + delta,
@@ -151,8 +154,75 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
   goal.terminate = function (self)
     event.notify("sprite.play", goal.component.entity, "idle")
   end
-  goal.getDesirability = function (self, t)
-    return 1
+  
+  return goal
+end
+
+local newElevatorGoal = function (com, moveFrom, moveTo)
+  local goal = M.newGoal(com)
+  goal.moveTo = moveTo
+  goal.pos = moveFrom
+  goal.speed = 1
+  local goto = function(pos)
+    print(pos.roomNum, pos.floorNum)
+    local passable = false
+    event.notify("room.check", 0, {
+      roomNum = pos.roomNum,
+      floorNum = pos.floorNum,
+      callback = function (id, roomType)
+        print("callback")
+        if roomType == "elevator" then
+          passable = true
+        end
+      end,
+    })
+    if passable then
+      event.notify("entity.move", goal.component.entity, pos)
+    else
+      return "failed"
+    end
+  end
+  goal.process = function (self, dt)
+    if self.moveTo.roomNum ~= self.pos.roomNum then
+      return "failed"
+    end
+    if math.abs(self.moveTo.floorNum - self.pos.floorNum) < self.speed*dt then
+      local result = goto{
+        roomNum = self.moveTo.roomNum,
+        floorNum = self.pos.floorNum,
+      }
+      if result then return result end
+      print("complete")
+      return "complete"
+    else
+      local delta = self.speed*dt
+      if self.moveTo.floorNum < self.pos.floorNum then
+        delta = delta * -1
+      end
+      local result = goto{
+        roomNum = self.pos.roomNum,
+        floorNum = self.pos.floorNum + delta,
+      }
+      if result then return result end
+      print("active")
+      return "active"
+    end
+  end
+  event.subscribe("entity.move", goal.component.entity, function (pos)
+    goal.pos.roomNum = pos.roomNum
+    goal.pos.floorNum = pos.floorNum
+  end)
+  goal.activate = function (self)
+    event.notify("sprite.play", goal.component.entity, "idle")
+    event.notify("sprite.hide", goal.component.entity, true)
+  end
+  goal.terminate = function (self)
+    event.notify("entity.move", goal.component.entity, {
+      roomNum = goal.pos.roomNum,
+      floorNum = math.floor(goal.pos.floorNum + .5)
+    })
+    event.notify("sprite.play", goal.component.entity, "idle")
+    event.notify("sprite.hide", goal.component.entity, false)
   end
   
   return goal
@@ -164,13 +234,13 @@ local addMoveToGoal = function (self, moveFrom, moveTo, moveSpeed)
   goal.pos = moveFrom
   goal.speed = moveSpeed
   
-  local seekGoal = newSeekGoal(self, moveFrom, {roomNum = 20, floorNum = 1}, moveSpeed)
+  local seekGoal = newSeekGoal(self, moveFrom, {roomNum = 4, floorNum = 1}, moveSpeed)
   goal:addSubgoal(seekGoal)
   
-  seekGoal = newSeekGoal(self, {roomNum = 7.5, floorNum = 1}, {roomNum = 1, floorNum = 1}, moveSpeed)
+  seekGoal = newElevatorGoal(self, {roomNum = 4, floorNum = 1}, {roomNum = 4, floorNum = moveTo.floorNum}, moveSpeed)
   goal:addSubgoal(seekGoal)
   
-  seekGoal = newSeekGoal(self, {roomNum = 1, floorNum = 1}, moveTo, moveSpeed)
+  seekGoal = newSeekGoal(self, {roomNum = 4, floorNum = moveTo.floorNum}, moveTo, moveSpeed)
   goal:addSubgoal(seekGoal)
   
   goal.getDesirability = function (self, t)
