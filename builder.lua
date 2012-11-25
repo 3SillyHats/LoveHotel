@@ -21,6 +21,7 @@ local placer = function (id, type, width, cost)
   })
   
   local clear = true
+  local new = true
     
   local updatePosition = function()
     clear = true
@@ -35,6 +36,13 @@ local placer = function (id, type, width, cost)
           event.notify("room.conflict", id, otherId)
         end,
       })
+    end
+  end
+
+  component.update = function (dt)
+    if new then
+      updatePosition()
+      new = false
     end
   end
   
@@ -60,8 +68,6 @@ local placer = function (id, type, width, cost)
     component.floor = scrollPos
     updatePosition()
   end)
-  
-  updatePosition()
   
   return component
 end

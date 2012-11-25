@@ -10,6 +10,8 @@ M.new = function (id, pos, offset)
 
   local offset = offset or {x = 0, y = 0}
 
+  local new = true
+
   --Load the tower position into the component
   component.pos = pos
   component.scroll = gScrollPos
@@ -21,6 +23,13 @@ M.new = function (id, pos, offset)
     }
     
     event.notify("sprite.move", id, screenPos)
+  end
+
+  component.update = function (dt)
+    if new then
+      updatePos()
+      new = false
+    end
   end
   
   --[[Subscribe to the scroll event so that the rooms screen
@@ -38,8 +47,6 @@ M.new = function (id, pos, offset)
       component.pos = pos
       updatePos()
     end)
-
-  updatePos()
 
   return component
 end
