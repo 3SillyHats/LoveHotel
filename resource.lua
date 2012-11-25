@@ -15,10 +15,15 @@ loadRes[".png"] = function (name)
   return image
 end
 loadRes[".wav"] = function (name)
-  love.audio.newSource(name, "static")
+  local snd = love.audio.newSource(name, "static")
+  snd:setVolume(0.5)
+  return snd
 end
-loadRes[".mp3"] = function (name)
-  love.audio.newSource(name, "streaming")
+loadRes[".ogg"] = function (name)
+  local snd = love.audio.newSource(name, "stream")
+  snd:setVolume(0.5)
+  snd:setLooping(true)
+  return snd
 end
 loadRes[".glsl"] = function (name)
   pixelEffect = nil

@@ -347,6 +347,10 @@ bdCom.draw = function (self)
 end
 entity.addComponent(backdrop, bdCom)
 
+-- BGM
+local bgm = resource.get("snd/gettingfreaky.ogg")
+love.audio.play(bgm)
+
 love.draw = function ()
   -- Draw to canvas without scaling
   love.graphics.setCanvas(canvas)

@@ -44,7 +44,7 @@ local placer = function (id, type, pos, width, cost, t)
       love.graphics.setColor(172,16,0)
     end
     love.graphics.setLine(1, "rough")
-    love.graphics.rectangle("line", self.x, self.y, self.pixelWidth, self.pixelHeight)
+    love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
   end
     
   local updatePosition = function()
@@ -95,6 +95,13 @@ local placer = function (id, type, pos, width, cost, t)
         money = money - cost
         event.notify("build", id, {id=room, pos=pos, type=type})
         event.notify("build", 0, {id=room, pos=pos, type=type})
+        local snd = resource.get("snd/build3.wav")
+        love.audio.rewind(snd)
+        love.audio.play(snd)
+       else
+        local snd = resource.get("snd/closedoor.wav")
+        love.audio.rewind(snd)
+        love.audio.play(snd)
       end
     end
   end
