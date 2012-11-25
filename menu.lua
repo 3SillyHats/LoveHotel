@@ -24,16 +24,14 @@ local hud = function (id, pos)
   local buttons = {}
 
   component.draw = function (self)
-    love.graphics.setColor(0,0,0)
-    love.graphics.rectangle("fill", 0, pos, 32*8, 32)
     love.graphics.setColor(255,255,255)
     for i = 1, #buttons do
       if i == selected then
         love.graphics.drawq(buttons[i].image, buttons[i].quadS,
-          18*i-16, pos+2, 0, 1, 1, 0, 0)
+          16*(i-1), pos, 0, 1, 1, 0, 0)
       else
         love.graphics.drawq(buttons[i].image, buttons[i].quadU,
-          18*i-16, pos+2, 0, 1, 1, 0, 0)
+          16*(i-1), pos, 0, 1, 1, 0, 0)
       end
     end
   end

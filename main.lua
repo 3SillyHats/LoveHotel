@@ -117,11 +117,11 @@ entity.addComponent(tester, ai.new(tester, {
 local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
 event.notify("scroll", 0, 2)
 
-local gui = menu.new(2, 32*6)
+local gui = menu.new(2, 32*6.5)
 --The Build button, opens build menu
 menu.addButton(gui, menu.newButton("build", function ()
   --Create the build menu
-  local buildMenu = menu.new(2, 32*5)
+  local buildMenu = menu.new(2, 32*6)
 
   --Build Janitors Closet button
   menu.addButton(buildMenu, menu.newButton("janitor", function ()
