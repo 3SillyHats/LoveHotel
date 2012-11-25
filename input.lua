@@ -7,14 +7,14 @@ local M = {}
 local training = false
 local current = 1
 local inputs = {
-  "a", -- 206, 130
-  "b", -- 174, 130
-  "left", -- 42, 120
-  "right", -- 70, 120
-  "up", -- 54, 108
-  "down", -- 54, 134
-  "start", -- 
-  "select", -- 
+  "a",
+  "b",
+  "start",
+  "select",
+  "right",
+  "down",
+  "left",
+  "up",
 }
 
 event.subscribe("training.begin", 0, function ()
