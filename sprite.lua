@@ -6,6 +6,7 @@ local entity = require("entity")
 local M = {}
 
 local draw = function (self)
+  love.graphics.setColor(255,255,255)
   if self.flipped then
     love.graphics.drawq(self.image, self.quad, self.x + self.width, self.y, 0, -1, 1, self.originX, self.originY)
   else

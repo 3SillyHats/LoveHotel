@@ -123,7 +123,6 @@ entity.addComponent(tester, ai.new(tester, {
 
 --Myles's Room Test
 local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
-local buildUtility = builder.new(2, "utility", {roomNum = 1, floorNum = 1})
 
 --Menu spacing values
 local mainMenuY = 32*6.5
@@ -139,7 +138,19 @@ menu.addButton(gui, menu.newButton("build", function ()
 
   --Build Utility Room button
   menu.addButton(buildMenu, menu.newButton("utility", function ()
-    print("Building Utility Room")
+    event.notify("menu.disable", buildMenu)
+
+    local buildUtility = builder.new(2, "utility", {roomNum = 1, floorNum = 1})
+
+    local back = function (key)
+      if key == "b" then
+        event.notify("menu.enable", buildMenu)
+        event.unsubscribe("pressed", 0, back)
+        entity.delete(buildUtility)
+      end
+    end
+
+    event.subscribe("pressed", 0, back)
   end))
   --Build Flower Room button
   menu.addButton(buildMenu, menu.newButton("flower", function ()
@@ -153,7 +164,7 @@ menu.addButton(gui, menu.newButton("build", function ()
   --The back button deletes the build menu
   menu.setBack(buildMenu, function ()
     entity.delete(buildMenu)
-	event.notify("menu.enable", gui)
+    event.notify("menu.enable", gui)
   end)
 end))
 --The Destroy button, for deleting rooms
