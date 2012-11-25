@@ -94,6 +94,7 @@ local frameQuad = love.graphics.newQuad(
 )
 
 -- XXX: Test entity
+--[[
 local tester = entity.new(2)
 entity.addComponent(tester, sprite.new(
   tester, {
@@ -125,6 +126,7 @@ entity.addComponent(tester, ai.new(tester, {
     ai.newMoveToGoal({x = 0, y = 0})
   }
 }))
+--]]
 
 --Myles's Room Test
 local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})

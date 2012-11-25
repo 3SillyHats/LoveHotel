@@ -37,6 +37,7 @@ local update = function (self, dt)
     end
   end
 
+  anim = self.animations[self.playing]
   local frame = anim.frames[self.frame + 1]
   local framesPerRow = self.image:getWidth() / self.width
   self.quad:setViewport(
