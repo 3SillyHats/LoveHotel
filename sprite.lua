@@ -14,7 +14,7 @@ local draw = function (self)
 end
 
 local update = function (self, dt)
-  if not (self.animations or self.playing) then
+  if not self.animations or not self.playing then
     self.quad:setViewport(
       0, 0, -- x, y
       self.width, self.height -- width, height
@@ -22,8 +22,8 @@ local update = function (self, dt)
     return
   end
   self.timer = self.timer + dt
-  local frameCount = self.animations[self.playing].last -
-    self.animations[self.playing].first + 1
+  local anim = self.animations[self.playing]
+  local frameCount = math.abs(anim.last - anim.first) + 1
   while self.timer >= self.animations[self.playing].speed do
     self.frame = self.frame + 1
     self.timer = self.timer - self.animations[self.playing].speed
@@ -36,7 +36,7 @@ local update = function (self, dt)
     end
   end
 
-  local frame = self.frame + self.animations[self.playing].first
+  local frame = anim.frames[self.frame + 1]
   local framesPerRow = self.image:getWidth() / self.width
   self.quad:setViewport(
     (frame % framesPerRow) * self.width, -- x
@@ -79,6 +79,23 @@ M.new = function (id, t)
     update = update,
     play = play,
   })
+  
+  -- Setup arrays of animation frames
+  if sprite.animations then
+    for _, anim in pairs(sprite.animations) do
+      local frameCount = math.abs(anim.last - anim.first) + 1
+      anim.frames = {}
+      if anim.first < anim.last then
+        for i = 0, frameCount - 1 do
+          table.insert(anim.frames, anim.first + i)
+        end
+      else
+        for i = 0, frameCount - 1 do
+          table.insert(anim.frames, anim.first - i)
+        end
+      end
+    end
+  end
   
   event.subscribe("sprite.move", id, function (e)
     sprite.x = e.x

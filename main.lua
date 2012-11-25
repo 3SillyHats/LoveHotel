@@ -101,8 +101,8 @@ entity.addComponent(tester, sprite.new(
         speed = 1,
       },
       typing = {
-        first = 0,
-        last = 3,
+        first = 3,
+        last = 0,
         speed = .1,
       },
     },
