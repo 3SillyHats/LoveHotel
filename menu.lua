@@ -2,6 +2,13 @@
 
 local event = require("event")
 local entity = require("entity")
+local resource = require("resource")
+
+local buttLoc = {
+  build = 1,
+  destroy = 2,
+  hire = 3,
+}
 
 local defaultAction = function ()
   print("action")
@@ -16,13 +23,15 @@ local hud = function (id, pos)
   component.draw = function (self)
     love.graphics.setColor(0,0,0)
     love.graphics.rectangle("fill", 0, pos, 32*8, 32)
+    love.graphics.setColor(255,255,255)
     for i = 1, #buttons do
       if i == selected then
-        love.graphics.setColor(255,255,255)
+        love.graphics.drawq(buttons[i].image, buttons[i].quadS,
+          18*i-16, pos+2, 0, 1, 1, 0, 0)
       else
-        love.graphics.setColor(89,89,89)
+        love.graphics.drawq(buttons[i].image, buttons[i].quadU,
+          18*i-16, pos+2, 0, 1, 1, 0, 0)
       end
-      love.graphics.rectangle("fill", 18*i-16, pos+2, 16, 16)
     end
   end
   
@@ -67,10 +76,24 @@ M.new = function (state, pos)
   return id
 end
 
-M.newButton = function (callback)
+--Creates a new button of set type and desired callback function.
+--The buttType is to define the sprite image
+M.newButton = function (buttType, callback)
+  local index = buttLoc[buttType]
+
   local button = {
-    action = callback or defaultAction
+    action = callback or defaultAction,
+    image = resource.get("img/hud.png"),
+    quadS = love.graphics.newQuad(
+      16*(index - 1), 16, 16, 16,
+      img:getWidth(), img:getHeight()
+    ),
+    quadU = love.graphics.newQuad(
+      16*(index - 1), 0, 16, 16,
+      img:getWidth(), img:getHeight()
+    ),
   }
+
   return button
 end
 
