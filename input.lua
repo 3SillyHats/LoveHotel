@@ -1,5 +1,7 @@
 -- input.lua
 
+local luatexts = require("luatexts")
+
 local event = require("event")
 
 local M = {}
@@ -28,10 +30,19 @@ event.subscribe("training.begin", 0, function ()
   event.notify("training.current", 0, inputs[current])
 end)
 
-event.subscribe("training.load", 0, function (t)
-  training = false
-  current = nil
-  event.notify("training.end", 0)
+event.subscribe("training.load", 0, function ()
+  local fname = "input_conf.lua"
+  if love.filesystem.exists(fname) then
+    local success, result = luatexts.load(love.filesystem.read(
+      fname
+    ))
+    if success then
+      training = false
+      current = nil
+      map = result
+      event.notify("training.end", 0)
+    end
+  end
 end)
 
 local trainNext = function ()
@@ -39,9 +50,20 @@ local trainNext = function ()
   if current > #inputs then
     training = false
     event.notify("training.end", 0)
+    M.save()
   else
     event.notify("training.current", 0, inputs[current])
   end
+end
+
+M.save = function ()
+  local fname = "input_conf.lua"
+  print(fname)
+  local s = luatexts.save(map)
+  love.filesystem.write(
+    fname,
+    s
+  )
 end
 
 M.keyPressed = function (key)
