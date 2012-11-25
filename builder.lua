@@ -18,25 +18,44 @@ local placer = function (id, width, cost)
     width = width,
     cost = cost,
   })
+    
+  local updatePosition = function()
+    event.notify("entity.move", id, {roomNum = component.room, floorNum = component.floor})
+    
+    for i = 1,component.width do
+      event.notify("room.check", 0, {
+        roomNum = component.room + i - 1,
+        floorNum = component.floor,
+        callback = function (otherId)
+          event.notify("room.conflict", id, otherId)
+        end,
+      })
+    end
+  end
   
   event.subscribe("pressed", 0, function (key)
     if key == "left" then
       if component.room > 1 then
         component.room = component.room - 1
-        event.notify("entity.move", id, {roomNum = component.room, floorNum = component.floor})
+        updatePosition()
       end
     elseif key == "right" then
       if component.room < 7 then
         component.room = component.room + 1
-        event.notify("entity.move", id, {roomNum = component.room, floorNum = component.floor})
+        updatePosition()
       end
+    elseif key == "a" then
+      
     end
   end)
 
   event.subscribe("scroll", 0, function (scrollPos)
     component.floor = scrollPos
-    event.notify("entity.move", id, {roomNum = component.room, floorNum = component.floor})
+    updatePosition()
   end)
+  
+  updatePosition()
+  
   return component
 end
 
@@ -48,12 +67,24 @@ local outline = function (id, t)
     height = t.height,
   })
   
+  local clear = true
+  
   component.draw = function (self)
-    love.graphics.setColor(0,114,0)
+    if clear then
+      love.graphics.setColor(0,184,0)
+    else
+      love.graphics.setColor(172,16,0)
+    end
     love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
   end
   
+  event.subscribe("room.conflict", id, function (otherId)
+    clear = false
+  end)
+
   event.subscribe("sprite.move", id, function (pos)
+    clear = true
+    --print(clear)
     component.x = pos.x
     component.y = pos.y
   end)
