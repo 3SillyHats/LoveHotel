@@ -162,6 +162,7 @@ menu.addButton(gui, menu.newButton("destroy", function ()
 end))
 --The Hire button, for hiring staff
 menu.addButton(gui, menu.newButton("hire", function ()
+  event.notify("menu.disable", gui)
   --Create the hire menu
   local hireMenu = menu.new(2, subMenuY)
 
@@ -172,6 +173,7 @@ menu.addButton(gui, menu.newButton("hire", function ()
 
   --The back button deletes the hire menu
   menu.setBack(hireMenu, function ()
+	  event.notify("menu.enable", gui)
     entity.delete(hireMenu)
   end)
 end))
