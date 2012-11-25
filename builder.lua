@@ -75,6 +75,7 @@ local outline = function (id, t)
     else
       love.graphics.setColor(172,16,0)
     end
+    love.graphics.setLine(1, "rough")
     love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
   end
   
