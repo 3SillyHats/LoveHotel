@@ -8,13 +8,28 @@ local manager = {
 
 local notifyDepth = 0
 local subscribeQueue = {}
+local unsubscribeQueue = {}
 
 M.notify = function (event, id, data)
   if notifyDepth == 0 then
     for _,t in ipairs(subscribeQueue) do
       table.insert(manager.events[t[1]][t[2]], t[3])
     end
+    for _,t in ipairs(unsubscribeQueue) do
+      if manager.events[t[1]] and manager.events[t[1]][t[2]] then
+        local del = -1
+        for i,c in ipairs(manager.events[t[1]][t[2]]) do
+          if c == t[3] then
+            del = i
+          end
+        end
+        if del ~= -1 then
+          table.remove(manager.events[t[1]][t[2]],del)
+        end
+      end
+    end
     subscribeQueue = {}
+    unsubscribeQueue = {}
   end
   
   notifyDepth = notifyDepth + 1
@@ -37,17 +52,7 @@ M.subscribe = function (event, id, callback)
 end
 
 M.unsubscribe = function (event, id, callback)
-  if manager.events[event] and manager.events[event][id] then
-    local del = -1
-    for i,c in ipairs(manager.events[event][id]) do
-      if c == callback then
-        del = i
-      end
-    end
-    if del ~= -1 then
-      table.remove(manager.events[event][id],del)
-    end
-  end
+  table.insert(unsubscribeQueue, {event, id, callback})
 end
 
 return M
