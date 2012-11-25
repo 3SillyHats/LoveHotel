@@ -68,11 +68,27 @@ M.new = function (state, roomType, pos)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
   local img = resource.get("img/rooms/" .. room.image)
 
-  --Add a sprite component for the room
+  --Add a sprite component for back layer the room
   entity.addComponent(id, sprite.new(id, {
-   image = img,
-   width = img:getWidth(),
-   height = img:getHeight()
+    image = img,
+    width = img:getWidth(),
+    height = img:getHeight(),
+    --Use the clean room back layer
+    quad = love.graphics.newQuad(
+      0, 0, img:getWidth(), 32,
+      img:getWidth(), img:getHeight()
+    ),
+  }))
+  --Add a sprite for the front layer of the room
+  entity.addComponent(id, sprite.new(id, {
+    image = img,
+    width = img:getWidth(),
+    height = img:getHeight(),
+    --Used the closed door front layer
+    quad = love.graphics.newQuad(
+      0, 32*(room.aniFrames+1), img:getWidth(), 32,
+      img:getWidth(), img:getHeight()
+    ),
   }))
   --Add an outline component for the room
   entity.addComponent(id, outline(id, {
