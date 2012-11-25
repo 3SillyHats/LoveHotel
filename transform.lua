@@ -36,17 +36,26 @@ M.new = function (id, pos, offset)
   position gets updated when the tower is scrolled.
   The callback method transforms from tower position to
   screen position, and notifies "sprite.move"--]]
-  event.subscribe("scroll", 0,
-    function (scrollPos)
-      component.scroll = scrollPos
-      updatePos()
-    end)
 
-  event.subscribe("entity.move", id,
-    function (pos)
-      component.pos = pos
-      updatePos()
-    end)
+  local scroll = function (scrollPos)
+    component.scroll = scrollPos
+    updatePos()
+  end
+
+  local move = function (pos)
+    component.pos = pos
+    updatePos()
+  end
+  
+  local function delete ()
+    event.unsubscribe("scroll", 0, scroll)
+    event.unsubscribe("entity.move", id, move)
+    event.unsubscribe("delete", id, delete)
+  end
+  
+  event.subscribe("scroll", 0, scroll)
+  event.subscribe("entity.move", id, move)
+  event.subscribe("delete", id, delete)
 
   return component
 end

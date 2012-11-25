@@ -78,12 +78,14 @@ M.update = function (dt)
     local index = #entities[currentState]
     local notDeleted = 0
     while #deleted-notDeleted > 0 and index >= 1 do
-      while notDeleted > #deleted - 1 and entities[index].id < deleted[#deleted-notDeleted] do
+      while notDeleted < #deleted - 1 and entities[currentState][index].id < deleted[#deleted-notDeleted] do
         notDeleted = notDeleted + 1
       end
       if entities[currentState][index].id == deleted[#deleted-notDeleted] then
+        local id = entities[currentState][index].id
         table.remove(entities[currentState], index)
         table.remove(deleted, #deleted-notDeleted)
+        event.notify("delete", id)
       end
       index = index - 1
     end

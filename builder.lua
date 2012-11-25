@@ -46,7 +46,7 @@ local placer = function (id, type, width, cost)
     end
   end
   
-  event.subscribe("pressed", 0, function (key)
+  local pressed = function (key)
     if key == "left" then
       if component.room > 1 then
         component.room = component.room - 1
@@ -62,12 +62,22 @@ local placer = function (id, type, width, cost)
         local room = room.new(2, type, {roomNum = component.room, floorNum = component.floor})
       end
     end
-  end)
+  end
 
-  event.subscribe("scroll", 0, function (scrollPos)
+  local scroll = function (scrollPos)
     component.floor = scrollPos
     updatePosition()
-  end)
+  end
+
+  local function delete ()
+    event.unsubscribe("pressed", 0, pressed)
+    event.unsubscribe("scroll", 0, scroll)
+    event.unsubscribe("delete", id, delete)
+  end
+  
+  event.subscribe("pressed", 0, pressed)
+  event.subscribe("scroll", 0, scroll)
+  event.subscribe("delete", id, delete)
   
   return component
 end
@@ -92,16 +102,25 @@ local outline = function (id, t)
     love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
   end
   
-  event.subscribe("room.conflict", id, function (otherId)
+  local conflict =  function (otherId)
     clear = false
-  end)
+  end
 
-  event.subscribe("sprite.move", id, function (pos)
+  local move = function (pos)
     clear = true
-    --print(clear)
     component.x = pos.x
     component.y = pos.y
-  end)
+  end
+  
+  local function delete ()
+    event.unsubscribe("room.conflict", id, conflict)
+    event.unsubscribe("sprite.move", id, move)
+    event.unsubscribe("delete", id, delete)
+  end
+  
+  event.subscribe("room.conflict", id, conflict)
+  event.subscribe("sprite.move", id, move)
+  event.subscribe("delete", id, delete)
   
   return component
 end

@@ -145,10 +145,10 @@ menu.addButton(gui, menu.newButton("build", function ()
 
     local buildUtility = builder.new(2, "utility", {roomNum = 1, floorNum = 1})
 
-    local back = function (key)
+    local function back (key)
       if key == "b" then
-        menu.enable(buildMenu)
         event.unsubscribe("pressed", 0, back)
+        menu.enable(buildMenu)
         entity.delete(buildUtility)
       end
     end
@@ -166,6 +166,7 @@ menu.addButton(gui, menu.newButton("build", function ()
 
   --The back button deletes the build menu
   menu.setBack(buildMenu, function ()
+    print("back", buildMenu)
     entity.delete(buildMenu)
     menu.enable(gui)
   end)
@@ -235,7 +236,7 @@ event.subscribe("training.current", 0, function (current)
   event.notify("sprite.move", arrow, inputLocations[current])
 end)
 
-local endTraining = function()
+local function endTraining ()
   event.notify("state.enter", 0, 2)
   event.unsubscribe("training.end", 0, endTraining)
 end

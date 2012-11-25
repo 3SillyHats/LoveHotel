@@ -58,7 +58,7 @@ local hud = function (id, pos)
     component.enabled = false
   end
   
-  event.subscribe("pressed", 0, function (key)
+  local pressed = function (key)
     if component.enabled then
       if key == "left" then
         if selected > 1 then
@@ -76,7 +76,15 @@ local hud = function (id, pos)
         component.back()
       end
     end
-  end)
+  end
+  
+  local function delete ()
+    event.unsubscribe("pressed", 0, pressed)
+    event.unsubscribe("delete", id, delete)
+  end
+  
+  event.subscribe("pressed", 0, pressed)
+  event.subscribe("delete", id, delete)
   
   return component
 end

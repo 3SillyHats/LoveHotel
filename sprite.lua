@@ -98,14 +98,24 @@ M.new = function (id, t)
     end
   end
   
-  event.subscribe("sprite.move", id, function (e)
+  local move = function (e)
     sprite.x = e.x
     sprite.y = e.y
-  end)
+  end
   
-  event.subscribe("sprite.play", id, function (e)
+  local play = function (e)
     sprite.playing = e
-  end)
+  end
+  
+  local function delete (e)
+    event.unsubscribe("sprite.move", id, move)
+    event.unsubscribe("sprite.play", id, play)
+    event.unsubscribe("delete", id, delete)
+  end
+  
+  event.subscribe("sprite.move", id, move)
+  event.subscribe("sprite.play", id, play)
+  event.subscribe("delete", id, delete)
 
   return sprite
 end

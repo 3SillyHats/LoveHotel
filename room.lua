@@ -16,11 +16,20 @@ local infoComponent = function (id, info, pos)
   --then store the info table into it.
   local component = entity.newComponent(info)
   
-  event.subscribe("room.check", 0, function (t)
+  local check = function (t)
     if t.floorNum == pos.floorNum and t.roomNum >= pos.roomNum and t.roomNum < pos.roomNum + info.width then
       t.callback(id)
     end
-  end)
+  end
+  
+  event.subscribe("room.check", 0, check)
+  
+  local function delete ()
+    event.unsubscribe("room.check", 0, check)
+    event.unsubscribe("room.check", id, delete)
+  end
+  
+  event.subscribe("room.check", id, delete)
 
   --Return the room info table.
   return component
