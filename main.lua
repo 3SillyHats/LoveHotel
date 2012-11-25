@@ -26,6 +26,8 @@ event.subscribe("scroll", 0, function (scrollPos)
   gScrollPos = scrollPos
 end)
 
+money = 1000
+
 -- Setup the window
 local setupScreen = function (modes)
   table.sort(modes, function (a, b)
@@ -288,6 +290,26 @@ hudCom.draw = function (self)
   )
 end
 entity.addComponent(hudBar, hudCom)
+
+-- Create the money display
+local moneyFont = love.graphics.newImageFont(
+  resource.get("img/font.png"),
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$"
+)
+local moneyDisplay = entity.new(STATE_PLAY)
+entity.setOrder(moneyDisplay, 100)
+local moneyCom = entity.newComponent()
+moneyCom.draw = function (self)
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.setFont(moneyFont)
+  love.graphics.printf(
+    "$" .. money,
+    200, CANVAS_HEIGHT - 24,
+    56,
+    "right"
+  )
+end
+entity.addComponent(moneyDisplay, moneyCom)
 
 love.draw = function ()
   -- Draw to canvas without scaling
