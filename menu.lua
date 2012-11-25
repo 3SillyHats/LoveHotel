@@ -39,6 +39,7 @@ local hud = function (id, pos)
     end
   end
   
+  component.enabled = true
   component.back = defaultAction
   
   event.subscribe("addButton", id, function (button)
@@ -49,21 +50,31 @@ local hud = function (id, pos)
     component.back = callback
   end)
   
+  event.subscribe("menu.enable", id, function ()
+    component.enabled = true
+  end)
+  
+  event.subscribe("menu.disable", id, function ()
+    component.enabled = false
+  end)
+  
   event.subscribe("pressed", 0, function (key)
-    if key == "left" then
-      if selected > 1 then
-        selected = selected - 1
+    if component.enabled then
+      if key == "left" then
+        if selected > 1 then
+          selected = selected - 1
+        end
+      elseif key == "right" then
+        if selected < #buttons then
+          selected = selected + 1
+        end
+      elseif key == "a" then
+        if buttons[selected] then
+          buttons[selected].action()
+        end
+      elseif key == "b" then
+        component.back()
       end
-    elseif key == "right" then
-      if selected < #buttons then
-        selected = selected + 1
-      end
-    elseif key == "a" then
-      if buttons[selected] then
-        buttons[selected].action()
-      end
-    elseif key == "b" then
-      component.back()
     end
   end)
   
@@ -113,6 +124,14 @@ end
 
 M.setBack = function(id, callback)
   event.notify("setBack", id, callback)
+end
+
+M.enable = function(id)
+  event.notify("menu.enable", id)
+end
+
+M.disable = function(id)
+  event.notify("menu.disable", id)
 end
 
 return M

@@ -132,6 +132,8 @@ local subMenuY = 32*6
 local gui = menu.new(2, mainMenuY)
 --The Build button, opens build menu
 menu.addButton(gui, menu.newButton("build", function ()
+  event.notify("menu.disable", gui)
+  
   --Create the build menu
   local buildMenu = menu.new(2, subMenuY)
 
@@ -151,6 +153,7 @@ menu.addButton(gui, menu.newButton("build", function ()
   --The back button deletes the build menu
   menu.setBack(buildMenu, function ()
     entity.delete(buildMenu)
+	event.notify("menu.enable", gui)
   end)
 end))
 --The Destroy button, for deleting rooms
