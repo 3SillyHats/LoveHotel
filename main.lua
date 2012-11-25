@@ -188,7 +188,7 @@ menu.addButton(gui, menu.newButton("hire", function ()
 
   --The back button deletes the hire menu
   menu.setBack(hireMenu, function ()
-	  event.notify("menu.enable", gui)
+	  menu.enable(gui)
     entity.delete(hireMenu)
   end)
 end))
