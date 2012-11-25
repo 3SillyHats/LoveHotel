@@ -12,19 +12,39 @@ local room = require("room")
 --Create the module
 local M = {}
 
-local placer = function (id, type, pos, width, cost)
+local placer = function (id, type, pos, width, cost, t)
   local component = entity.newComponent({
     room = pos.roomNum,
     floor = pos.floorNum,
     width = width,
     cost = cost,
+    x = 0,
+    y = 0,
+    pixelWidth = t.width,
+    pixelHeight = t.height,
   })
   
   local clear = true
+  local support = 0
   local new = true
+
+  local okay = function ()
+    return clear and (support == component.width or component.floor == 1)
+  end
+  
+  component.draw = function (self)
+    if okay() then
+      love.graphics.setColor(0,184,0)
+    else
+      love.graphics.setColor(172,16,0)
+    end
+    love.graphics.setLine(1, "rough")
+    love.graphics.rectangle("line", self.x, self.y, self.pixelWidth, self.pixelHeight)
+  end
     
   local updatePosition = function()
     clear = true
+    support = 0
     event.notify("entity.move", id, {roomNum = component.room, floorNum = component.floor})
     
     for i = 1,component.width do
@@ -32,8 +52,14 @@ local placer = function (id, type, pos, width, cost)
         roomNum = component.room + i - 1,
         floorNum = component.floor,
         callback = function (otherId)
-          clear = false,
-          event.notify("room.conflict", id, otherId)
+          clear = false
+        end,
+      })
+      event.notify("room.check", 0, {
+        roomNum = component.room + i - 1,
+        floorNum = component.floor - 1,
+        callback = function (otherId)
+          support = support + 1
         end,
       })
     end
@@ -58,9 +84,11 @@ local placer = function (id, type, pos, width, cost)
         updatePosition()
       end
     elseif key == "a" then
-      if clear then
+      if okay() then
         local room = room.new(2, type, {roomNum = component.room, floorNum = component.floor})
         event.notify("build", id)
+      else
+        print(support, component.width, clear)
       end
     end
   end
@@ -70,56 +98,20 @@ local placer = function (id, type, pos, width, cost)
     updatePosition()
   end
 
+  local move = function (pos)
+    component.x = pos.x
+    component.y = pos.y
+  end
+
   local function delete ()
     event.unsubscribe("pressed", 0, pressed)
     event.unsubscribe("scroll", 0, scroll)
+    event.unsubscribe("sprite.move", id, move)
     event.unsubscribe("delete", id, delete)
   end
   
   event.subscribe("pressed", 0, pressed)
   event.subscribe("scroll", 0, scroll)
-  event.subscribe("delete", id, delete)
-  
-  return component
-end
-
-local outline = function (id, t)
-  local component = entity.newComponent({
-    x = 0,
-    y = 0,
-    width = t.width,
-    height = t.height,
-  })
-  
-  local clear = true
-  
-  component.draw = function (self)
-    if clear then
-      love.graphics.setColor(0,184,0)
-    else
-      love.graphics.setColor(172,16,0)
-    end
-    love.graphics.setLine(1, "rough")
-    love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
-  end
-  
-  local conflict =  function (otherId)
-    clear = false
-  end
-
-  local move = function (pos)
-    clear = true
-    component.x = pos.x
-    component.y = pos.y
-  end
-  
-  local function delete ()
-    event.unsubscribe("room.conflict", id, conflict)
-    event.unsubscribe("sprite.move", id, move)
-    event.unsubscribe("delete", id, delete)
-  end
-  
-  event.subscribe("room.conflict", id, conflict)
   event.subscribe("sprite.move", id, move)
   event.subscribe("delete", id, delete)
   
@@ -149,15 +141,13 @@ M.new = function (state, roomType, pos)
     },
     playing = "closed",
   }))
-  --Add an outline component for the room
-  entity.addComponent(id, outline(id, {
+  --Add position component
+  entity.addComponent(id, transform.new(id, pos))
+  --Add placer component (including outline)
+  entity.addComponent(id, placer(id, roomType, pos, room.width, room.cost, {
     width = img:getWidth(),
     height = 32,
   }))
-  --Add position component
-  entity.addComponent(id, transform.new(id, pos))
-  --Add placer component
-  entity.addComponent(id, placer(id, roomType, pos, room.width, room.cost))
 
   --Function returns the rooms id
   return id
