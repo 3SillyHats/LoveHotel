@@ -319,8 +319,8 @@ moneyCom.draw = function (self)
   love.graphics.setFont(moneyFont)
   love.graphics.printf(
     "$" .. money,
-    200, CANVAS_HEIGHT - 24,
-    56,
+    200, CANVAS_HEIGHT - 28,
+    54,
     "right"
   )
 end
