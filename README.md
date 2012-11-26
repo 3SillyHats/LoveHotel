@@ -5,7 +5,7 @@ A jam game for MiniLD #37 - NES
 
 Credits
 -------
-* Miles Clark - *Programming*
+* Myles Clark - *Programming*
 * Saxon Douglass - *Programming*
 * Joshua Douglass-Molloy - *Audio*
 * Harriet Lloyd - *Graphics*
