@@ -113,6 +113,7 @@ M.new = function ()
       self.timer = self.timer - dt
       if self.timer <= 0 then
         money = money - STAFF_WAGE
+        event.notify("money.change", 0, -STAFF_WAGE)
         self.timer = self.timer + PAY_PERIOD
       end
     end,

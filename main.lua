@@ -37,7 +37,7 @@ event.subscribe("scroll", 0, function (scrollPos)
   gScrollPos = scrollPos
 end)
 
-money = 1000
+money = 2000
 
 -- Setup the window
 local setupScreen = function (modes)
@@ -147,37 +147,37 @@ menu.addButton(gui, menu.newButton("build", function ()
   --Create the build menu
   local buildMenu = menu.new(2, subMenuY)
   
-  --Build Utility Room button
-  menu.addButton(buildMenu, menu.newButton("utility", function ()
-    buildRoom("utility", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end))
-  --Build Flower Room button
-  menu.addButton(buildMenu, menu.newButton("flower", function ()
-    buildRoom("flower", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end))
-  --Build Heart Room
-  menu.addButton(buildMenu, menu.newButton("heart", function ()
-    buildRoom("heart", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end))
-  --Build Tropical Room
-  menu.addButton(buildMenu, menu.newButton("tropical", function ()
-    buildRoom("tropical", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end))
   --Build Elevator Room
   menu.addButton(buildMenu, menu.newButton("elevator", function ()
     buildRoom("elevator", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end))
+  end, { image="elevator", name="Elevator", desc="$100"}))
+  --Build Utility Room button
+  menu.addButton(buildMenu, menu.newButton("utility", function ()
+    buildRoom("utility", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
+  end, { image="utility", name="Utility r.", desc="$150"}))
+  --Build Flower Room button
+  menu.addButton(buildMenu, menu.newButton("flower", function ()
+    buildRoom("flower", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
+  end, { image="flower", name="Lily s.", desc="$500"}))
+  --Build Heart Room
+  menu.addButton(buildMenu, menu.newButton("heart", function ()
+    buildRoom("heart", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
+  end, { image="heart", name="Heart s.", desc="$1200"}))
+  --Build Tropical Room
+  menu.addButton(buildMenu, menu.newButton("tropical", function ()
+    buildRoom("tropical", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
+  end, { image="tropical", name="Tropico", desc="$5000"}))
 
   --The back button deletes the build menu
   menu.setBack(buildMenu, function ()
     entity.delete(buildMenu)
     menu.enable(gui)
   end)
-end))
+end, { image="build", name="Build", desc=""}))
 --The Destroy button, for deleting rooms
 menu.addButton(gui, menu.newButton("destroy", function ()
   print("Destroy something")
-end))
+end, { image="destroy", name="Destroy Tool", desc=""}))
 --The Hire button, for hiring staff
 menu.addButton(gui, menu.newButton("hire", function ()
   staff.new()
@@ -198,7 +198,7 @@ menu.addButton(gui, menu.newButton("hire", function ()
     entity.delete(hireMenu)
   end)
   --]]
-end))
+end, { image="hire", name="Hire Staff", desc=""}))
 --The back button, quits the game at the moment
 menu.setBack(gui, function ()
   --love.event.push("quit")
@@ -287,6 +287,12 @@ event.subscribe("destroy", 0, function (t)
   end
 end)
 
+-- Font
+local font = love.graphics.newImageFont(
+  resource.get("img/font.png"),
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$+-. "
+)
+
 -- Create the hud bar
 local hudQuad = love.graphics.newQuad(
   0, 64,
@@ -294,37 +300,93 @@ local hudQuad = love.graphics.newQuad(
   resource.get("img/hud.png"):getWidth(),
   resource.get("img/hud.png"):getHeight()
 )
+local buttQuad = love.graphics.newQuad(
+  0, 0,
+  16, 16,
+  resource.get("img/hud.png"):getWidth(),
+  resource.get("img/hud.png"):getHeight()
+)
 local hudBar = entity.new(STATE_PLAY)
 entity.setOrder(hudBar, 90)
 local hudCom = entity.newComponent()
+hudCom.info = {
+  image = "build",
+  name = "Build",
+  desc = ""
+}
 hudCom.draw = function (self)
   love.graphics.drawq(
     resource.get("img/hud.png"), hudQuad,
     0, CANVAS_HEIGHT - 32,
     0
   )
+  -- draw info
+  local idx = buttLoc[hudCom.info.image] - 1
+  buttQuad:setViewport(idx*16, 0, 16, 16)
+  love.graphics.drawq(
+    resource.get("img/hud.png"), buttQuad,
+    92, CANVAS_HEIGHT - 24,
+    0
+  )
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.setFont(font)
+  love.graphics.printf(
+    hudCom.info.name,
+    110, CANVAS_HEIGHT - 26,
+    74,
+    "left"
+  )
+  love.graphics.printf(
+    hudCom.info.desc,
+    110, CANVAS_HEIGHT - 14,
+    74,
+    "left"
+  )
 end
 entity.addComponent(hudBar, hudCom)
+event.subscribe("menu.info", 0, function (e)
+  hudCom.info.image = e.image
+  hudCom.info.name = e.name
+  hudCom.info.desc = e.desc
+end)
 
 -- Create the money display
-local moneyFont = love.graphics.newImageFont(
-  resource.get("img/font.png"),
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$"
-)
 local moneyDisplay = entity.new(STATE_PLAY)
 entity.setOrder(moneyDisplay, 100)
 local moneyCom = entity.newComponent()
+moneyCom.change = 0
+moneyCom.changeTimer = 0
 moneyCom.draw = function (self)
   love.graphics.setColor(255, 255, 255)
-  love.graphics.setFont(moneyFont)
+  love.graphics.setFont(font)
   love.graphics.printf(
-    "$" .. money,
-    200, CANVAS_HEIGHT - 28,
-    54,
+    money,
+    196, CANVAS_HEIGHT - 26,
+    56,
+    "right"
+  )
+  local str = ""
+  if self.change > 0 then str = "+"..self.change
+  elseif self.change < 0 then str = "-"..self.change end
+  love.graphics.printf(
+    str,
+    198, CANVAS_HEIGHT - 13,
+    50,
     "right"
   )
 end
+moneyCom.update = function (self, dt)
+  self.changeTimer = self.changeTimer - dt
+  if moneyCom.change ~= 0 and self.changeTimer <= 0 then
+    moneyCom.change = 0
+  end
+end
 entity.addComponent(moneyDisplay, moneyCom)
+local moneyChange = 0
+event.subscribe("money.change", 0, function (e)
+  moneyCom.change = moneyCom.change + e
+  moneyCom.changeTimer = 3
+end)
 
 -- Create the backdrop
 local backdrop = entity.new(STATE_PLAY)

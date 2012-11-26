@@ -5,7 +5,7 @@ local entity = require("entity")
 local resource = require("resource")
 
 --Index locations for room types found within hud.png
-local buttLoc = {
+buttLoc = {
   build = 1,
   destroy = 2,
   hire = 3,
@@ -46,6 +46,13 @@ local hud = function (id, pos)
   
   component.addButton = function (self, button)
     table.insert(buttons, button)
+    if #buttons == 1 then
+      event.notify("menu.info", 0, {
+        image = buttons[selected].info.image,
+        name = buttons[selected].info.name,
+        desc = buttons[selected].info.desc
+      })
+    end
   end
   
   component.setBack = function (self, callback)
@@ -66,12 +73,22 @@ local hud = function (id, pos)
       if key == "left" then
         if selected > 1 then
           selected = selected - 1
+          event.notify("menu.info", 0, {
+            image = buttons[selected].info.image,
+            name = buttons[selected].info.name,
+            desc = buttons[selected].info.desc
+          })
           love.audio.rewind(snd)
           love.audio.play(snd)
         end
       elseif key == "right" then
         if selected < #buttons then
           selected = selected + 1
+          event.notify("menu.info", 0, {
+            image = buttons[selected].info.image,
+            name = buttons[selected].info.name,
+            desc = buttons[selected].info.desc
+          })
           love.audio.rewind(snd)
           love.audio.play(snd)
         end
@@ -118,7 +135,7 @@ end
 
 --Creates a new button of set type and desired callback function.
 --The buttType is to define the sprite image
-M.newButton = function (buttType, callback)
+M.newButton = function (buttType, callback, info)
   --Pull the index location for the desired button type
   local index = buttLoc[buttType]
   --Load the hud image
@@ -137,6 +154,7 @@ M.newButton = function (buttType, callback)
       16*(index - 1), 0, 16, 16,
       img:getWidth(), img:getHeight()
     ),
+    info = info
   }
 
   return button
