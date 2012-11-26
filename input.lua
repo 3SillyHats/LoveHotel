@@ -11,8 +11,8 @@ local current = 1
 local inputs = {
   "a",
   "b",
-  "start",
-  "select",
+--  "start",
+--  "select",
   "right",
   "down",
   "left",
@@ -27,6 +27,11 @@ local map = {
 event.subscribe("training.begin", 0, function ()
   training = true
   current = 1
+  map = {
+    keys = {},
+    joysticks = {},
+  }
+  event.notify("state.enter", 0, 1)
   event.notify("training.current", 0, inputs[current])
 end)
 

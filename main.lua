@@ -243,7 +243,6 @@ end)
 
 local function endTraining ()
   event.notify("state.enter", 0, 2)
-  event.unsubscribe("training.end", 0, endTraining)
 end
 event.subscribe("training.end", 0, endTraining)
 
@@ -466,8 +465,11 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
   if key == "escape" then
     love.event.push("quit")   -- actually causes the app to quit
     love.event.push("q")
+  elseif key == "f1" then
+    event.notify("training.begin", 0)
+  else
+    input.keyPressed(key)
   end
-  input.keyPressed(key)
 end
 
 love.keyreleased = function (key)
