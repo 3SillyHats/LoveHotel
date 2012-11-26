@@ -104,9 +104,6 @@ local frameQuad = love.graphics.newQuad(
   frameImage:getWidth(), frameImage:getHeight()
 )
 
---Myles's Room Test
-local roomTest = room.new(2, "Utility", {roomNum = 3, floorNum = 1})
-
 --Menu spacing values
 local mainMenuY = 32*6.5
 local subMenuY = 32*6
