@@ -172,9 +172,10 @@ menu.addButton(gui, menu.newButton("build", function ()
   end)
 end, { image="build", name="Build", desc=""}))
 --The Destroy button, for deleting rooms
-menu.addButton(gui, menu.newButton("destroy", function ()
+--[[menu.addButton(gui, menu.newButton("destroy", function ()
   print("Destroy something")
 end, { image="destroy", name="Destroy Tool", desc=""}))
+--]]
 --The Hire button, for hiring staff
 menu.addButton(gui, menu.newButton("hire", function ()
   staff.new()
