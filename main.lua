@@ -247,7 +247,7 @@ end
 event.subscribe("training.end", 0, endTraining)
 
 event.notify("training.begin", 0)
-event.notify("training.load", 0)
+--event.notify("training.load", 0)
 
 local floorOccupation = 1
 
