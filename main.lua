@@ -367,7 +367,7 @@ moneyCom.draw = function (self)
     str = "+"..self.change
   elseif self.change < 0 then
     love.graphics.setColor(172, 16, 0)
-    str = "-"..self.change
+    str = self.change
   end
   love.graphics.printf(
     str,
