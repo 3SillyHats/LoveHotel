@@ -368,8 +368,8 @@ moneyCom.changeTimer = 0
 moneyCom.draw = function (self)
   love.graphics.setFont(font)
   love.graphics.printf(
-    money,
-    196, CANVAS_HEIGHT - 26,
+    "$" .. money,
+    200, CANVAS_HEIGHT - 26,
     56,
     "right"
   )
@@ -383,8 +383,8 @@ moneyCom.draw = function (self)
   end
   love.graphics.printf(
     str,
-    198, CANVAS_HEIGHT - 13,
-    50,
+    200, CANVAS_HEIGHT - 14,
+    56,
     "right"
   )
 end
