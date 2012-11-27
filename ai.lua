@@ -121,6 +121,9 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
     end
   end
   goal.process = function (self, dt)
+    if not self.moveTo or not self.pos then
+      return "failed"
+    end
     if self.moveTo.floorNum ~= self.pos.floorNum then
       return "failed"
     end
@@ -184,6 +187,9 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
     end
   end
   goal.process = function (self, dt)
+    if not self.moveTo or not self.pos then
+      return "failed"
+    end
     if self.moveTo.roomNum ~= self.pos.roomNum then
       return "failed"
     end
@@ -272,8 +278,6 @@ local newMoveToGoal = function (self, moveTo, moveSpeed)
       p = path.get(src,dst)
     end
     
-    
-    
     if not p then
       goal.state = "failed"
     else
@@ -313,8 +317,11 @@ local newOccupyGoal = function (self, target)
   goal.target = target
   
   goal.process = function(self, dt)
+    if not self.target then
+      return "failed"
+    end
     local occupied = false
-    event.notify("room.occupy", target, {
+    event.notify("room.occupy", self.target, {
       id = self.component.entity,
       callback = function (success)
         occupied = success
@@ -336,8 +343,11 @@ local newDepartGoal = function (self, target)
   goal.target = target
   
   goal.process = function(self, dt)
+    if not self.target then
+      return "failed"
+    end
     local occupied = false
-    event.notify("room.depart", target, {
+    event.notify("room.depart", self.target, {
       id = self.component.entity,
     })
     
@@ -363,9 +373,8 @@ local newSleepGoal = function (self, t)
   return goal
 end
   
-local newDestroyGoal = function (self, t)
+local newDestroyGoal = function (self)
   local goal = M.newGoal(self)
-  goal.time = t
   
   goal.process = function(self, dt)
     entity.delete(self.component.entity)
@@ -398,6 +407,9 @@ local newBeginCleanGoal = function (self, target)
   goal.target = target
   
   goal.process = function(self, dt)
+    if not self.target then
+      return "failed"
+    end
     local cleaning = false
     event.notify("room.beginClean", self.target, {
       id = self.component.entity,
@@ -425,6 +437,9 @@ local newEndCleanGoal = function (self, target)
   goal.target = target
   
   goal.process = function(self, dt)
+    if not self.target then
+      return "failed"
+    end
     event.notify("room.endClean", self.target, {
       id = self.component.entity,
     })
@@ -455,17 +470,23 @@ local addCleanGoal = function (self)
     end
     
     if not target then
-      goal.status = "failed"
+      self.status = "failed"
       return
     end
     
-    goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), STAFF_MOVE))
-    goal:addSubgoal(newBeginCleanGoal(self.component, target))
-    goal:addSubgoal(newSleepGoal(self.component, CLEAN_TIME))
-    goal:addSubgoal(newEndCleanGoal(self.component, target))
-    old_activate(goal)
+    self:addSubgoal(newMoveToGoal(self.component, room.getPos(target), STAFF_MOVE))
+    self:addSubgoal(newBeginCleanGoal(self.component, target))
+    self:addSubgoal(newSleepGoal(self.component, CLEAN_TIME))
+    self:addSubgoal(newEndCleanGoal(self.component, target))
+    old_activate(self)
   end
     
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    self.subgoals = {}
+    old_terminate(self)
+  end
+  
   goal.getDesirability = function (self, t)
     return 1
   end
