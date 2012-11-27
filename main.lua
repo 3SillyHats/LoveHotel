@@ -29,6 +29,7 @@ local ai = require("ai")
 local builder = require("builder")
 local staff = require("staff")
 local client = require("client")
+local transform = require("transform")
 
 conf = {
   menu = {
@@ -209,11 +210,27 @@ menu.addButton(gui, menu.newButton("build", function ()
     menu.enable(gui)
   end)
 end))
+
+gTopFloor = 1
+local newFloor = function (level)
+  local id = entity.new(STATE_PLAY)
+  entity.setOrder(id, -50)
+  local pos = {roomNum = .5, floorNum = level }
+  entity.addComponent(id, transform.new(id, pos))
+  entity.addComponent(id, sprite.new(id, {
+    image = resource.get("img/floor.png"),
+    width = 256, height = 32,
+  }))
+  return id
+end
+newFloor(1)
+
 --The Destroy button, for deleting rooms
---[[menu.addButton(gui, menu.newButton("destroy", function ()
-  print("Destroy something")
+menu.addButton(gui, menu.newButton("destroy", function ()
+  gTopFloor = gTopFloor + 1
+  local newFloor = newFloor(gTopFloor)
 end))
---]]
+
 --The Hire button, for hiring staff
 menu.addButton(gui, menu.newButton("hire", function ()
   staff.new()
