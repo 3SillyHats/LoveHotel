@@ -36,7 +36,6 @@ event.subscribe("training.begin", 0, function ()
   event.notify("training.current", 0, inputs[current])
 end)
 
---[[
 event.subscribe("training.load", 0, function ()
   local fname = "input_conf.lua"
   if love.filesystem.exists(fname) then
@@ -51,7 +50,6 @@ event.subscribe("training.load", 0, function ()
     end
   end
 end)
---]]
 
 local trainNext = function ()
   current = current + 1

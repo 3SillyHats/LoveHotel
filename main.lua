@@ -42,7 +42,7 @@ conf = {
     },
     hire = {
       name="Hire",
-      desc=""
+      desc="$10"
     },
   },
 }
@@ -272,7 +272,7 @@ event.subscribe("training.end", 0, function ()
 end)
 
 event.notify("training.begin", 0)
---event.notify("training.load", 0)
+event.notify("training.load", 0)
 
 local floorOccupation = 1
 
