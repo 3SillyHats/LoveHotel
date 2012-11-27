@@ -47,6 +47,15 @@ conf = {
   },
 }
 
+gScrollPos = 1
+event.subscribe("scroll", 0, function (scrollPos)
+  gScrollPos = scrollPos
+end)
+
+gGameSpeed = 1
+
+money = 2000
+
 -- Update menu tooltips
 for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
   local room = resource.get("scr/rooms/" .. fname)
@@ -56,12 +65,17 @@ for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
   }
 end
 
-gScrollPos = 1
-event.subscribe("scroll", 0, function (scrollPos)
-  gScrollPos = scrollPos
+-- Allow game fast-forwarding
+event.subscribe("pressed", 0, function (key)
+  if key == "select" then
+    gGameSpeed = 5
+  end
 end)
-
-money = 2000
+event.subscribe("released", 0, function (key)
+  if key == "select" then
+    gGameSpeed = 1
+  end
+end)
 
 -- Setup the window
 local setupScreen = function (modes)
@@ -297,6 +311,16 @@ event.subscribe("pressed", 0, function (key)
   end
 end)
 
+event.subscribe("pressed", 0, function (key)
+  if key == "up" and floorOccupation > 0 then
+    event.notify("scroll", 0 , gScrollPos + 1)
+  elseif key == "down" and gScrollPos > 1 then
+    event.notify("scroll", 0 , gScrollPos - 1)
+  else
+    return
+  end
+end)
+
 event.subscribe("build", 0, function (t)
   if t.pos.floorNum == gScrollPos then
     floorOccupation = floorOccupation + 1
@@ -469,6 +493,7 @@ love.draw = function ()
 end
 
 love.update = function (dt)
+  local dt = dt * gGameSpeed
   entity.update(dt)
   input.update(dt)
 end
