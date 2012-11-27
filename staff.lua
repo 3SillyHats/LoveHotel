@@ -11,29 +11,28 @@ local M = {}
 M.new = function ()
   local id = entity.new(2)
   entity.setOrder(id, 50)
-  isMale = math.random(0,1) < .5  --randomize male or female
+  isMale = math.random() < .5  --randomize male or female
   
-  local prefix = "resources/img/people_parts"
+  local prefix = "resources/img/people"
   local nudeimg = nil
   local hairimg = nil
   local staffimg = nil
-  if isMale==1 then
+  if isMale then
     nudeimg = prefix .. "/man/nude/"
-    hairimg = prefix .. "/man/hair/"
+    hairimg = prefix .. "/man/hair/crewcut.png"
     staffimg = prefix .. "/man/staff/"
   else
     nudeimg = prefix .. "/woman/nude/"
-    hairimg = prefix .. "/man/hair/"
+    hairimg = prefix .. "/woman/hair/curled.png"
     staffimg = prefix .. "/woman/staff/"
   end
   local nudes = love.filesystem.enumerate(nudeimg)
   local hairs = love.filesystem.enumerate(hairimg)
   local staffs = love.filesystem.enumerate(staffimg)
   nudeimg = nudeimg .. nudes[math.random(1,#nudes)]
-  nudeimg = string.sub(nudeimg,10)
-  hairimg = hairimg .. hairs[math.random(1,#hairs)]
-  hairimg = string.sub(hairimg,10)
   staffimg = staffimg .. staffs[math.random(1, #staffs)]
+  nudeimg = string.sub(nudeimg,10)  -- remove "resources/"
+  hairimg = string.sub(hairimg,10)
   staffimg = string.sub(staffimg,10)
   local haircolour = math.random(0,3)
   

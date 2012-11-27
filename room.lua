@@ -123,59 +123,26 @@ M.new = function (state, roomType, pos)
   local roomId = entity.new(state)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
   room.type = roomType
-  local img = resource.get("img/rooms/" .. room.image)
-  local imgWidth = img:getWidth()
-  local imgHeight = 32
+  local background = resource.get("img/rooms/" .. room.name .. "_background.png")
+  local foreground = resource.get("img/rooms/" .. room.name .. "_foreground.png")
+  local roomWidth = room.width*32
+  local roomHeight = 32
 
   --Add a sprite component for the back layer of the room
   entity.addComponent(roomId, sprite.new(roomId, {
-    image = img,
-    width = imgWidth,
-    height = imgHeight,
-    animations = {
-      clean = {
-        first = 0,
-        last = 0,
-        speed = 1,
-      },
-      dirty = {
-        first = 1,
-        last = 1,
-        speed = 1,
-      },
-    },
-    playing = "clean",
+    image = background,
+    width = roomWidth,
+    height = roomHeight,
+    animations = room.backgroundAnimations,
+    playing = room.defaultBackgroundAnim,
   }))
   --Add a sprite component for the front layer of the room
   entity.addComponent(roomId, sprite.new(roomId, {
-    image = img,
-    width = imgWidth,
-    height = imgHeight,
-    animations = {
-      opened = {
-        first = 2,
-        last = 2,
-        speed = 1,
-      },
-      closed = {
-        first = room.aniFrames+1,
-        last = room.aniFrames+1,
-        speed = 1,
-      },
-      closing = {
-        first = 2,
-        last = room.aniFrames+1,
-        speed = 0.2,
-        goto = "closed",
-      },
-      opening = {
-        first = room.aniFrames+1,
-        last = 2,
-        speed = 0.2,
-        goto = "opened",
-      },
-    },
-    playing = "opening",
+    image = foreground,
+    width = roomWidth,
+    height = roomHeight,
+    animations = room.foregroundAnimations,
+    playing = room.defaultForegroundAnim,
   }))
 
   --Add position component

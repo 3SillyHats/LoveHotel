@@ -13,10 +13,10 @@ M.new = function (target)
   local id = entity.new(2)
   entity.setOrder(id, 50)
   isMale = math.random(0,1)  --randomize male or female
-  nudeimg = "resources/img/people_parts"
-  hairimg = "resources/img/people_parts"
-  topimg = "resources/img/people_parts"
-  bottomimg = "resources/img/people_parts"
+  nudeimg = "resources/img/people"
+  hairimg = "resources/img/people"
+  topimg = "resources/img/people"
+  bottomimg = "resources/img/people"
   if isMale==1 then
     nudeimg = nudeimg .. "/man/nude/"
     hairimg = hairimg .. "/man/hair/"
@@ -121,7 +121,29 @@ M.new = function (target)
       },
       playing = "neat",
     }
-  ))
+  ))  --add hat
+  if( math.random(0,8)==1 ) then
+    entity.addComponent(id, sprite.new(
+      id, {
+        image = resource.get("img/people/man/hat/tophat.png"),
+        width = 24, height = 24,
+        originX = 8, originY = 24,
+        animations = {
+          idle = {
+            first = 0,
+            last = 0,
+            speed = 1,
+          },
+          walking = {
+            first = 0,
+            last = 0,
+            speed = 1,
+          },
+        },
+        playing = "idle",
+      }
+    ))
+  end
 
   local pos = {roomNum = -.5, floorNum = 1}
   entity.addComponent(id, transform.new(

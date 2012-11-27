@@ -138,28 +138,22 @@ M.new = function (state, roomType, pos)
   local id = entity.new(state)
   entity.setOrder(id, 100)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
-  local img = resource.get("img/rooms/" .. room.image)
+  local imgForeground = resource.get("img/rooms/" .. room.name.."_foreground.png")
 
   --Add a sprite for the front layer of the room
   entity.addComponent(id, sprite.new(id, {
-    image = img,
-    width = img:getWidth(),
+    image = imgForeground,
+    width = room.width*32,
     height = 32,
     --Used the closed door front layer
-    animations = {
-      closed = {
-        first = room.aniFrames+1,
-        last = room.aniFrames+1,
-        speed = 1,
-      },
-    },
+    animations = room.foregroundAnimations,
     playing = "closed",
   }))
   --Add position component
   entity.addComponent(id, transform.new(id, pos))
   --Add placer component (including outline)
   entity.addComponent(id, placer(id, roomType, pos, room.width, room.cost, {
-    width = img:getWidth(),
+    width = room.width*32,
     height = 32,
   }))
 
