@@ -50,10 +50,7 @@ conf = {
 }
 
 gTopFloor = 1
-<<<<<<< HEAD
 gBottomFloor = 1
-=======
->>>>>>> 8cbcab80877a8398eeadec2aa42a6fbe8efb10fe
 gScrollPos = 1
 event.subscribe("scroll", 0, function (scrollPos)
   gScrollPos = scrollPos
@@ -318,11 +315,7 @@ local floorOccupation = 1
 event.subscribe("pressed", 0, function (key)
   if key == "up" and gScrollPos < gTopFloor then
     event.notify("scroll", 0 , gScrollPos + 1)
-<<<<<<< HEAD
   elseif key == "down" and gScrollPos > gBottomFloor then
-=======
-  elseif key == "down" and gScrollPos > 1 then
->>>>>>> 8cbcab80877a8398eeadec2aa42a6fbe8efb10fe
     event.notify("scroll", 0 , gScrollPos - 1)
   end
 end)
