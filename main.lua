@@ -219,7 +219,7 @@ local newFloor = function (level)
   entity.addComponent(id, transform.new(id, pos))
   entity.addComponent(id, sprite.new(id, {
     image = resource.get("img/floor.png"),
-    width = 256, height = 32,
+    width = 256, height = 64, originY = 32,
   }))
   return id
 end
