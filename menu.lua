@@ -60,6 +60,7 @@ local hud = function (id, pos)
   
   component.enable =  function (self)
     component.enabled = true
+    event.notify("menu.info", 0, buttons[selected].type)
   end
   
   component.disable = function (self)
@@ -91,7 +92,6 @@ local hud = function (id, pos)
         end
       elseif key == "b" then
         component.back()
-        event.notify("menu.info", 0, buttons[selected].type)
         love.audio.rewind(snd)
         love.audio.play(snd)
       end
