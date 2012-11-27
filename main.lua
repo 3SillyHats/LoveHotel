@@ -214,6 +214,23 @@ menu.addButton(gui, menu.newButton("build", function ()
   end)
 end))
 
+local roof = entity.new(STATE_PLAY)
+entity.setOrder(roof, -50)
+entity.addComponent(roof, transform.new(roof, {
+  roomNum = .5,
+  floorNum = 1
+}))
+entity.addComponent(roof, sprite.new(
+  roof, {
+    image = resource.get("img/floor.png"),
+    width = 256, height = 32,
+    originY = 32,
+  }
+))
+event.subscribe("floor.new", 0, function (t)
+  event.notify("entity.move", roof, {roomNum=.5, floorNum=t.level})
+end)
+
 local newFloor = function (level)
   local id = entity.new(STATE_PLAY)
   entity.setOrder(id, -50)
@@ -222,7 +239,15 @@ local newFloor = function (level)
   if level > 1 then
     entity.addComponent(id, sprite.new(id, {
       image = resource.get("img/floor.png"),
-      width = 256, height = 64, originY = 32,
+      width = 256, height = 32,
+      animations = {
+        idle = {
+          first = 1,
+          last = 1,
+          speed = 1
+        }
+      },
+      playing = "idle",
     }))
   end
   event.notify("floor.new", 0, {level = level, type = "top"})
