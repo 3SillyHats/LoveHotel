@@ -14,6 +14,9 @@ buttLoc = {
   heart = 6,
   tropical = 7,
   elevator = 8,
+  stairs = 9,
+  manage = 10,
+  floorUp = 11,
 }
 
 local defaultAction = function ()

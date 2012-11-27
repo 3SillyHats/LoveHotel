@@ -46,6 +46,14 @@ conf = {
       name="Hire",
       desc="$10/hour"
     },
+    manage = {
+      name="Manage",
+      desc="",
+    },
+    floorUp = {
+      name="Build up",
+      desc="$1000",
+    },
   },
 }
 
@@ -214,6 +222,35 @@ menu.addButton(gui, menu.newButton("build", function ()
   end)
 end))
 
+--[[
+--The Destroy button, for deleting rooms
+menu.addButton(gui, menu.newButton("destroy", function ()
+  local newFloor = newFloor(gTopFloor)
+end))
+--]]
+
+--The Hire button, for hiring staff
+menu.addButton(gui, menu.newButton("hire", function ()
+  staff.new()
+
+  --[[ HIRE MENU
+  menu.disable(gui)
+  --Create the hire menu
+  local hireMenu = menu.new(2, subMenuY)
+
+  --Hire a janitor
+  menu.addButton(hireMenu, menu.newButton("utility", function ()
+    print("Janitor Hired")
+  end))
+
+  --The back button deletes the hire menu
+  menu.setBack(hireMenu, function ()
+	  menu.enable(gui)
+    entity.delete(hireMenu)
+  end)
+  --]]
+end))
+
 local roof = entity.new(STATE_PLAY)
 entity.setOrder(roof, -50)
 entity.addComponent(roof, transform.new(roof, {
@@ -255,33 +292,40 @@ local newFloor = function (level)
 end
 newFloor(1)
 
---The Destroy button, for deleting rooms
-menu.addButton(gui, menu.newButton("destroy", function ()
-  gTopFloor = gTopFloor + 1
-  local newFloor = newFloor(gTopFloor)
-end))
+-- Add management button to main menu
+menu.addButton(gui, menu.newButton("manage", function ()
 
---The Hire button, for hiring staff
-menu.addButton(gui, menu.newButton("hire", function ()
-  staff.new()
-
-  --[[ HIRE MENU
   menu.disable(gui)
-  --Create the hire menu
-  local hireMenu = menu.new(2, subMenuY)
+  --Create the management menu
+  local manageMenu = menu.new(2, subMenuY)
 
-  --Hire a janitor
-  menu.addButton(hireMenu, menu.newButton("utility", function ()
-    print("Janitor Hired")
+  --Build top floor
+  menu.addButton(manageMenu, menu.newButton("floorUp", function ()
+    local cost =  500 * (gTopFloor + 1)
+    if money >= cost then
+      money = money - cost
+      event.notify("money.change", 0, -cost)
+      gTopFloor = gTopFloor + 1
+      conf.menu["floorUp"].desc = "$" .. (500 * (gTopFloor + 1))
+      local newFloor = newFloor(gTopFloor)
+      local snd = resource.get("snd/build.wav")
+      love.audio.rewind(snd)
+      love.audio.play(snd)
+    else
+      local snd = resource.get("snd/error.wav")
+      love.audio.rewind(snd)
+      love.audio.play(snd)
+    end
   end))
 
-  --The back button deletes the hire menu
-  menu.setBack(hireMenu, function ()
-	  menu.enable(gui)
-    entity.delete(hireMenu)
+  --The back button deletes the management menu
+  menu.setBack(manageMenu, function ()
+	menu.enable(gui)
+    entity.delete(manageMenu)
   end)
-  --]]
+
 end))
+
 --The back button, quits the game at the moment
 menu.setBack(gui, function ()
   --love.event.push("quit")
