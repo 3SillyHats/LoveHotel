@@ -30,7 +30,35 @@ local builder = require("builder")
 local staff = require("staff")
 local client = require("client")
 
-conf = {}
+conf = {
+  menu = {
+    build =  {
+      image="build",
+      name="Build",
+      desc=""
+    },
+    destroy = {
+      image="destroy",
+      name="Destroy",
+      desc=""
+    },
+    hire = {
+      image="hire",
+      name="Hire",
+      desc=""
+    },
+  },
+}
+
+-- Update menu tooltips
+for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
+  local room = resource.get("scr/rooms/" .. fname)
+  conf.menu[room.id] = {
+    image = room.id,
+    name = room.name,
+    desc = "$" .. room.cost,
+  }
+end
 
 gScrollPos = 1
 event.subscribe("scroll", 0, function (scrollPos)
@@ -147,34 +175,34 @@ menu.addButton(gui, menu.newButton("build", function ()
   --Build Elevator Room
   menu.addButton(buildMenu, menu.newButton("elevator", function ()
     buildRoom("elevator", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end, { image="elevator", name="Elevator", desc="$100"}))
+  end))
   --Build Utility Room button
   menu.addButton(buildMenu, menu.newButton("utility", function ()
     buildRoom("utility", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end, { image="utility", name="Utility r.", desc="$150"}))
+  end))
   --Build Flower Room button
   menu.addButton(buildMenu, menu.newButton("flower", function ()
     buildRoom("flower", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end, { image="flower", name="Lily s.", desc="$500"}))
+  end))
   --Build Heart Room
   menu.addButton(buildMenu, menu.newButton("heart", function ()
     buildRoom("heart", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end, { image="heart", name="Heart s.", desc="$1200"}))
+  end))
   --Build Tropical Room
   menu.addButton(buildMenu, menu.newButton("tropical", function ()
     buildRoom("tropical", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end, { image="tropical", name="Tropico", desc="$5000"}))
+  end))
 
   --The back button deletes the build menu
   menu.setBack(buildMenu, function ()
     entity.delete(buildMenu)
     menu.enable(gui)
   end)
-end, { image="build", name="Build", desc=""}))
+end))
 --The Destroy button, for deleting rooms
 --[[menu.addButton(gui, menu.newButton("destroy", function ()
   print("Destroy something")
-end, { image="destroy", name="Destroy Tool", desc=""}))
+end))
 --]]
 --The Hire button, for hiring staff
 menu.addButton(gui, menu.newButton("hire", function ()
@@ -196,7 +224,7 @@ menu.addButton(gui, menu.newButton("hire", function ()
     entity.delete(hireMenu)
   end)
   --]]
-end, { image="hire", name="Hire Staff", desc=""}))
+end))
 --The back button, quits the game at the moment
 menu.setBack(gui, function ()
   --love.event.push("quit")
@@ -242,7 +270,9 @@ event.subscribe("training.current", 0, function (current)
 end)
 
 event.subscribe("training.end", 0, function ()
-  event.notify("state.enter", 0, 2)
+  event.notify("state.enter", 0, 2)-- BGM
+  local bgm = resource.get("snd/gettingfreaky.ogg")
+  love.audio.play(bgm)
 end)
 
 event.notify("training.begin", 0)
@@ -305,11 +335,7 @@ local buttQuad = love.graphics.newQuad(
 local hudBar = entity.new(STATE_PLAY)
 entity.setOrder(hudBar, 90)
 local hudCom = entity.newComponent()
-hudCom.info = {
-  image = "build",
-  name = "Build",
-  desc = ""
-}
+hudCom.selected = "build"
 hudCom.draw = function (self)
   love.graphics.drawq(
     resource.get("img/hud.png"), hudQuad,
@@ -317,7 +343,7 @@ hudCom.draw = function (self)
     0
   )
   -- draw info
-  local idx = buttLoc[hudCom.info.image] - 1
+  local idx = buttLoc[hudCom.selected] - 1
   buttQuad:setViewport(idx*16, 0, 16, 16)
   love.graphics.drawq(
     resource.get("img/hud.png"), buttQuad,
@@ -327,13 +353,13 @@ hudCom.draw = function (self)
   love.graphics.setColor(255, 255, 255)
   love.graphics.setFont(font)
   love.graphics.printf(
-    hudCom.info.name,
+    conf.menu[hudCom.selected].name,
     110, CANVAS_HEIGHT - 26,
     74,
     "left"
   )
   love.graphics.printf(
-    hudCom.info.desc,
+    conf.menu[hudCom.selected].desc,
     110, CANVAS_HEIGHT - 14,
     74,
     "left"
@@ -341,9 +367,7 @@ hudCom.draw = function (self)
 end
 entity.addComponent(hudBar, hudCom)
 event.subscribe("menu.info", 0, function (e)
-  hudCom.info.image = e.image
-  hudCom.info.name = e.name
-  hudCom.info.desc = e.desc
+  hudCom.selected = e
 end)
 
 -- Create the money display
@@ -408,10 +432,6 @@ bdCom.draw = function (self)
   )
 end
 entity.addComponent(backdrop, bdCom)
-
--- BGM
-local bgm = resource.get("snd/gettingfreaky.ogg")
-love.audio.play(bgm)
 
 love.draw = function ()
   -- Draw to canvas without scaling

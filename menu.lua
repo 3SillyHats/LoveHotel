@@ -47,11 +47,7 @@ local hud = function (id, pos)
   component.addButton = function (self, button)
     table.insert(buttons, button)
     if #buttons == 1 then
-      event.notify("menu.info", 0, {
-        image = buttons[selected].info.image,
-        name = buttons[selected].info.name,
-        desc = buttons[selected].info.desc
-      })
+      event.notify("menu.info", 0, buttons[selected].type)
     end
   end
   
@@ -73,22 +69,14 @@ local hud = function (id, pos)
       if key == "left" then
         if selected > 1 then
           selected = selected - 1
-          event.notify("menu.info", 0, {
-            image = buttons[selected].info.image,
-            name = buttons[selected].info.name,
-            desc = buttons[selected].info.desc
-          })
+          event.notify("menu.info", 0, buttons[selected].type)
           love.audio.rewind(snd)
           love.audio.play(snd)
         end
       elseif key == "right" then
         if selected < #buttons then
           selected = selected + 1
-          event.notify("menu.info", 0, {
-            image = buttons[selected].info.image,
-            name = buttons[selected].info.name,
-            desc = buttons[selected].info.desc
-          })
+          event.notify("menu.info", 0, buttons[selected].type)
           love.audio.rewind(snd)
           love.audio.play(snd)
         end
@@ -100,8 +88,9 @@ local hud = function (id, pos)
         end
       elseif key == "b" then
         component.back()
-      love.audio.rewind(snd)
-      love.audio.play(snd)
+        event.notify("menu.info", 0, buttons[selected].type)
+        love.audio.rewind(snd)
+        love.audio.play(snd)
       end
     end
   end
@@ -135,7 +124,7 @@ end
 
 --Creates a new button of set type and desired callback function.
 --The buttType is to define the sprite image
-M.newButton = function (buttType, callback, info)
+M.newButton = function (buttType, callback)
   --Pull the index location for the desired button type
   local index = buttLoc[buttType]
   --Load the hud image
@@ -154,7 +143,7 @@ M.newButton = function (buttType, callback, info)
       16*(index - 1), 0, 16, 16,
       img:getWidth(), img:getHeight()
     ),
-    info = info
+    type = buttType
   }
 
   return button

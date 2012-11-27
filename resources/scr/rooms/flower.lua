@@ -1,4 +1,6 @@
 return {
+  id = "flower",
+  name = "Lily R.",
   cost = 500,
   profit = 100,
   image = "flower.png",
