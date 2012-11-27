@@ -9,14 +9,14 @@ local M = {}
 local training = false
 local current = 1
 local inputs = {
-  "a",
-  "b",
---  "start",
---  "select",
-  "right",
+  "up",
   "down",
   "left",
-  "up",
+  "right",
+  "select",
+  "start",
+  "b",
+  "a",
 }
 
 local map = {
