@@ -42,7 +42,7 @@ conf = {
     },
     hire = {
       name="Hire",
-      desc="$10"
+      desc="$10/hour"
     },
   },
 }
@@ -312,7 +312,7 @@ end)
 -- Font
 local font = love.graphics.newImageFont(
   resource.get("img/font.png"),
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$+-. "
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$+-./ "
 )
 
 -- Create the hud bar
