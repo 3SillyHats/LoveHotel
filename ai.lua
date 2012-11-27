@@ -22,6 +22,9 @@ local process = function (self, dt)
     table.remove(self.subgoals, 1)
     if #self.subgoals > 0 then
       self.subgoals[1]:activate()
+      if self.subgoals[1]:getStatus() == "failed" then
+        return "failed"
+      end
     end
   end
   -- If any subgoals remain, process the one at the
@@ -293,12 +296,14 @@ local newMoveToGoal = function (self, moveTo, moveSpeed)
             floorNum = 1,
           }
         end
-        if old then
+        if old and pos then
           if old.floorNum == pos.floorNum then
             goal:addSubgoal(newSeekGoal(self, old, pos, moveSpeed))
           else
             goal:addSubgoal(newElevatorGoal(self, old, pos))
           end
+        else
+          goal.state = "failed"
         end
         old = pos
       end
@@ -549,6 +554,10 @@ event.subscribe("build", 0, function (t)
       end,
     })
   end
+end)
+
+event.subscribe("destroy", 0, function (t)
+  path.removeEdges(t.id)
 end)
 
 return M

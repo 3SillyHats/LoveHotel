@@ -2,6 +2,7 @@
 local event = require("event")
 local entity = require("entity")
 local sprite = require("sprite")
+local room = require("room")
 local resource = require("resource")
 local ai = require("ai")
 local transform = require("transform")
@@ -121,6 +122,22 @@ M.new = function ()
   local aiComponent = ai.new(id)
   aiComponent:addCleanGoal()
   entity.addComponent(id, aiComponent)
+  
+  local check = function (t)
+    local epos = room.getPos(id)
+    if t.floorNum == epos.floorNum and t.roomNum < epos.roomNum + 0.5 and t.roomNum + t.width > epos.roomNum + 0.5 then
+      t.callback(id)
+    end
+  end
+  
+  event.subscribe("actor.check", 0, check)
+  
+  local function delete (e)
+    event.unsubscribe("actor.check", 0, check)
+    event.unsubscribe("delete", id, delete)
+  end
+  
+  event.subscribe("delete", id, delete)
   
   return id
 end

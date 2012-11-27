@@ -27,6 +27,7 @@ local room = require("room")
 local menu = require("menu")
 local ai = require("ai")
 local builder = require("builder")
+local demolisher = require("demolisher")
 local staff = require("staff")
 local client = require("client")
 
@@ -136,6 +137,33 @@ local buildRoom = function (type, pos, baseMenu)
   event.subscribe("build", buildUtility, onBuild)
 end
 
+local demolishRoom = function (pos, baseMenu)
+  menu.disable(baseMenu)
+
+  local demolishUtility = demolisher.new(2, pos)
+    
+  local back = function () end
+    
+  local function onDestroy ()
+    event.unsubscribe("pressed", 0, back)
+    event.unsubscribe("build", demolishUtility, onBuild)
+    menu.enable(baseMenu)
+    entity.delete(demolishUtility)
+  end
+
+  back = function (key)
+    if key == "b" then
+      event.unsubscribe("pressed", 0, back)
+      event.unsubscribe("build", demolishUtility, onBuild)
+      menu.enable(baseMenu)
+      entity.delete(demolishUtility)
+    end
+  end
+
+  event.subscribe("pressed", 0, back)
+  event.subscribe("destroy", demolishUtility, onDestroy)
+end
+
 local gui = menu.new(2, mainMenuY)
 --The Build button, opens build menu
 menu.addButton(gui, menu.newButton("build", function ()
@@ -172,10 +200,9 @@ menu.addButton(gui, menu.newButton("build", function ()
   end)
 end, { image="build", name="Build", desc=""}))
 --The Destroy button, for deleting rooms
---[[menu.addButton(gui, menu.newButton("destroy", function ()
-  print("Destroy something")
-end, { image="destroy", name="Destroy Tool", desc=""}))
---]]
+menu.addButton(gui, menu.newButton("destroy", function ()
+  demolishRoom({roomNum = 4, floorNum = gScrollPos}, gui)
+end, { image="destroy", name="Destroy", desc="Destroy a room"}))
 --The Hire button, for hiring staff
 menu.addButton(gui, menu.newButton("hire", function ()
   staff.new()
@@ -274,13 +301,31 @@ end)
 
 event.subscribe("build", 0, function (t)
   if t.pos.floorNum == gScrollPos then
-    floorOccupation = floorOccupation + 1
+    floorOccupation = 0
+    for i = 1,7 do
+      event.notify("room.check", 0, {
+        roomNum = i,
+        floorNum = gScrollPos,
+        callback = function (otherId)
+          floorOccupation = floorOccupation + 1
+        end,
+      })
+    end
   end
 end)
 
 event.subscribe("destroy", 0, function (t)
   if t.pos.floorNum == gScrollPos then
-    floorOccupation = floorOccupation - 1
+    floorOccupation = 0
+    for i = 1,7 do
+      event.notify("room.check", 0, {
+        roomNum = i,
+        floorNum = gScrollPos,
+        callback = function (otherId)
+          floorOccupation = floorOccupation + 1
+        end,
+      })
+    end
   end
 end)
 

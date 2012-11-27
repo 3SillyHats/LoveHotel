@@ -108,10 +108,10 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("room.depart", id, depart)
     event.unsubscribe("room.beginClean", id, beginClean)
     event.unsubscribe("room.endClean", id, endClean)
-    event.unsubscribe("room.check", id, delete)
+    event.unsubscribe("delete", id, delete)
   end
   
-  event.subscribe("room.check", id, delete)
+  event.subscribe("delete", id, delete)
 
   --Return the room info table.
   return component

@@ -12,6 +12,15 @@ M.addEdge = function (src, dst, cost)
   M.edges[src][dst] = cost
 end
 
+M.removeEdges = function (src)
+  if M.edges[src] then
+    for dst,_ in pairs(M.edges[src]) do
+      M.edges[src][dst] = nil
+      M.edges[dst][src] = nil
+    end
+  end
+end
+
 M.get = function (src, dst, heuristic)
   local spt = {}
   local sf = {}

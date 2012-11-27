@@ -131,6 +131,22 @@ M.new = function (target)
   entity.addComponent(id, aiComponent)
   aiComponent:addVisitGoal(target)
   
+  local check = function (t)
+    local epos = room.getPos(id)
+    if t.floorNum == epos.floorNum and t.roomNum < epos.roomNum + 0.5 and t.roomNum + t.width > epos.roomNum + 0.5 then
+      t.callback(id)
+    end
+  end
+  
+  event.subscribe("actor.check", 0, check)
+
+  local function delete (e)
+    event.unsubscribe("actor.check", 0, check)
+    event.unsubscribe("delete", id, delete)
+  end
+
+  event.subscribe("delete", id, delete)
+  
   return id
 end
 
