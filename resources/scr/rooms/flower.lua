@@ -3,7 +3,6 @@ return {
   name = "Lily R.",
   cost = 500,
   profit = 100,
-  name = "flower",
   width = 2,
   defaultBackgroundAnim = "clean",
   defaultForegroundAnim = "opening",

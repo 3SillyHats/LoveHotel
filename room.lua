@@ -123,8 +123,8 @@ M.new = function (state, roomType, pos)
   local roomId = entity.new(state)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
   room.type = roomType
-  local background = resource.get("img/rooms/" .. room.name .. "_background.png")
-  local foreground = resource.get("img/rooms/" .. room.name .. "_foreground.png")
+  local background = resource.get("img/rooms/" .. room.id .. "_background.png")
+  local foreground = resource.get("img/rooms/" .. room.id .. "_foreground.png")
   local roomWidth = room.width*32
   local roomHeight = 32
 

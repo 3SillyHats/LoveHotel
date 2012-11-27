@@ -3,7 +3,6 @@ return {
   name = "Utility R.",
   cost = 150,
   profit = 20,
-  name = "utility",
   width = 1,
   defaultBackgroundAnim = "stocked3",
   defaultForegroundAnim = "opening",

@@ -3,7 +3,6 @@ return {
   name = "Tropical",
   cost = 5000,
   profit = 1500,
-  name = "tropical",
   width = 5,
   defaultBackgroundAnim = "clean",
   defaultForegroundAnim = "opening",

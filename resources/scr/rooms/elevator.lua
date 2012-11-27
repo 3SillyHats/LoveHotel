@@ -2,7 +2,6 @@ return {
   id = "elevator",
   name = "Elevator",
   cost = 100,
-  name = "elevator",
   width = 1,
   defaultBackgroundAnim = "default",
   defaultForegroundAnim = "closing",

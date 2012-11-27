@@ -3,7 +3,6 @@ return {
   name = "Heart S.",
   cost = 1200,
   profit = 250,
-  name = "heart",
   width = 3,
   defaultBackgroundAnim = "clean",
   defaultForegroundAnim = "opening",

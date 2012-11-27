@@ -138,7 +138,7 @@ M.new = function (state, roomType, pos)
   local id = entity.new(state)
   entity.setOrder(id, 100)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
-  local imgForeground = resource.get("img/rooms/" .. room.name.."_foreground.png")
+  local imgForeground = resource.get("img/rooms/" .. room.id .. "_foreground.png")
 
   --Add a sprite for the front layer of the room
   entity.addComponent(id, sprite.new(id, {
