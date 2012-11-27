@@ -68,7 +68,7 @@ local hud = function (id, pos)
   end
   
   local pressed = function (key)
-    local snd = resource.get("snd/movecursor.wav")
+    local snd = resource.get("snd/select.wav")
     if component.enabled then
       if key == "left" then
         if selected > 1 then

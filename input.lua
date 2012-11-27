@@ -3,6 +3,7 @@
 local luatexts = require("luatexts")
 
 local event = require("event")
+local resource = require("resource")
 
 local M = {}
 
@@ -35,6 +36,7 @@ event.subscribe("training.begin", 0, function ()
   event.notify("training.current", 0, inputs[current])
 end)
 
+--[[
 event.subscribe("training.load", 0, function ()
   local fname = "input_conf.lua"
   if love.filesystem.exists(fname) then
@@ -49,13 +51,17 @@ event.subscribe("training.load", 0, function ()
     end
   end
 end)
+--]]
 
 local trainNext = function ()
   current = current + 1
+  local snd = resource.get("snd/select.wav")
+  love.audio.rewind(snd)
+  love.audio.play(snd)
   if current > #inputs then
     training = false
     event.notify("training.end", 0)
-    M.save()
+    --M.save()
   else
     event.notify("training.current", 0, inputs[current])
   end

@@ -241,10 +241,9 @@ event.subscribe("training.current", 0, function (current)
   event.notify("sprite.move", arrow, inputLocations[current])
 end)
 
-local function endTraining ()
+event.subscribe("training.end", 0, function ()
   event.notify("state.enter", 0, 2)
-end
-event.subscribe("training.end", 0, endTraining)
+end)
 
 event.notify("training.begin", 0)
 --event.notify("training.load", 0)

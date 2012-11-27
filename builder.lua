@@ -96,11 +96,11 @@ local placer = function (id, type, pos, width, cost, t)
         event.notify("money.change", 0, -cost)
         event.notify("build", id, {id=room, pos=pos, type=type})
         event.notify("build", 0, {id=room, pos=pos, type=type})
-        local snd = resource.get("snd/build3.wav")
+        local snd = resource.get("snd/build.wav")
         love.audio.rewind(snd)
         love.audio.play(snd)
        else
-        local snd = resource.get("snd/closedoor.wav")
+        local snd = resource.get("snd/error.wav")
         love.audio.rewind(snd)
         love.audio.play(snd)
       end
