@@ -33,17 +33,14 @@ local client = require("client")
 conf = {
   menu = {
     build =  {
-      image="build",
       name="Build",
       desc=""
     },
     destroy = {
-      image="destroy",
       name="Destroy",
       desc=""
     },
     hire = {
-      image="hire",
       name="Hire",
       desc=""
     },
@@ -54,7 +51,6 @@ conf = {
 for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
   local room = resource.get("scr/rooms/" .. fname)
   conf.menu[room.id] = {
-    image = room.id,
     name = room.name,
     desc = "$" .. room.cost,
   }
@@ -343,25 +339,18 @@ hudCom.draw = function (self)
     0
   )
   -- draw info
-  local idx = buttLoc[hudCom.selected] - 1
-  buttQuad:setViewport(idx*16, 0, 16, 16)
-  love.graphics.drawq(
-    resource.get("img/hud.png"), buttQuad,
-    92, CANVAS_HEIGHT - 24,
-    0
-  )
   love.graphics.setColor(255, 255, 255)
   love.graphics.setFont(font)
   love.graphics.printf(
     conf.menu[hudCom.selected].name,
-    110, CANVAS_HEIGHT - 26,
-    74,
+    115, CANVAS_HEIGHT - 26,
+    70,
     "left"
   )
   love.graphics.printf(
     conf.menu[hudCom.selected].desc,
-    110, CANVAS_HEIGHT - 14,
-    74,
+    115, CANVAS_HEIGHT - 14,
+    70,
     "left"
   )
 end
