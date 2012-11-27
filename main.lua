@@ -48,6 +48,7 @@ conf = {
   },
 }
 
+gTopFloor = 1
 gScrollPos = 1
 event.subscribe("scroll", 0, function (scrollPos)
   gScrollPos = scrollPos
@@ -211,16 +212,17 @@ menu.addButton(gui, menu.newButton("build", function ()
   end)
 end))
 
-gTopFloor = 1
 local newFloor = function (level)
   local id = entity.new(STATE_PLAY)
   entity.setOrder(id, -50)
   local pos = {roomNum = .5, floorNum = level }
   entity.addComponent(id, transform.new(id, pos))
-  entity.addComponent(id, sprite.new(id, {
-    image = resource.get("img/floor.png"),
-    width = 256, height = 64, originY = 32,
-  }))
+  if level > 1 then
+    entity.addComponent(id, sprite.new(id, {
+      image = resource.get("img/floor.png"),
+      width = 256, height = 64, originY = 32,
+    }))
+  end
   return id
 end
 newFloor(1)
@@ -308,33 +310,10 @@ event.notify("training.load", 0)
 local floorOccupation = 1
 
 event.subscribe("pressed", 0, function (key)
-  if key == "up" and floorOccupation > 0 then
+  if key == "up" and gScrollPos < gTopFloor then
     event.notify("scroll", 0 , gScrollPos + 1)
   elseif key == "down" and gScrollPos > 1 then
     event.notify("scroll", 0 , gScrollPos - 1)
-  else
-    return
-  end
-
-  floorOccupation = 0
-  for i = 1,7 do
-    event.notify("room.check", 0, {
-      roomNum = i,
-      floorNum = gScrollPos,
-      callback = function (otherId)
-        floorOccupation = floorOccupation + 1
-      end,
-    })
-  end
-end)
-
-event.subscribe("pressed", 0, function (key)
-  if key == "up" and floorOccupation > 0 then
-    event.notify("scroll", 0 , gScrollPos + 1)
-  elseif key == "down" and gScrollPos > 1 then
-    event.notify("scroll", 0 , gScrollPos - 1)
-  else
-    return
   end
 end)
 
