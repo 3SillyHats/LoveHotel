@@ -49,7 +49,7 @@ end
 
 M.get = function (name)
   if not resources[name] then
-    local extension = findPattern(name, "\.[^.]+$")
+    local extension = findPattern(name, "[.][^.]+$")
     resources[name] = loadRes[extension]("resources/" .. name)
   end
   return resources[name]
