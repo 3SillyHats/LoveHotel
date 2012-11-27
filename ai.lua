@@ -285,6 +285,22 @@ local newOccupyGoal = function (self, target)
     if not self.target then
       return "failed"
     end
+    
+    local pos = room.getPos(self.component.entity)
+    local atRoom = false
+    event.notify("room.check", 0, {
+      roomNum = pos.roomNum,
+      floorNum = pos.floorNum,
+      callback = function (id)
+        if id == self.target then
+          atRoom = true
+        end
+      end,
+    })
+    if not atRoom then
+      return "failed"
+    end
+    
     local occupied = false
     event.notify("room.occupy", self.target, {
       id = self.component.entity,
@@ -311,6 +327,22 @@ local newDepartGoal = function (self, target)
     if not self.target then
       return "failed"
     end
+    
+    local pos = room.getPos(self.component.entity)
+    local atRoom = false
+    event.notify("room.check", 0, {
+      roomNum = pos.roomNum,
+      floorNum = pos.floorNum,
+      callback = function (id)
+        if id == self.target then
+          atRoom = true
+        end
+      end,
+    })
+    if not atRoom then
+      return "failed"
+    end
+    
     local occupied = false
     event.notify("room.depart", self.target, {
       id = self.component.entity,
@@ -375,6 +407,22 @@ local newBeginCleanGoal = function (self, target)
     if not self.target then
       return "failed"
     end
+    
+    local pos = room.getPos(self.component.entity)
+    local atRoom = false
+    event.notify("room.check", 0, {
+      roomNum = pos.roomNum,
+      floorNum = pos.floorNum,
+      callback = function (id)
+        if id == self.target then
+          atRoom = true
+        end
+      end,
+    })
+    if not atRoom then
+      return "failed"
+    end
+    
     local cleaning = false
     event.notify("room.beginClean", self.target, {
       id = self.component.entity,
@@ -405,6 +453,22 @@ local newEndCleanGoal = function (self, target)
     if not self.target then
       return "failed"
     end
+    
+    local pos = room.getPos(self.component.entity)
+    local atRoom = false
+    event.notify("room.check", 0, {
+      roomNum = pos.roomNum,
+      floorNum = pos.floorNum,
+      callback = function (id)
+        if id == self.target then
+          atRoom = true
+        end
+      end,
+    })
+    if not atRoom then
+      return "failed"
+    end
+    
     event.notify("room.endClean", self.target, {
       id = self.component.entity,
     })
