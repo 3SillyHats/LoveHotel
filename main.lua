@@ -354,7 +354,6 @@ local moneyCom = entity.newComponent()
 moneyCom.change = 0
 moneyCom.changeTimer = 0
 moneyCom.draw = function (self)
-  love.graphics.setColor(255, 255, 255)
   love.graphics.setFont(font)
   love.graphics.printf(
     money,
@@ -363,8 +362,13 @@ moneyCom.draw = function (self)
     "right"
   )
   local str = ""
-  if self.change > 0 then str = "+"..self.change
-  elseif self.change < 0 then str = "-"..self.change end
+  if self.change > 0 then 
+    love.graphics.setColor(0, 88, 0)
+    str = "+"..self.change
+  elseif self.change < 0 then
+    love.graphics.setColor(172, 16, 0)
+    str = "-"..self.change
+  end
   love.graphics.printf(
     str,
     198, CANVAS_HEIGHT - 13,
