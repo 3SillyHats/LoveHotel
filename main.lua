@@ -30,6 +30,7 @@ local builder = require("builder")
 local staff = require("staff")
 local client = require("client")
 local transform = require("transform")
+local path = require("path")
 
 conf = {
   menu = {
@@ -49,6 +50,7 @@ conf = {
 }
 
 gTopFloor = 1
+gBottomFloor = 1
 gScrollPos = 1
 event.subscribe("scroll", 0, function (scrollPos)
   gScrollPos = scrollPos
@@ -223,6 +225,7 @@ local newFloor = function (level)
       width = 256, height = 64, originY = 32,
     }))
   end
+  event.notify("floor.new", 0, {level = level, type = "top"})
   return id
 end
 newFloor(1)
@@ -312,7 +315,7 @@ local floorOccupation = 1
 event.subscribe("pressed", 0, function (key)
   if key == "up" and gScrollPos < gTopFloor then
     event.notify("scroll", 0 , gScrollPos + 1)
-  elseif key == "down" and gScrollPos > 1 then
+  elseif key == "down" and gScrollPos > gBottomFloor then
     event.notify("scroll", 0 , gScrollPos - 1)
   end
 end)

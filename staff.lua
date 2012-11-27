@@ -102,7 +102,7 @@ M.new = function ()
     }
   ))
   
-  local pos = {roomNum = -1, floorNum = 1}
+  local pos = {roomNum = -.5, floorNum = 1}
   entity.addComponent(id, transform.new(
     id, pos, {x = 16, y = 30}
   ))

@@ -32,7 +32,7 @@ local placer = function (id, type, pos, width, cost, t)
   local okay = function ()
     return (
       clear and
-      (support == component.width or component.floor == 1) and
+      (component.floor <= gTopFloor and component.floor >= gBottomFloor) and
       cost <= money
     )
   end

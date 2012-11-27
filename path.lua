@@ -5,21 +5,36 @@ M = {
   edges = {},
 }
 
+local serialize = function (t)
+  -- Assumes roomNum is integer or integer + 1/2, floorNum is integer
+  return math.floor((t.roomNum+.5)*2)/2 .. ","
+      .. math.floor((t.floorNum+.5))
+end
+
 M.addEdge = function (src, dst, cost)
-  if M.edges[src] == nil then
-    M.edges[src] = {}
+  local s_src = serialize(src)
+  local s_dst = serialize(dst)
+  if M.edges[s_src] == nil then
+    M.edges[s_src] = {}
   end
-  M.edges[src][dst] = cost
+  M.edges[s_src][s_dst] = {
+    cost = cost,
+    src = src,
+    dst = dst
+  }
 end
 
 M.get = function (src, dst, heuristic)
+  local s_src = serialize(src)
+  local s_dst = serialize(dst)
+
   local spt = {}
   local sf = {}
   local costs = {}
   local pq = {}
   
-  costs[src] = 0
-  pq[1] = {0, src}
+  costs[s_src] = 0
+  pq[1] = {0, s_src, src}
   while #pq > 0 do
     table.sort(pq, function(a,b)
       return a[1] > b[1]
@@ -27,26 +42,30 @@ M.get = function (src, dst, heuristic)
     local next = table.remove(pq)
     local cost = next[1]
     local node = next[2]
-    spt[node] = sf[node]
+    local node_pos = next[3]
+    if sf[node] then
+      spt[node] = sf[node][2]
+    end
     
-    if node == dst then
+    if node == s_dst then
       local path = {dst}
-      while path[1] ~= src do
-        table.insert(path, 1, spt[path[1]])
+      while serialize(path[1]) ~= s_src do
+        table.insert(path, 1, spt[serialize(path[1])])
       end
       return path
     end
     
     if M.edges[node] then
-      for edst,ecost in pairs(M.edges[node]) do
+      for edst,edata in pairs(M.edges[node]) do
+        local ecost = edata.cost
         local newCost = costs[node] + ecost
         if heuristic then
-          newCost = newCost + heuristic(edst, dst)
+          newCost = newCost + heuristic(edst, s_dst)
         end
         if sf[edst] == nil then
           costs[edst] = newCost
-          table.insert(pq, {newCost,edst})
-          sf[edst] = node
+          table.insert(pq, {newCost,edst,edata.dst})
+          sf[edst] = {node, node_pos}
         elseif newCost < costs[edst] then
           costs[edst] = newCost
           for k,v in ipairs(pq) do
@@ -55,7 +74,7 @@ M.get = function (src, dst, heuristic)
               break
             end
           end
-          sf[edst] = node
+          sf[edst] = {node, node_pos}
         end
       end
     end

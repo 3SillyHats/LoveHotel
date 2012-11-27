@@ -106,14 +106,12 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
   goal.speed = moveSpeed
   local goto = function(pos)
     local passable = false
-    event.notify("room.check", 0, {
-      roomNum = pos.roomNum,
-      floorNum = pos.floorNum,
-      callback = function (id)
-        passable = true
-      end,
-    })
-    if pos.roomNum < 7.5 and pos.floorNum == 1 then passable = true end
+    if (pos.floorNum >= gBottomFloor and
+        pos.floorNum <= gTopFloor) or
+        (pos.roomNum < 7.5 and
+        pos.floorNum == 1) then
+      passable = true
+    end
     if passable then
       event.notify("entity.move", goal.component.entity, pos)
     else
@@ -233,6 +231,7 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
   return goal
 end
 
+--[[
 local groundFloorNode = function (pos)
   if pos < 0.5 then
     return 0
@@ -240,6 +239,7 @@ local groundFloorNode = function (pos)
     return -math.floor(pos+0.5)
   end
 end
+--]]
 
 local newMoveToGoal = function (self, moveTo, moveSpeed)
   local goal = M.newGoal(self)
@@ -249,54 +249,19 @@ local newMoveToGoal = function (self, moveTo, moveSpeed)
   
   goal.activate = function ()
     goal.pos = room.getPos(self.entity)
-    local src,dst
-    if goal.pos.floorNum == 1 then
-      src = groundFloorNode(goal.pos.roomNum)
-    else
-      event.notify("room.check", 0, {
-        roomNum = goal.pos.roomNum,
-        floorNum = goal.pos.floorNum,
-        callback = function (id, type)
-          src = id
-        end,
-      })
-    end
-    if goal.moveTo.floorNum == 1 then
-      dst = groundFloorNode(goal.moveTo.roomNum)
-    else
-      event.notify("room.check", 0, {
-        roomNum = goal.moveTo.roomNum,
-        floorNum = goal.moveTo.floorNum,
-        callback = function (id, type)
-          dst = id
-        end,
-      })
-    end
+    local src = goal.pos
+    local dst = goal.moveTo
     
     local p
     if src and dst then
-      p = path.get(src,dst)
+      p = path.get(src, dst)
     end
     
     if not p then
       goal.state = "failed"
     else
       local old = nil
-      for _,node in ipairs(p) do
-        local pos
-        if node >= 1 then
-          pos = room.getPos(node)
-        elseif node == 0 then
-          pos = {
-            roomNum = -0.5,
-            floorNum = 1,
-          }
-        else
-          pos = {
-            roomNum = -node,
-            floorNum = 1,
-          }
-        end
+      for _,pos in ipairs(p) do
         if old then
           if old.floorNum == pos.floorNum then
             goal:addSubgoal(newSeekGoal(self, old, pos, moveSpeed))
@@ -392,7 +357,7 @@ local addVisitGoal = function (self, target)
   goal:addSubgoal(newOccupyGoal(self, target))
   goal:addSubgoal(newSleepGoal(self, SEX_TIME))
   goal:addSubgoal(newDepartGoal(self, target))
-  goal:addSubgoal(newMoveToGoal(self, {roomNum = 0, floorNum = 1}, CLIENT_MOVE))
+  goal:addSubgoal(newMoveToGoal(self, {roomNum = -.5, floorNum = 1}, CLIENT_MOVE))
   goal:addSubgoal(newDestroyGoal(self))
     
   goal.getDesirability = function (self, t)
@@ -510,62 +475,64 @@ M.new = function (id)
   return com
 end
 
-for i = 0, -6, -1 do
-  path.addEdge(i, i-1, 1)
-  path.addEdge(i-1, i, 1)
-end
-      
+path.addEdge(
+  {roomNum = -.5, floorNum = 1},
+  {roomNum = 1, floorNum = 1},
+  1
+)
+path.addEdge(
+  {roomNum = 1, floorNum = 1},
+  {roomNum = -.5, floorNum = 1},
+  1
+)
+
+event.subscribe("floor.new", 0, function (t)
+  --print("level: ", t.level)
+  for i = 1, 6 do
+    path.addEdge(
+      {roomNum = i, floorNum = t.level},
+      {roomNum = i+1, floorNum = t.level},
+      1
+    )
+    path.addEdge(
+      {roomNum = i+1, floorNum = t.level},
+      {roomNum = i, floorNum = t.level},
+      1
+    )
+  end
+end)
+
+
 event.subscribe("build", 0, function (t)
-  -- Check room to left
-  event.notify("room.check", 0, {
-    roomNum = t.pos.roomNum - 1,
-    floorNum = t.pos.floorNum,
-    callback = function (id, type)
-      path.addEdge(t.id, id, 1)
-      path.addEdge(id, t.id, 1)
-    end,
-  })
-  -- Check room to Right
-  event.notify("room.check", 0, {
-    roomNum = t.pos.roomNum + 1,
-    floorNum = t.pos.floorNum,
-    callback = function (id, type)
-      path.addEdge(t.id, id, 1)
-      path.addEdge(id, t.id, 1)
-    end,
-  })
-  
   if t.type == "elevator" then
-    -- Check room above
+    -- Check for elevator above
     event.notify("room.check", 0, {
       roomNum = t.pos.roomNum,
       floorNum = t.pos.floorNum + 1,
       callback = function (id, type)
         if type == "elevator" then
-          if t.pos.floorNum == 1 then
-            path.addEdge(groundFloorNode(t.pos.roomNum), id, 1)
-            path.addEdge(id, groundFloorNode(t.pos.roomNum), 1)
-          else
-            path.addEdge(t.id, id, 1)
-            path.addEdge(id, t.id, 1)
-          end
+          local dst = {
+            roomNum = t.pos.roomNum,
+            floorNum = t.pos.floorNum + 1,
+          }
+          path.addEdge(t.pos, dst, 1)
+          path.addEdge(dst, t.pos, 1)
         end
       end,
     })
     
-    -- Check room below
+    -- Check for elevator below
     event.notify("room.check", 0, {
       roomNum = t.pos.roomNum,
       floorNum = t.pos.floorNum - 1,
       callback = function (id, type)
         if type == "elevator" then
-          if t.pos.floorNum == 2 then
-            path.addEdge(t.id, groundFloorNode(t.pos.roomNum), 1)
-            path.addEdge(groundFloorNode(t.pos.roomNum), t.id, 1)
-          else
-            path.addEdge(t.id, id, 1)
-            path.addEdge(id, t.id, 1)
-          end
+          local dst = {
+            roomNum = t.pos.roomNum,
+            floorNum = t.pos.floorNum - 1,
+          }
+          path.addEdge(t.pos, dst, 1)
+          path.addEdge(dst, t.pos, 1)
         end
       end,
     })
