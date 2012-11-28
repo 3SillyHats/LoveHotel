@@ -90,6 +90,7 @@ local demolisher = function (id, pos, cost, t)
         event.notify("destroy", 0, {id=room, pos=pos, type=type})
 
         local snd = resource.get("snd/destroy.wav")
+        snd:setVolume(1)
         love.audio.rewind(snd)
         love.audio.play(snd)
       end
