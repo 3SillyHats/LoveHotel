@@ -20,7 +20,7 @@ M.addEdge = function (src, dst, cost)
   M.edges[s_src][s_dst] = {
     cost = cost,
     src = src,
-    dst = dst
+    dst = dst,
   }
 end
 

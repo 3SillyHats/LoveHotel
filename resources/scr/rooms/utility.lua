@@ -4,6 +4,7 @@ return {
   cost = 150,
   profit = 20,
   width = 1,
+  dirtyable = false,
   defaultBackgroundAnim = "stocked3",
   defaultForegroundAnim = "opening",
 

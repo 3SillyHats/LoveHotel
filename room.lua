@@ -63,7 +63,10 @@ local infoComponent = function (id, info, pos)
     if component.occupied > 0 then
       component.occupied = component.occupied - 1
     end
-    event.notify("sprite.play", e.id, "messy")
+    if info.dirtyable and not component.messy then
+      event.notify("sprite.play", e.id, "messy")
+      component.messy = true
+    end
     event.notify("sprite.hide", e.id, false)
     if component.occupied <= 0 then
       money = money + info.profit
@@ -76,7 +79,6 @@ local infoComponent = function (id, info, pos)
         },
       })
       component.occupied = 0
-      component.messy = true
       event.notify("sprite.play", id, "dirty")
       event.notify("sprite.play", id, "opening")
     end

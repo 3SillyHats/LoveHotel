@@ -3,6 +3,7 @@ return {
   name = "Elevator",
   cost = 100,
   width = 1,
+  dirtyable = false,
   defaultBackgroundAnim = "default",
   defaultForegroundAnim = "closing",
 
