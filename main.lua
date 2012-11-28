@@ -590,6 +590,7 @@ moneyCom.change = 0
 moneyCom.changeTimer = 0
 moneyCom.draw = function (self)
   love.graphics.setFont(font)
+  love.graphics.setColor(255, 255, 255)
   love.graphics.printf(
     "$" .. money,
     200, CANVAS_HEIGHT - 26,
