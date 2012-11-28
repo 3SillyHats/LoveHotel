@@ -13,8 +13,8 @@ STAFF_MOVE = 1
 STAFF_WAGE = 10
 PAY_PERIOD = 30
 CLIENT_MOVE = 1
-SEX_TIME = 10
-CLEAN_TIME = 5
+SEX_TIME = 7
+CLEAN_TIME = 15
 SPAWN_MIN = 10
 SPAWN_MAX = 20
 
@@ -30,15 +30,65 @@ local builder = require("builder")
 local demolisher = require("demolisher")
 local staff = require("staff")
 local client = require("client")
+local transform = require("transform")
+local path = require("path")
 
-conf = {}
+conf = {
+  menu = {
+    build =  {
+      name="Build",
+      desc=""
+    },
+    destroy = {
+      name="Destroy",
+      desc=""
+    },
+    hire = {
+      name="Hire",
+      desc="$10/hour"
+    },
+    manage = {
+      name="Manage",
+      desc="",
+    },
+    floorUp = {
+      name="Build up",
+      desc="$1000",
+    },
+  },
+}
 
+gTopFloor = 1
+gBottomFloor = 1
 gScrollPos = 1
 event.subscribe("scroll", 0, function (scrollPos)
   gScrollPos = scrollPos
 end)
 
+gGameSpeed = 1
+
 money = 2000
+
+-- Update menu tooltips
+for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
+  local room = resource.get("scr/rooms/" .. fname)
+  conf.menu[room.id] = {
+    name = room.name,
+    desc = "$" .. room.cost,
+  }
+end
+
+-- Allow game fast-forwarding
+event.subscribe("pressed", 0, function (key)
+  if key == "select" then
+    gGameSpeed = 5
+  end
+end)
+event.subscribe("released", 0, function (key)
+  if key == "select" then
+    gGameSpeed = 1
+  end
+end)
 
 -- Setup the window
 local setupScreen = function (modes)
@@ -175,34 +225,31 @@ menu.addButton(gui, menu.newButton("build", function ()
   --Build Elevator Room
   menu.addButton(buildMenu, menu.newButton("elevator", function ()
     buildRoom("elevator", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end, { image="elevator", name="Elevator", desc="$100"}))
+  end))
   --Build Utility Room button
   menu.addButton(buildMenu, menu.newButton("utility", function ()
     buildRoom("utility", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end, { image="utility", name="Utility r.", desc="$150"}))
+  end))
   --Build Flower Room button
   menu.addButton(buildMenu, menu.newButton("flower", function ()
     buildRoom("flower", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end, { image="flower", name="Lily s.", desc="$500"}))
+  end))
   --Build Heart Room
   menu.addButton(buildMenu, menu.newButton("heart", function ()
     buildRoom("heart", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end, { image="heart", name="Heart s.", desc="$1200"}))
+  end))
   --Build Tropical Room
   menu.addButton(buildMenu, menu.newButton("tropical", function ()
     buildRoom("tropical", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end, { image="tropical", name="Tropico", desc="$5000"}))
+  end))
 
   --The back button deletes the build menu
   menu.setBack(buildMenu, function ()
     entity.delete(buildMenu)
     menu.enable(gui)
   end)
-end, { image="build", name="Build", desc=""}))
---The Destroy button, for deleting rooms
-menu.addButton(gui, menu.newButton("destroy", function ()
-  demolishRoom({roomNum = 4, floorNum = gScrollPos}, gui)
-end, { image="destroy", name="Destroy", desc="Destroy a room"}))
+end))
+
 --The Hire button, for hiring staff
 menu.addButton(gui, menu.newButton("hire", function ()
   staff.new()
@@ -223,7 +270,88 @@ menu.addButton(gui, menu.newButton("hire", function ()
     entity.delete(hireMenu)
   end)
   --]]
-end, { image="hire", name="Hire Staff", desc=""}))
+end))
+
+local roof = entity.new(STATE_PLAY)
+entity.setOrder(roof, -50)
+entity.addComponent(roof, transform.new(roof, {
+  roomNum = .5,
+  floorNum = 1
+}))
+entity.addComponent(roof, sprite.new(
+  roof, {
+    image = resource.get("img/floor.png"),
+    width = 256, height = 32,
+    originY = 32,
+  }
+))
+event.subscribe("floor.new", 0, function (t)
+  event.notify("entity.move", roof, {roomNum=.5, floorNum=t.level})
+end)
+
+local newFloor = function (level)
+  local id = entity.new(STATE_PLAY)
+  entity.setOrder(id, -50)
+  local pos = {roomNum = .5, floorNum = level }
+  entity.addComponent(id, transform.new(id, pos))
+  if level > 1 then
+    entity.addComponent(id, sprite.new(id, {
+      image = resource.get("img/floor.png"),
+      width = 256, height = 32,
+      animations = {
+        idle = {
+          first = 1,
+          last = 1,
+          speed = 1
+        }
+      },
+      playing = "idle",
+    }))
+  end
+  event.notify("floor.new", 0, {level = level, type = "top"})
+  return id
+end
+newFloor(1)
+
+-- Add management button to main menu
+menu.addButton(gui, menu.newButton("manage", function ()
+
+  menu.disable(gui)
+  --Create the management menu
+  local manageMenu = menu.new(2, subMenuY)
+
+  --The Destroy button, for deleting rooms
+  menu.addButton(manageMenu, menu.newButton("destroy", function ()
+    demolishRoom({roomNum = 4, floorNum = gScrollPos}, gui)
+  end, { image="destroy", name="Destroy", desc="Destroy a room"}))
+
+  --Build top floor
+  menu.addButton(manageMenu, menu.newButton("floorUp", function ()
+    local cost =  500 * (gTopFloor + 1)
+    if money >= cost then
+      money = money - cost
+      event.notify("money.change", 0, -cost)
+      gTopFloor = gTopFloor + 1
+      conf.menu["floorUp"].desc = "$" .. (500 * (gTopFloor + 1))
+      local newFloor = newFloor(gTopFloor)
+      local snd = resource.get("snd/build.wav")
+      love.audio.rewind(snd)
+      love.audio.play(snd)
+    else
+      local snd = resource.get("snd/error.wav")
+      love.audio.rewind(snd)
+      love.audio.play(snd)
+    end
+  end))
+
+  --The back button deletes the management menu
+  menu.setBack(manageMenu, function ()
+	menu.enable(gui)
+    entity.delete(manageMenu)
+  end)
+
+end))
+
 --The back button, quits the game at the moment
 menu.setBack(gui, function ()
   --love.event.push("quit")
@@ -268,10 +396,11 @@ event.subscribe("training.current", 0, function (current)
   event.notify("sprite.move", arrow, inputLocations[current])
 end)
 
-local function endTraining ()
-  event.notify("state.enter", 0, 2)
-end
-event.subscribe("training.end", 0, endTraining)
+event.subscribe("training.end", 0, function ()
+  event.notify("state.enter", 0, 2)-- BGM
+  local bgm = resource.get("snd/gettingfreaky.ogg")
+  love.audio.play(bgm)
+end)
 
 event.notify("training.begin", 0)
 event.notify("training.load", 0)
@@ -279,23 +408,10 @@ event.notify("training.load", 0)
 local floorOccupation = 1
 
 event.subscribe("pressed", 0, function (key)
-  if key == "up" and floorOccupation > 0 then
+  if key == "up" and gScrollPos < gTopFloor then
     event.notify("scroll", 0 , gScrollPos + 1)
-  elseif key == "down" and gScrollPos > 1 then
+  elseif key == "down" and gScrollPos > gBottomFloor then
     event.notify("scroll", 0 , gScrollPos - 1)
-  else
-    return
-  end
-
-  floorOccupation = 0
-  for i = 1,7 do
-    event.notify("room.check", 0, {
-      roomNum = i,
-      floorNum = gScrollPos,
-      callback = function (otherId)
-        floorOccupation = floorOccupation + 1
-      end,
-    })
   end
 end)
 
@@ -332,7 +448,7 @@ end)
 -- Font
 local font = love.graphics.newImageFont(
   resource.get("img/font.png"),
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$+-. "
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$+-./ "
 )
 
 -- Create the hud bar
@@ -351,11 +467,7 @@ local buttQuad = love.graphics.newQuad(
 local hudBar = entity.new(STATE_PLAY)
 entity.setOrder(hudBar, 90)
 local hudCom = entity.newComponent()
-hudCom.info = {
-  image = "build",
-  name = "Build",
-  desc = ""
-}
+hudCom.selected = "build"
 hudCom.draw = function (self)
   love.graphics.drawq(
     resource.get("img/hud.png"), hudQuad,
@@ -363,33 +475,24 @@ hudCom.draw = function (self)
     0
   )
   -- draw info
-  local idx = buttLoc[hudCom.info.image] - 1
-  buttQuad:setViewport(idx*16, 0, 16, 16)
-  love.graphics.drawq(
-    resource.get("img/hud.png"), buttQuad,
-    92, CANVAS_HEIGHT - 24,
-    0
-  )
   love.graphics.setColor(255, 255, 255)
   love.graphics.setFont(font)
   love.graphics.printf(
-    hudCom.info.name,
-    110, CANVAS_HEIGHT - 26,
-    74,
+    conf.menu[hudCom.selected].name,
+    115, CANVAS_HEIGHT - 26,
+    70,
     "left"
   )
   love.graphics.printf(
-    hudCom.info.desc,
-    110, CANVAS_HEIGHT - 14,
-    74,
+    conf.menu[hudCom.selected].desc,
+    115, CANVAS_HEIGHT - 14,
+    70,
     "left"
   )
 end
 entity.addComponent(hudBar, hudCom)
 event.subscribe("menu.info", 0, function (e)
-  hudCom.info.image = e.image
-  hudCom.info.name = e.name
-  hudCom.info.desc = e.desc
+  hudCom.selected = e
 end)
 
 -- Create the money display
@@ -399,21 +502,25 @@ local moneyCom = entity.newComponent()
 moneyCom.change = 0
 moneyCom.changeTimer = 0
 moneyCom.draw = function (self)
-  love.graphics.setColor(255, 255, 255)
   love.graphics.setFont(font)
   love.graphics.printf(
-    money,
-    196, CANVAS_HEIGHT - 26,
+    "$" .. money,
+    200, CANVAS_HEIGHT - 26,
     56,
     "right"
   )
   local str = ""
-  if self.change > 0 then str = "+"..self.change
-  elseif self.change < 0 then str = "-"..self.change end
+  if self.change > 0 then 
+    love.graphics.setColor(0, 88, 0)
+    str = "+"..self.change
+  elseif self.change < 0 then
+    love.graphics.setColor(172, 16, 0)
+    str = self.change
+  end
   love.graphics.printf(
     str,
-    198, CANVAS_HEIGHT - 13,
-    50,
+    200, CANVAS_HEIGHT - 14,
+    56,
     "right"
   )
 end
@@ -450,10 +557,6 @@ bdCom.draw = function (self)
   )
 end
 entity.addComponent(backdrop, bdCom)
-
--- BGM
-local bgm = resource.get("snd/gettingfreaky.ogg")
-love.audio.play(bgm)
 
 love.draw = function ()
   -- Draw to canvas without scaling
@@ -502,6 +605,7 @@ love.draw = function ()
 end
 
 love.update = function (dt)
+  local dt = dt * gGameSpeed
   entity.update(dt)
   input.update(dt)
 end

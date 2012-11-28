@@ -16,12 +16,12 @@ loadRes[".png"] = function (name)
 end
 loadRes[".wav"] = function (name)
   local snd = love.audio.newSource(name, "static")
-  snd:setVolume(0.5)
+  snd:setVolume(0.2)
   return snd
 end
 loadRes[".ogg"] = function (name)
   local snd = love.audio.newSource(name, "stream")
-  snd:setVolume(0.5)
+  snd:setVolume(1)
   snd:setLooping(true)
   return snd
 end
@@ -49,7 +49,7 @@ end
 
 M.get = function (name)
   if not resources[name] then
-    local extension = findPattern(name, "\.[^.]+$")
+    local extension = findPattern(name, "[.][^.]+$")
     resources[name] = loadRes[extension]("resources/" .. name)
   end
   return resources[name]

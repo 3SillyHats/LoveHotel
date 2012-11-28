@@ -32,7 +32,7 @@ local placer = function (id, type, pos, width, cost, t)
   local okay = function ()
     return (
       clear and
-      (support == component.width or component.floor == 1) and
+      (component.floor <= gTopFloor and component.floor >= gBottomFloor) and
       cost <= money
     )
   end
@@ -96,11 +96,11 @@ local placer = function (id, type, pos, width, cost, t)
         event.notify("money.change", 0, -cost)
         event.notify("build", id, {id=room, pos=pos, type=type})
         event.notify("build", 0, {id=room, pos=pos, type=type})
-        local snd = resource.get("snd/build3.wav")
+        local snd = resource.get("snd/build.wav")
         love.audio.rewind(snd)
         love.audio.play(snd)
        else
-        local snd = resource.get("snd/closedoor.wav")
+        local snd = resource.get("snd/error.wav")
         love.audio.rewind(snd)
         love.audio.play(snd)
       end
@@ -138,28 +138,22 @@ M.new = function (state, roomType, pos)
   local id = entity.new(state)
   entity.setOrder(id, 100)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
-  local img = resource.get("img/rooms/" .. room.image)
+  local imgForeground = resource.get("img/rooms/" .. room.id .. "_foreground.png")
 
   --Add a sprite for the front layer of the room
   entity.addComponent(id, sprite.new(id, {
-    image = img,
-    width = img:getWidth(),
+    image = imgForeground,
+    width = room.width*32,
     height = 32,
     --Used the closed door front layer
-    animations = {
-      closed = {
-        first = room.aniFrames+1,
-        last = room.aniFrames+1,
-        speed = 1,
-      },
-    },
+    animations = room.foregroundAnimations,
     playing = "closed",
   }))
   --Add position component
   entity.addComponent(id, transform.new(id, pos))
   --Add placer component (including outline)
   entity.addComponent(id, placer(id, roomType, pos, room.width, room.cost, {
-    width = img:getWidth(),
+    width = room.width*32,
     height = 32,
   }))
 
