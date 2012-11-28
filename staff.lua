@@ -113,7 +113,14 @@ M.new = function ()
       self.timer = self.timer - dt
       if self.timer <= 0 then
         money = money - STAFF_WAGE
-        event.notify("money.change", 0, -STAFF_WAGE)
+        local pos = nil
+        event.notify("entity.pos", id, function (e)
+          pos = e
+        end)
+        event.notify("money.change", 0, {
+          amount = -STAFF_WAGE,
+          pos = pos,
+        })
         self.timer = self.timer + PAY_PERIOD
       end
     end,

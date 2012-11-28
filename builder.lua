@@ -93,7 +93,10 @@ local placer = function (id, type, pos, width, cost, t)
         local pos = {roomNum = component.room, floorNum = component.floor}
         local room = room.new(2, type, pos)
         money = money - cost
-        event.notify("money.change", 0, -cost)
+        event.notify("money.change", 0, {
+          amount = -cost,
+          pos = {roomNum = component.room, floorNum = component.floor},
+         })
         event.notify("build", id, {id=room, pos=pos, type=type})
         event.notify("build", 0, {id=room, pos=pos, type=type})
         local snd = resource.get("snd/build.wav")

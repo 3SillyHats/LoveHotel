@@ -386,7 +386,9 @@ menu.addButton(gui, menu.newButton("hotel", function ()
     local cost =  500 * (gTopFloor + 1)
     if money >= cost then
       money = money - cost
-      event.notify("money.change", 0, -cost)
+      event.notify("money.change", 0, {
+        amount = -cost,
+      })
       gTopFloor = gTopFloor + 1
       conf.menu["floorUp"].desc = "$" .. (500 * (gTopFloor + 1))
       local newFloor = newFloor(gTopFloor)
@@ -596,7 +598,7 @@ moneyCom.draw = function (self)
   )
   local str = ""
   if self.change > 0 then 
-    love.graphics.setColor(0, 88, 0)
+    love.graphics.setColor(0, 184, 0)
     str = "+"..self.change
   elseif self.change < 0 then
     love.graphics.setColor(172, 16, 0)
@@ -618,8 +620,57 @@ end
 entity.addComponent(moneyDisplay, moneyCom)
 local moneyChange = 0
 event.subscribe("money.change", 0, function (e)
-  moneyCom.change = moneyCom.change + e
+  moneyCom.change = moneyCom.change + e.amount
   moneyCom.changeTimer = 3
+  
+  -- Create in-world money popup
+  if e.pos then
+    local id = entity.new(STATE_PLAY)
+    entity.setOrder(id, 100)
+    entity.addComponent(id, transform.new(
+      id, e.pos, {x = 0, y = 0}
+    ))
+    local com = entity.newComponent({
+      amount = e.amount,
+      timer = 3,
+      pos = {roomNum = e.pos.roomNum, floorNum = e.pos.floorNum},
+      screenPos = {x=0, y=0},
+    })
+    com.update = function (self, dt)
+      self.timer = self.timer - dt
+      self.pos = {
+        roomNum = self.pos.roomNum,
+        floorNum = self.pos.floorNum + dt
+      }
+      event.notify("entity.move", id, self.pos)
+      if self.timer <= 0 then
+        entity.delete(id)
+      end
+    end
+    com.draw = function (self)
+      love.graphics.setFont(font)
+      local colors = { {0, 0, 0} }
+      local str = ""
+      if self.amount > 0 then 
+        colors[2] = {0, 184, 0}
+        str = "+"..self.amount
+      elseif self.amount < 0 then
+        colors[2] = {172, 16, 0}
+        str = self.amount
+      end
+      for i = 1, #colors do
+        love.graphics.setColor(colors[i])
+        love.graphics.print(
+          str,
+          self.screenPos.x+1-i, self.screenPos.y-i+1
+        )
+      end
+    end
+    event.subscribe("sprite.move", id, function (e)
+      com.screenPos = {x = e.x, y = e.y}
+    end)
+    entity.addComponent(id, com)
+  end
 end)
 
 -- Create the backdrop

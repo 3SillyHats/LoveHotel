@@ -67,7 +67,14 @@ local infoComponent = function (id, info, pos)
     event.notify("sprite.hide", e.id, false)
     if component.occupied <= 0 then
       money = money + info.profit
-      event.notify("money.change", 0, info.profit)
+      local roomPos = M.getPos(id)
+      event.notify("money.change", 0, {
+        amount = info.profit,
+        pos = {
+          roomNum = roomPos.roomNum,
+          floorNum = roomPos.floorNum,
+        },
+      })
       component.occupied = 0
       component.messy = true
       event.notify("sprite.play", id, "dirty")
