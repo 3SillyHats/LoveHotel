@@ -48,11 +48,13 @@ local infoComponent = function (id, info, pos)
     if component.occupied < 2 then
       component.occupied = component.occupied + 1
       event.notify("sprite.hide", e.id, true)
+      if component.occupied == 2 then
+        event.notify("sprite.play", id, "closing")
+      end
+      e.callback(true)
+    else
+      e.callback(false)
     end
-    if component.occupied == 2 then
-      event.notify("sprite.play", id, "closing")
-    end
-    e.callback(component.occupied < 2)
   end
   
   event.subscribe("room.occupy", id, occupy)
@@ -65,7 +67,7 @@ local infoComponent = function (id, info, pos)
     event.notify("sprite.hide", e.id, false)
     if component.occupied <= 0 then
       money = money + info.profit
-	  event.notify("money.change", 0, info.profit)
+      event.notify("money.change", 0, info.profit)
       component.occupied = 0
       component.messy = true
       event.notify("sprite.play", id, "dirty")

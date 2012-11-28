@@ -18,13 +18,13 @@ local process = function (self, dt)
   -- the subgoals list
   while #self.subgoals > 0 and (self.subgoals[1]:getStatus() == "complete" or
       self.subgoals[1]:getStatus() == "failed") do
+    if self.subgoals[1]:getStatus() == "failed" then
+      return "failed"
+    end
     self.subgoals[1]:terminate()
     table.remove(self.subgoals, 1)
     if #self.subgoals > 0 then
       self.subgoals[1]:activate()
-      if self.subgoals[1]:getStatus() == "failed" then
-        return "failed"
-      end
     end
   end
   -- If any subgoals remain, process the one at the
@@ -37,16 +37,21 @@ local process = function (self, dt)
     if status == "complete" and #self.subgoals > 1 then
       return "active"
     end
-    if status == "failed" then
+    if status == "failed" or status == "complete" then
       self.subgoals[1]:terminate()
     end
     return status
   end
+  
   -- No more subgoals
   return "complete"
 end
 
-local terminate = function (self) end
+local terminate = function (self)
+  if #self.subgoals > 0 and self.subgoals[1].status == "active" then
+    self.subgoals[1]:terminate()
+  end
+end
 
 local getStatus = function (self)
   return self.status
@@ -74,7 +79,7 @@ local arbitrate = function (self, t)
 end
 
 local update = function (self, dt)
-  local desirabilityFactors = {}
+  local desirabilityFactors = {horny = self.horny}
   local newGoal = self.goalEvaluator.arbitrate(self, desirabilityFactors)
   if newGoal ~= self.currentGoal then
     if self.currentGoal then self.currentGoal:terminate() end
@@ -259,13 +264,13 @@ local newMoveToGoal = function (self, moveTo, moveSpeed)
     local src = goal.pos
     local dst = goal.moveTo
     
-    local p
+    local p = nil
     if src and dst then
       p = path.get(src, dst)
     end
     
     if not p then
-      goal.state = "failed"
+      goal.status = "failed"
     else
       local old = nil
       for _,pos in ipairs(p) do
@@ -275,8 +280,6 @@ local newMoveToGoal = function (self, moveTo, moveSpeed)
           else
             goal:addSubgoal(newElevatorGoal(self, old, pos))
           end
-        else
-          goal.state = "failed"
         end
         old = pos
       end
@@ -286,83 +289,6 @@ local newMoveToGoal = function (self, moveTo, moveSpeed)
   return goal
 end
 
-local newOccupyGoal = function (self, target)
-  local goal = M.newGoal(self)
-  goal.target = target
-  
-  goal.process = function(self, dt)
-    if not self.target then
-      return "failed"
-    end
-    
-    local pos = room.getPos(self.component.entity)
-    local atRoom = false
-    event.notify("room.check", 0, {
-      roomNum = pos.roomNum,
-      floorNum = pos.floorNum,
-      callback = function (id)
-        if id == self.target then
-          atRoom = true
-        end
-      end,
-    })
-    if not atRoom then
-      return "failed"
-    end
-    
-    local occupied = false
-    event.notify("room.occupy", self.target, {
-      id = self.component.entity,
-      callback = function (success)
-        occupied = success
-      end,
-    })
-    
-    if occupied then
-      return "complete"
-    else
-      return "failed"
-    end
-  end
-  
-  return goal
-end
-
-local newDepartGoal = function (self, target)
-  local goal = M.newGoal(self)
-  goal.target = target
-  
-  goal.process = function(self, dt)
-    if not self.target then
-      return "failed"
-    end
-    
-    local pos = room.getPos(self.component.entity)
-    local atRoom = false
-    event.notify("room.check", 0, {
-      roomNum = pos.roomNum,
-      floorNum = pos.floorNum,
-      callback = function (id)
-        if id == self.target then
-          atRoom = true
-        end
-      end,
-    })
-    if not atRoom then
-      return "failed"
-    end
-    
-    local occupied = false
-    event.notify("room.depart", self.target, {
-      id = self.component.entity,
-    })
-    
-    return "complete"
-  end
-  
-  return goal
-end
-  
 local newSleepGoal = function (self, t)
   local goal = M.newGoal(self)
   goal.time = t
@@ -379,6 +305,65 @@ local newSleepGoal = function (self, t)
   return goal
 end
   
+local newSexGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  goal.time = t
+
+  local old_activate = goal.activate
+  goal.activate = function(self)
+    if not self.target then
+      self.status = "failed"
+      return
+    end
+    
+    local pos = room.getPos(self.component.entity)
+    local atRoom = false
+    event.notify("room.check", 0, {
+      roomNum = pos.roomNum,
+      floorNum = pos.floorNum,
+      callback = function (id)
+        if id == self.target then
+          atRoom = true
+        end
+      end,
+    })
+    if not atRoom then
+      self.status = "failed"
+      return
+    end
+    
+    local occupied = false
+    event.notify("room.occupy", self.target, {
+      id = self.component.entity,
+      callback = function (success)
+        occupied = success
+      end,
+    })
+    
+    if not occupied then
+      self.status = "failed"
+      return
+    end
+
+    goal:addSubgoal(newSleepGoal(self, SEX_TIME))
+    
+    old_activate(self)
+  end
+  
+  local old_teminate = goal.terminate
+  goal.terminate = function(self)
+    event.notify("room.depart", self.target, {
+      id = self.component.entity,
+    })
+    
+    self.component.horny = false
+    old_teminate(self)
+  end
+  
+  return goal
+end
+
 local newDestroyGoal = function (self)
   local goal = M.newGoal(self)
   
@@ -394,15 +379,48 @@ local addVisitGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
     
-  goal:addSubgoal(newMoveToGoal(self, room.getPos(target), CLIENT_MOVE))
-  goal:addSubgoal(newOccupyGoal(self, target))
-  goal:addSubgoal(newSleepGoal(self, SEX_TIME))
-  goal:addSubgoal(newDepartGoal(self, target))
-  goal:addSubgoal(newMoveToGoal(self, {roomNum = -.5, floorNum = 1}, CLIENT_MOVE))
-  goal:addSubgoal(newDestroyGoal(self))
-    
+  local old_activate = goal.activate
+  goal.activate = function (self)
+    goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), CLIENT_MOVE))
+    goal:addSubgoal(newSexGoal(self.component, target))
+    old_activate(self)
+  end
+  
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    self.subgoals = {}
+    old_terminate(self)
+  end
+  
   goal.getDesirability = function (self, t)
-    return 1
+    if t.horny then
+      return 1
+    else
+      return -1
+    end
+  end
+  
+  self.goalEvaluator:addSubgoal(goal)
+end
+  
+local addExitGoal = function (self)
+  local goal = M.newGoal(self)
+    
+  local old_activate = goal.activate
+  goal.activate = function (self)
+    goal:addSubgoal(newMoveToGoal(self.component, {roomNum = -.5, floorNum = 1}, CLIENT_MOVE))
+    goal:addSubgoal(newDestroyGoal(self.component))
+    old_activate(self)
+  end
+  
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    self.subgoals = {}
+    old_terminate(self)
+  end
+  
+  goal.getDesirability = function (self, t)
+    return 0
   end
   
   self.goalEvaluator:addSubgoal(goal)
@@ -541,6 +559,7 @@ M.new = function (id)
     addGoal = addGoal,
     addVisitGoal = addVisitGoal,
     addCleanGoal = addCleanGoal,
+    addExitGoal = addExitGoal,
   })
   com.goalEvaluator = M.newGoal(com)
   com.goalEvaluator.arbitrate = arbitrate
@@ -614,7 +633,6 @@ end)
 
 event.subscribe("destroy", 0, function (t)
   if t.type == "elevator" then
-    print("unlink")
     local dst = {
       roomNum = t.pos.roomNum,
       floorNum = t.pos.floorNum + 1,

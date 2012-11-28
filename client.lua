@@ -152,6 +152,8 @@ M.new = function (target)
   local aiComponent = ai.new(id)
   entity.addComponent(id, aiComponent)
   aiComponent:addVisitGoal(target)
+  aiComponent:addExitGoal(target)
+  aiComponent.horny = true
   
   local check = function (t)
     local epos = room.getPos(id)

@@ -322,7 +322,7 @@ menu.addButton(gui, menu.newButton("manage", function ()
 
   --The Destroy button, for deleting rooms
   menu.addButton(manageMenu, menu.newButton("destroy", function ()
-    demolishRoom({roomNum = 4, floorNum = gScrollPos}, gui)
+    demolishRoom({roomNum = 4, floorNum = gScrollPos}, manageMenu)
   end, { image="destroy", name="Destroy", desc="Destroy a room"}))
 
   --Build top floor
