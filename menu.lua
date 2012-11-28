@@ -6,17 +6,33 @@ local resource = require("resource")
 
 --Index locations for room types found within hud.png
 buttLoc = {
-  build = 1,
-  destroy = 2,
-  hire = 3,
-  utility = 4,
-  flower = 5,
-  heart = 6,
-  tropical = 7,
-  elevator = 8,
-  stairs = 9,
-  manage = 10,
-  floorUp = 11,
+  infrastructure = 0,
+  suites = 1,
+  entertainment = 2,
+  hotel = 3,
+  manage = 4,
+
+  stairs = 8,
+  elevator = 9,
+  utility = 10,
+  reception = 11,
+  staffRoom = 12,
+  kitchen = 13,
+  
+  flower = 16,
+  heart = 17,
+  tropical = 18,
+  
+  condom = 24,
+  spa = 25,
+  dining = 26,
+  
+  floorUp = 32,
+  floorDown = 33,
+  destroy = 34,
+  
+  hire = 40,
+  stock = 41,
 }
 
 local defaultAction = function ()
@@ -130,20 +146,22 @@ end
 M.newButton = function (buttType, callback)
   --Pull the index location for the desired button type
   local index = buttLoc[buttType]
+  local row = math.floor(index / 16)
+  local col = index % 16
   --Load the hud image
   local img = resource.get("img/hud.png")
 
   local button = {
     action = callback or defaultAction,
     image = img,
-    --The selected quad
-    quadS = love.graphics.newQuad(
-      16*(index - 1), 16, 16, 16,
-      img:getWidth(), img:getHeight()
-    ),
     --The unselected quad
     quadU = love.graphics.newQuad(
-      16*(index - 1), 0, 16, 16,
+      16*col, 32*row, 16, 16,
+      img:getWidth(), img:getHeight()
+    ),
+    --The selected quad
+    quadS = love.graphics.newQuad(
+      16*col, (32*row)+16, 16, 16,
       img:getWidth(), img:getHeight()
     ),
     type = buttType

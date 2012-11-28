@@ -35,25 +35,40 @@ local path = require("path")
 
 conf = {
   menu = {
-    build =  {
-      name="Build",
+    -- Main menu
+    infrastructure =  {
+      name="Structure",
       desc=""
     },
-    destroy = {
-      name="Destroy",
+    suites =  {
+      name="Suites",
       desc=""
     },
-    hire = {
-      name="Hire",
-      desc="$10/hour"
+    entertainment = {
+      name="Entertain.",
+      desc=""
+    },
+    hotel = {
+      name="Hotel",
+      desc="",
     },
     manage = {
       name="Manage",
       desc="",
     },
-    floorUp = {
-      name="Build up",
-      desc="$1000",
+    
+    -- Manage
+    floorUp =  {
+      name="Build Up",
+      desc="$1000"
+    },
+    floorDown =  {
+      name="Build Down",
+      desc="NIL"
+    },
+    destroy =  {
+      name="Destroy",
+      desc=""
     },
   },
 }
@@ -163,7 +178,7 @@ local subMenuY = 32*6
 local buildRoom = function (type, pos, baseMenu)
   menu.disable(baseMenu)
 
-  local buildUtility = builder.new(2, type, pos)
+  local buildUtility = builder.new(STATE_PLAY, type, pos)
     
   local back = function () end
     
@@ -214,64 +229,7 @@ local demolishRoom = function (pos, baseMenu)
   event.subscribe("destroy", demolishUtility, onDestroy)
 end
 
-local gui = menu.new(2, mainMenuY)
---The Build button, opens build menu
-menu.addButton(gui, menu.newButton("build", function ()
-  menu.disable(gui)
-  
-  --Create the build menu
-  local buildMenu = menu.new(2, subMenuY)
-  
-  --Build Elevator Room
-  menu.addButton(buildMenu, menu.newButton("elevator", function ()
-    buildRoom("elevator", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end))
-  --Build Utility Room button
-  menu.addButton(buildMenu, menu.newButton("utility", function ()
-    buildRoom("utility", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end))
-  --Build Flower Room button
-  menu.addButton(buildMenu, menu.newButton("flower", function ()
-    buildRoom("flower", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end))
-  --Build Heart Room
-  menu.addButton(buildMenu, menu.newButton("heart", function ()
-    buildRoom("heart", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end))
-  --Build Tropical Room
-  menu.addButton(buildMenu, menu.newButton("tropical", function ()
-    buildRoom("tropical", {roomNum = 4, floorNum = gScrollPos}, buildMenu)
-  end))
-
-  --The back button deletes the build menu
-  menu.setBack(buildMenu, function ()
-    entity.delete(buildMenu)
-    menu.enable(gui)
-  end)
-end))
-
---The Hire button, for hiring staff
-menu.addButton(gui, menu.newButton("hire", function ()
-  staff.new()
-
-  --[[ HIRE MENU
-  menu.disable(gui)
-  --Create the hire menu
-  local hireMenu = menu.new(2, subMenuY)
-
-  --Hire a janitor
-  menu.addButton(hireMenu, menu.newButton("utility", function ()
-    print("Janitor Hired")
-  end))
-
-  --The back button deletes the hire menu
-  menu.setBack(hireMenu, function ()
-	  menu.enable(gui)
-    entity.delete(hireMenu)
-  end)
-  --]]
-end))
-
+-- Roof entity
 local roof = entity.new(STATE_PLAY)
 entity.setOrder(roof, -50)
 entity.addComponent(roof, transform.new(roof, {
@@ -289,6 +247,7 @@ event.subscribe("floor.new", 0, function (t)
   event.notify("entity.move", roof, {roomNum=.5, floorNum=t.level})
 end)
 
+-- Create an empty floor entity
 local newFloor = function (level)
   local id = entity.new(STATE_PLAY)
   entity.setOrder(id, -50)
@@ -313,20 +272,117 @@ local newFloor = function (level)
 end
 newFloor(1)
 
--- Add management button to main menu
-menu.addButton(gui, menu.newButton("manage", function ()
+--Main menu
+local gui = menu.new(STATE_PLAY, mainMenuY)
 
+--The back button, quits the game at the moment
+menu.setBack(gui, function ()
+  --love.event.push("quit")
+  --love.event.push("q")
+end)
+
+--Infrastructure button
+menu.addButton(gui, menu.newButton("infrastructure", function ()
   menu.disable(gui)
-  --Create the management menu
-  local manageMenu = menu.new(2, subMenuY)
+  
+  --Create the infrastructure menu
+  local submenu = menu.new(STATE_PLAY, subMenuY)
+  
+  --Stairs
+  menu.addButton(submenu, menu.newButton("stairs", function ()
+    buildRoom("stairs", {roomNum = 4, floorNum = gScrollPos}, submenu)
+  end))
+  --Elevator
+  menu.addButton(submenu, menu.newButton("elevator", function ()
+    buildRoom("elevator", {roomNum = 4, floorNum = gScrollPos}, submenu)
+  end))
+  --Utility
+  menu.addButton(submenu, menu.newButton("utility", function ()
+    buildRoom("utility", {roomNum = 4, floorNum = gScrollPos}, submenu)
+  end))
+  --Reception
+  menu.addButton(submenu, menu.newButton("reception", function ()
+    print("reception")
+  end))
+  --Staff Room
+  menu.addButton(submenu, menu.newButton("staffRoom", function ()
+    print("staffRoom")
+  end))
+  --Kitchen
+  menu.addButton(submenu, menu.newButton("kitchen", function ()
+    print("kitchen")
+  end))
 
-  --The Destroy button, for deleting rooms
-  menu.addButton(manageMenu, menu.newButton("destroy", function ()
-    demolishRoom({roomNum = 4, floorNum = gScrollPos}, manageMenu)
-  end, { image="destroy", name="Destroy", desc="Destroy a room"}))
+  --The back button deletes the submenu
+  menu.setBack(submenu, function ()
+    entity.delete(submenu)
+    menu.enable(gui)
+  end)
+end))
 
-  --Build top floor
-  menu.addButton(manageMenu, menu.newButton("floorUp", function ()
+--Suites button
+menu.addButton(gui, menu.newButton("suites", function ()
+  menu.disable(gui)
+  
+  --Create the suites menu
+  local submenu = menu.new(STATE_PLAY, subMenuY)
+  
+  --Flower
+  menu.addButton(submenu, menu.newButton("flower", function ()
+    buildRoom("flower", {roomNum = 4, floorNum = gScrollPos}, submenu)
+  end))
+  --Heart
+  menu.addButton(submenu, menu.newButton("heart", function ()
+    buildRoom("heart", {roomNum = 4, floorNum = gScrollPos}, submenu)
+  end))
+  --Tropical
+  menu.addButton(submenu, menu.newButton("tropical", function ()
+    buildRoom("tropical", {roomNum = 4, floorNum = gScrollPos}, submenu)
+  end))
+
+  --The back button deletes the submenu
+  menu.setBack(submenu, function ()
+    entity.delete(submenu)
+    menu.enable(gui)
+  end)
+end))
+
+--Entertainment button
+menu.addButton(gui, menu.newButton("entertainment", function ()
+  menu.disable(gui)
+  
+  --Create the entertainment menu
+  local submenu = menu.new(STATE_PLAY, subMenuY)
+  
+  --Condom machine
+  menu.addButton(submenu, menu.newButton("condom", function ()
+    print("condom")
+  end))
+  --Spa room
+  menu.addButton(submenu, menu.newButton("spa", function ()
+    print("spa")
+  end))
+  --Dining room
+  menu.addButton(submenu, menu.newButton("dining", function ()
+    print("dining")
+  end))
+
+  --The back button deletes the submenu
+  menu.setBack(submenu, function ()
+    entity.delete(submenu)
+    menu.enable(gui)
+  end)
+end))
+
+--Hotel button
+menu.addButton(gui, menu.newButton("hotel", function ()
+  menu.disable(gui)
+  
+  --Create the hotel menu
+  local submenu = menu.new(STATE_PLAY, subMenuY)
+  
+  --Build floor up
+  menu.addButton(submenu, menu.newButton("floorUp", function ()
     local cost =  500 * (gTopFloor + 1)
     if money >= cost then
       money = money - cost
@@ -343,20 +399,44 @@ menu.addButton(gui, menu.newButton("manage", function ()
       love.audio.play(snd)
     end
   end))
+  --Build floor down
+  menu.addButton(submenu, menu.newButton("floorDown", function ()
+    print("floorDown")
+  end))
+  --Destroy tool
+  menu.addButton(submenu, menu.newButton("destroy", function ()
+    demolishRoom({roomNum = 4, floorNum = gScrollPos}, submenu)
+  end))
 
-  --The back button deletes the management menu
-  menu.setBack(manageMenu, function ()
-	menu.enable(gui)
-    entity.delete(manageMenu)
+  --The back button deletes the submenu
+  menu.setBack(submenu, function ()
+    entity.delete(submenu)
+    menu.enable(gui)
   end)
-
 end))
 
---The back button, quits the game at the moment
-menu.setBack(gui, function ()
-  --love.event.push("quit")
-  --love.event.push("q")
-end)
+--Manage button
+menu.addButton(gui, menu.newButton("manage", function ()
+  menu.disable(gui)
+  
+  --Create the manage menu
+  local submenu = menu.new(STATE_PLAY, subMenuY)
+  
+  --Hire staff
+  menu.addButton(submenu, menu.newButton("hire", function ()
+    staff.new()
+  end))
+  --Manage stocking
+  menu.addButton(submenu, menu.newButton("stock", function ()
+    print("stock")
+  end))
+
+  --The back button deletes the submenu
+  menu.setBack(submenu, function ()
+    entity.delete(submenu)
+    menu.enable(gui)
+  end)
+end))
 
 -- Input training
 local controller = entity.new(1)
@@ -453,7 +533,7 @@ local font = love.graphics.newImageFont(
 
 -- Create the hud bar
 local hudQuad = love.graphics.newQuad(
-  0, 64,
+  0, 128,
   CANVAS_WIDTH, 32,
   resource.get("img/hud.png"):getWidth(),
   resource.get("img/hud.png"):getHeight()
@@ -467,28 +547,33 @@ local buttQuad = love.graphics.newQuad(
 local hudBar = entity.new(STATE_PLAY)
 entity.setOrder(hudBar, 90)
 local hudCom = entity.newComponent()
-hudCom.selected = "build"
+hudCom.selected = "infrastructure"
 hudCom.draw = function (self)
   love.graphics.drawq(
     resource.get("img/hud.png"), hudQuad,
     0, CANVAS_HEIGHT - 32,
     0
   )
-  -- draw info
-  love.graphics.setColor(255, 255, 255)
-  love.graphics.setFont(font)
-  love.graphics.printf(
-    conf.menu[hudCom.selected].name,
-    115, CANVAS_HEIGHT - 26,
-    70,
-    "left"
-  )
-  love.graphics.printf(
-    conf.menu[hudCom.selected].desc,
-    115, CANVAS_HEIGHT - 14,
-    70,
-    "left"
-  )
+  if hudCom.selected then
+    local info = conf.menu[hudCom.selected]
+    if info then
+      -- draw info
+      love.graphics.setColor(255, 255, 255)
+      love.graphics.setFont(font)
+      love.graphics.printf(
+        info.name,
+        115, CANVAS_HEIGHT - 26,
+        76,
+        "left"
+      )
+      love.graphics.printf(
+        info.desc,
+        115, CANVAS_HEIGHT - 14,
+        76,
+        "left"
+      )
+    end
+  end
 end
 entity.addComponent(hudBar, hudCom)
 event.subscribe("menu.info", 0, function (e)
