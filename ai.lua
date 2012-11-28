@@ -569,25 +569,25 @@ end
 
 path.addEdge(
   {roomNum = -.5, floorNum = 1},
-  {roomNum = 1, floorNum = 1},
+  {roomNum = .5, floorNum = 1},
   1
 )
 path.addEdge(
-  {roomNum = 1, floorNum = 1},
+  {roomNum = .5, floorNum = 1},
   {roomNum = -.5, floorNum = 1},
   1
 )
 
 event.subscribe("floor.new", 0, function (t)
   --print("level: ", t.level)
-  for i = 1, 6 do
+  for i = .5, 7, .5 do
     path.addEdge(
       {roomNum = i, floorNum = t.level},
-      {roomNum = i+1, floorNum = t.level},
+      {roomNum = i+.5, floorNum = t.level},
       1
     )
     path.addEdge(
-      {roomNum = i+1, floorNum = t.level},
+      {roomNum = i+.5, floorNum = t.level},
       {roomNum = i, floorNum = t.level},
       1
     )

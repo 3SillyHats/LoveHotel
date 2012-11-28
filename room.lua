@@ -155,7 +155,7 @@ M.new = function (state, roomType, pos)
   }))
 
   --Add position component
-  entity.addComponent(roomId, transform.new(roomId, pos))
+  entity.addComponent(roomId, transform.new(roomId, pos, {x = 0, y = 0}, room.width))
   --Add info component
   entity.addComponent(roomId, infoComponent(roomId, room, pos))
 

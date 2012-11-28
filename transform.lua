@@ -4,12 +4,12 @@ local entity = require("entity")
 local event = require("event")
 
 --Transform Component
-M.new = function (id, pos, offset)
+M.new = function (id, pos, offset, width)
   --Create a new component for position stuff
   local component = entity.newComponent()
 
   local offset = offset or {x = 0, y = 0}
-
+  
   local new = true
 
   --Load the tower position into the component
@@ -48,7 +48,17 @@ M.new = function (id, pos, offset)
   end
 
   local getPos = function (callback)
-    callback(component.pos)
+    if width then
+      callback({
+        floorNum = component.pos.floorNum,
+        roomNum = component.pos.roomNum + width/2 - 0.5,
+      })
+    else
+      callback({
+        floorNum = component.pos.floorNum,
+        roomNum = component.pos.roomNum,
+      })
+    end
   end
   
   local function delete ()
