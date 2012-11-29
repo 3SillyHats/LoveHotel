@@ -290,7 +290,7 @@ menu.addButton(gui, menu.newButton("infrastructure", function ()
   
   --Stairs
   menu.addButton(submenu, menu.newButton("stairs", function ()
-    buildRoom("stairs", {roomNum = 4, floorNum = gScrollPos}, submenu)
+    print("Build stairs")
   end))
   --Elevator
   menu.addButton(submenu, menu.newButton("elevator", function ()
