@@ -5,6 +5,7 @@ CANVAS_WIDTH = 256
 CANVAS_HEIGHT = 224
 ROOM_INDENT = 32*0.5
 FLOOR_OFFSET = 32*2.5
+GROUND_FLOOR = 0
 
 STATE_TRAIN = 1
 STATE_PLAY = 2
@@ -73,9 +74,9 @@ conf = {
   },
 }
 
-gTopFloor = 1
-gBottomFloor = 1
-gScrollPos = 1
+gTopFloor = GROUND_FLOOR
+gBottomFloor = GROUND_FLOOR
+gScrollPos = GROUND_FLOOR
 event.subscribe("scroll", 0, function (scrollPos)
   gScrollPos = scrollPos
 end)
@@ -234,7 +235,7 @@ local roof = entity.new(STATE_PLAY)
 entity.setOrder(roof, -50)
 entity.addComponent(roof, transform.new(roof, {
   roomNum = .5,
-  floorNum = 1
+  floorNum = 0
 }))
 entity.addComponent(roof, sprite.new(
   roof, {
@@ -253,7 +254,7 @@ local newFloor = function (level)
   entity.setOrder(id, -50)
   local pos = {roomNum = .5, floorNum = level }
   entity.addComponent(id, transform.new(id, pos))
-  if level > 1 then
+  if level ~= 0 then
     entity.addComponent(id, sprite.new(id, {
       image = resource.get("img/floor.png"),
       width = 256, height = 32,
@@ -270,7 +271,7 @@ local newFloor = function (level)
   event.notify("floor.new", 0, {level = level, type = "top"})
   return id
 end
-newFloor(1)
+newFloor(GROUND_FLOOR)
 
 --Main menu
 local gui = menu.new(STATE_PLAY, mainMenuY)
@@ -689,7 +690,7 @@ bdCom.draw = function (self)
   love.graphics.setColor(255, 255, 255)
   love.graphics.draw(
     bdImg,
-    0, 160 + (gScrollPos * 32) - bdImg:getHeight(),
+    0, 192 + (gScrollPos * 32) - bdImg:getHeight(),
     0
   )
 end

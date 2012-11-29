@@ -145,7 +145,7 @@ M.new = function (target)
     ))
   end
 
-  local pos = {roomNum = -.5, floorNum = 1}
+  local pos = {roomNum = -.5, floorNum = GROUND_FLOOR}
   entity.addComponent(id, transform.new(
     id, pos, {x = 16, y = 30}
   ))

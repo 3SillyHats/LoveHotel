@@ -120,7 +120,7 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
     if (pos.floorNum >= gBottomFloor and
         pos.floorNum <= gTopFloor) or
         (pos.roomNum < 7.5 and
-        pos.floorNum == 1) then
+        pos.floorNum == GROUND_FLOOR) then
       passable = true
     end
     if passable then
@@ -242,16 +242,6 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
   
   return goal
 end
-
---[[
-local groundFloorNode = function (pos)
-  if pos < 0.5 then
-    return 0
-  else
-    return -math.floor(pos+0.5)
-  end
-end
---]]
 
 local newMoveToGoal = function (self, moveTo, moveSpeed)
   local goal = M.newGoal(self)
@@ -408,7 +398,7 @@ local addExitGoal = function (self)
     
   local old_activate = goal.activate
   goal.activate = function (self)
-    goal:addSubgoal(newMoveToGoal(self.component, {roomNum = -.5, floorNum = 1}, CLIENT_MOVE))
+    goal:addSubgoal(newMoveToGoal(self.component, {roomNum = -.5, floorNum = GROUND_FLOOR}, CLIENT_MOVE))
     goal:addSubgoal(newDestroyGoal(self.component))
     old_activate(self)
   end
@@ -568,18 +558,17 @@ M.new = function (id)
 end
 
 path.addEdge(
-  {roomNum = -.5, floorNum = 1},
-  {roomNum = .5, floorNum = 1},
+  {roomNum = -.5, floorNum = GROUND_FLOOR},
+  {roomNum = .5, floorNum = GROUND_FLOOR},
   1
 )
 path.addEdge(
-  {roomNum = .5, floorNum = 1},
-  {roomNum = -.5, floorNum = 1},
+  {roomNum = .5, floorNum = GROUND_FLOOR},
+  {roomNum = -.5, floorNum = GROUND_FLOOR},
   1
 )
 
 event.subscribe("floor.new", 0, function (t)
-  --print("level: ", t.level)
   for i = .5, 7, .5 do
     path.addEdge(
       {roomNum = i, floorNum = t.level},
