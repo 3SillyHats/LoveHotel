@@ -112,7 +112,7 @@ M.new = function ()
     update = function (self,dt)
       self.timer = self.timer - dt
       if self.timer <= 0 then
-        money = money - STAFF_WAGE
+        gMoney = gMoney - STAFF_WAGE
         local pos = nil
         event.notify("entity.pos", id, function (e)
           pos = e

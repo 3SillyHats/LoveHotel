@@ -69,7 +69,7 @@ local infoComponent = function (id, info, pos)
     end
     event.notify("sprite.hide", e.id, false)
     if component.occupied <= 0 then
-      money = money + info.profit
+      gMoney = gMoney + info.profit
       local roomPos = M.getPos(id)
       event.notify("money.change", 0, {
         amount = info.profit,

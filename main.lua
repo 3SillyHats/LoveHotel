@@ -83,7 +83,7 @@ end)
 
 gGameSpeed = 1
 
-money = 200000
+gMoney = 2000
 
 -- Update menu tooltips (get names, costs of rooms)
 for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
@@ -280,8 +280,8 @@ newFloor(GROUND_FLOOR)
 
 local floorUp = function()
   local cost =  500 * (gTopFloor + 1)
-  if money >= cost then
-    money = money - cost
+  if gMoney >= cost then
+    gMoney = gMoney - cost
     event.notify("money.change", 0, {
       amount = -cost,
     })
@@ -297,8 +297,8 @@ end
 
 local floorDown = function()
   local cost =  1000 * (1 - gBottomFloor)
-  if money >= cost then
-    money = money - cost
+  if gMoney >= cost then
+    gMoney = gMoney - cost
     event.notify("money.change", 0, {
       amount = -cost,
     })
@@ -606,7 +606,7 @@ event.subscribe("menu.info", 0, function (e)
   hudCom.selected = e
 end)
 
--- Create the money display
+-- Create the gMoney display
 local moneyDisplay = entity.new(STATE_PLAY)
 entity.setOrder(moneyDisplay, 100)
 local moneyCom = entity.newComponent()
@@ -616,7 +616,7 @@ moneyCom.draw = function (self)
   love.graphics.setFont(font)
   love.graphics.setColor(255, 255, 255)
   love.graphics.printf(
-    "$" .. money,
+    "$" .. gMoney,
     200, CANVAS_HEIGHT - 26,
     56,
     "right"
@@ -648,7 +648,7 @@ event.subscribe("money.change", 0, function (e)
   moneyCom.change = moneyCom.change + e.amount
   moneyCom.changeTimer = 3
   
-  -- Create in-world money popup
+  -- Create in-world gMoney popup
   if e.pos then
     local id = entity.new(STATE_PLAY)
     entity.setOrder(id, 100)
