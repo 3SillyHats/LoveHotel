@@ -568,16 +568,16 @@ path.addEdge(
   1
 )
 
-event.subscribe("floor.new", 0, function (t)
+event.subscribe("floor.new", 0, function (level)
   for i = .5, 7, .5 do
     path.addEdge(
-      {roomNum = i, floorNum = t.level},
-      {roomNum = i+.5, floorNum = t.level},
+      {roomNum = i, floorNum = level},
+      {roomNum = i+.5, floorNum = level},
       1
     )
     path.addEdge(
-      {roomNum = i+.5, floorNum = t.level},
-      {roomNum = i, floorNum = t.level},
+      {roomNum = i+.5, floorNum = level},
+      {roomNum = i, floorNum = level},
       1
     )
   end

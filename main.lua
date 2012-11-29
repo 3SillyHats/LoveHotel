@@ -61,11 +61,11 @@ conf = {
     -- Manage
     floorUp =  {
       name="Build Up",
-      desc="$1000"
+      desc="$500"
     },
     floorDown =  {
       name="Build Down",
-      desc="NIL"
+      desc="$1000"
     },
     destroy =  {
       name="Destroy",
@@ -244,8 +244,10 @@ entity.addComponent(roof, sprite.new(
     originY = 32,
   }
 ))
-event.subscribe("floor.new", 0, function (t)
-  event.notify("entity.move", roof, {roomNum=.5, floorNum=t.level})
+event.subscribe("floor.new", 0, function (level)
+  if level > 0 then
+    event.notify("entity.move", roof, {roomNum=.5, floorNum=level})
+  end
 end)
 
 -- Create an empty floor entity
@@ -268,10 +270,47 @@ local newFloor = function (level)
       playing = "idle",
     }))
   end
-  event.notify("floor.new", 0, {level = level, type = "top"})
+  event.notify("floor.new", 0, level)
+  local snd = resource.get("snd/build.wav")
+  love.audio.rewind(snd)
+  love.audio.play(snd)
   return id
 end
 newFloor(GROUND_FLOOR)
+
+local floorUp = function()
+  local cost =  500 * (gTopFloor + 1)
+  if money >= cost then
+    money = money - cost
+    event.notify("money.change", 0, {
+      amount = -cost,
+    })
+    gTopFloor = gTopFloor + 1
+    conf.menu["floorUp"].desc = "$" .. (500 * (gTopFloor + 1))
+    local newFloor = newFloor(gTopFloor)
+  else
+    local snd = resource.get("snd/error.wav")
+    love.audio.rewind(snd)
+    love.audio.play(snd)
+  end
+end
+
+local floorDown = function()
+  local cost =  1000 * (1 - gBottomFloor)
+  if money >= cost then
+    money = money - cost
+    event.notify("money.change", 0, {
+      amount = -cost,
+    })
+    gBottomFloor = gBottomFloor - 1
+    conf.menu["floorDown"].desc = "$" .. (1000 * (1 - gBottomFloor))
+    local newFloor = newFloor(gBottomFloor)
+  else
+    local snd = resource.get("snd/error.wav")
+    love.audio.rewind(snd)
+    love.audio.play(snd)
+  end
+end
 
 --Main menu
 local gui = menu.new(STATE_PLAY, mainMenuY)
@@ -299,27 +338,11 @@ menu.addButton(gui, menu.newButton("infrastructure", function ()
   end)) 
   --Build floor up
   menu.addButton(submenu, menu.newButton("floorUp", function ()
-    local cost =  500 * (gTopFloor + 1)
-    if money >= cost then
-      money = money - cost
-      event.notify("money.change", 0, {
-        amount = -cost,
-      })
-      gTopFloor = gTopFloor + 1
-      conf.menu["floorUp"].desc = "$" .. (500 * (gTopFloor + 1))
-      local newFloor = newFloor(gTopFloor)
-      local snd = resource.get("snd/build.wav")
-      love.audio.rewind(snd)
-      love.audio.play(snd)
-    else
-      local snd = resource.get("snd/error.wav")
-      love.audio.rewind(snd)
-      love.audio.play(snd)
-    end
+    floorUp()
   end))
   --Build floor down
   menu.addButton(submenu, menu.newButton("floorDown", function ()
-    print("floorDown")
+    floorDown()
   end))
   --Destroy tool
   menu.addButton(submenu, menu.newButton("destroy", function ()
@@ -681,7 +704,13 @@ local bdImg = resource.get("img/backdrop.png")
 entity.setOrder(backdrop, -100)
 local bdCom = entity.newComponent()
 bdCom.draw = function (self)
-  love.graphics.setColor(188, 184, 252)
+  if gScrollPos > 0 then
+    -- Aboveground
+    love.graphics.setColor(188, 184, 252)
+  else
+    -- Underground
+    love.graphics.setColor(80, 48, 0)
+  end
   love.graphics.rectangle(
     "fill",
     0, 0,
