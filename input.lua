@@ -59,7 +59,7 @@ local trainNext = function ()
   if current > #inputs then
     training = false
     event.notify("training.end", 0)
-    --M.save()
+    M.save()
   else
     event.notify("training.current", 0, inputs[current])
   end
