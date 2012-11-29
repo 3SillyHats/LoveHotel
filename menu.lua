@@ -14,11 +14,10 @@ buttLoc = {
 
   stairs = 8,
   elevator = 9,
-  utility = 10,
-  reception = 11,
-  staffRoom = 12,
-  kitchen = 13,
-  
+  floorUp = 10,
+  floorDown = 11,
+  destroy = 12,
+ 
   flower = 16,
   heart = 17,
   tropical = 18,
@@ -26,11 +25,12 @@ buttLoc = {
   condom = 24,
   spa = 25,
   dining = 26,
-  
-  floorUp = 32,
-  floorDown = 33,
-  destroy = 34,
-  
+
+  utility = 32,
+  reception = 33,
+  staffRoom = 34,
+  kitchen = 35,
+   
   hire = 40,
   stock = 41,
 }
