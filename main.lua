@@ -83,7 +83,7 @@ end)
 
 gGameSpeed = 1
 
-money = 2000
+money = 200000
 
 -- Update menu tooltips (get names, costs of rooms)
 for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
@@ -235,7 +235,7 @@ local roof = entity.new(STATE_PLAY)
 entity.setOrder(roof, -50)
 entity.addComponent(roof, transform.new(roof, {
   roomNum = .5,
-  floorNum = 0
+  floorNum = GROUND_FLOOR
 }))
 entity.addComponent(roof, sprite.new(
   roof, {
