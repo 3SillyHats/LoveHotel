@@ -84,7 +84,7 @@ gGameSpeed = 1
 
 money = 2000
 
--- Update menu tooltips
+-- Update menu tooltips (get names, costs of rooms)
 for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
   local room = resource.get("scr/rooms/" .. fname)
   conf.menu[room.id] = {
@@ -295,22 +295,34 @@ menu.addButton(gui, menu.newButton("infrastructure", function ()
   --Elevator
   menu.addButton(submenu, menu.newButton("elevator", function ()
     buildRoom("elevator", {roomNum = 4, floorNum = gScrollPos}, submenu)
+  end)) 
+  --Build floor up
+  menu.addButton(submenu, menu.newButton("floorUp", function ()
+    local cost =  500 * (gTopFloor + 1)
+    if money >= cost then
+      money = money - cost
+      event.notify("money.change", 0, {
+        amount = -cost,
+      })
+      gTopFloor = gTopFloor + 1
+      conf.menu["floorUp"].desc = "$" .. (500 * (gTopFloor + 1))
+      local newFloor = newFloor(gTopFloor)
+      local snd = resource.get("snd/build.wav")
+      love.audio.rewind(snd)
+      love.audio.play(snd)
+    else
+      local snd = resource.get("snd/error.wav")
+      love.audio.rewind(snd)
+      love.audio.play(snd)
+    end
   end))
-  --Utility
-  menu.addButton(submenu, menu.newButton("utility", function ()
-    buildRoom("utility", {roomNum = 4, floorNum = gScrollPos}, submenu)
+  --Build floor down
+  menu.addButton(submenu, menu.newButton("floorDown", function ()
+    print("floorDown")
   end))
-  --Reception
-  menu.addButton(submenu, menu.newButton("reception", function ()
-    print("reception")
-  end))
-  --Staff Room
-  menu.addButton(submenu, menu.newButton("staffRoom", function ()
-    print("staffRoom")
-  end))
-  --Kitchen
-  menu.addButton(submenu, menu.newButton("kitchen", function ()
-    print("kitchen")
+  --Destroy tool
+  menu.addButton(submenu, menu.newButton("destroy", function ()
+    demolishRoom({roomNum = 4, floorNum = gScrollPos}, submenu)
   end))
 
   --The back button deletes the submenu
@@ -380,37 +392,25 @@ menu.addButton(gui, menu.newButton("hotel", function ()
   
   --Create the hotel menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
-  
-  --Build floor up
-  menu.addButton(submenu, menu.newButton("floorUp", function ()
-    local cost =  500 * (gTopFloor + 1)
-    if money >= cost then
-      money = money - cost
-      event.notify("money.change", 0, {
-        amount = -cost,
-      })
-      gTopFloor = gTopFloor + 1
-      conf.menu["floorUp"].desc = "$" .. (500 * (gTopFloor + 1))
-      local newFloor = newFloor(gTopFloor)
-      local snd = resource.get("snd/build.wav")
-      love.audio.rewind(snd)
-      love.audio.play(snd)
-    else
-      local snd = resource.get("snd/error.wav")
-      love.audio.rewind(snd)
-      love.audio.play(snd)
-    end
+
+  --Utility
+  menu.addButton(submenu, menu.newButton("utility", function ()
+    buildRoom("utility", {roomNum = 4, floorNum = gScrollPos}, submenu)
   end))
-  --Build floor down
-  menu.addButton(submenu, menu.newButton("floorDown", function ()
-    print("floorDown")
+  --Reception
+  menu.addButton(submenu, menu.newButton("reception", function ()
+    print("reception")
   end))
-  --Destroy tool
-  menu.addButton(submenu, menu.newButton("destroy", function ()
-    demolishRoom({roomNum = 4, floorNum = gScrollPos}, submenu)
+  --Staff Room
+  menu.addButton(submenu, menu.newButton("staffRoom", function ()
+    print("staffRoom")
+  end))
+  --Kitchen
+  menu.addButton(submenu, menu.newButton("kitchen", function ()
+    print("kitchen")
   end))
 
-  --The back button deletes the submenu
+   --The back button deletes the submenu
   menu.setBack(submenu, function ()
     entity.delete(submenu)
     menu.enable(gui)
