@@ -156,7 +156,7 @@ M.new = function (target)
   aiComponent.horny = true
   
   local check = function (t)
-    local epos = room.getPos(id)
+    local epos = transform.getPos(id)
     if t.floorNum == epos.floorNum and t.roomNum < epos.roomNum + 0.5 and t.roomNum + t.width > epos.roomNum + 0.5 then
       t.callback(id)
     end
