@@ -336,7 +336,7 @@ menu.addButton(gui, menu.newButton("infrastructure", function ()
   end))
   --Elevator
   menu.addButton(submenu, menu.newButton("elevator", function ()
-    buildRoom("elevator", {roomNum = 4, floorNum = gScrollPos}, submenu)
+    buildRoom("elevator", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end)) 
   --Build floor up
   menu.addButton(submenu, menu.newButton("floorUp", function ()
@@ -348,7 +348,7 @@ menu.addButton(gui, menu.newButton("infrastructure", function ()
   end))
   --Destroy tool
   menu.addButton(submenu, menu.newButton("destroy", function ()
-    demolishRoom({roomNum = 4, floorNum = gScrollPos}, submenu)
+    demolishRoom({roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
 
   --The back button deletes the submenu
@@ -367,15 +367,15 @@ menu.addButton(gui, menu.newButton("suites", function ()
   
   --Flower
   menu.addButton(submenu, menu.newButton("flower", function ()
-    buildRoom("flower", {roomNum = 4, floorNum = gScrollPos}, submenu)
+    buildRoom("flower", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
   --Heart
   menu.addButton(submenu, menu.newButton("heart", function ()
-    buildRoom("heart", {roomNum = 4, floorNum = gScrollPos}, submenu)
+    buildRoom("heart", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
   --Tropical
   menu.addButton(submenu, menu.newButton("tropical", function ()
-    buildRoom("tropical", {roomNum = 4, floorNum = gScrollPos}, submenu)
+    buildRoom("tropical", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
 
   --The back button deletes the submenu
@@ -421,7 +421,7 @@ menu.addButton(gui, menu.newButton("hotel", function ()
 
   --Utility
   menu.addButton(submenu, menu.newButton("utility", function ()
-    buildRoom("utility", {roomNum = 4, floorNum = gScrollPos}, submenu)
+    buildRoom("utility", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
   --Reception
   menu.addButton(submenu, menu.newButton("reception", function ()
