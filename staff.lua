@@ -10,7 +10,7 @@ local transform = require("transform")
 local M = {}
 
 M.new = function ()
-  local id = entity.new(2)
+  local id = entity.new(STATE_PLAY)
   entity.setOrder(id, 50)
   isMale = math.random() < .5  --randomize male or female
   

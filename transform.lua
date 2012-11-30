@@ -66,7 +66,7 @@ M.new = function (id, pos, offset)
 end
 
 M.getPos = function (id)
-  return position[id]
+  return {floorNum = position[id].floorNum, roomNum = position[id].roomNum}
 end
 
 return M

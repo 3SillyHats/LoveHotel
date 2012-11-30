@@ -49,6 +49,9 @@ local process = function (self, dt)
 end
 
 local terminate = function (self)
+  if self.status ~= "complete" then
+    self.status = "failed"
+  end
   if #self.subgoals > 0 and self.subgoals[1].status == "active" then
     self.subgoals[1]:terminate()
   end
@@ -175,11 +178,15 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
     goal.pos.roomNum = pos.roomNum
     goal.pos.floorNum = pos.floorNum
   end)
+  local old_activate = goal.activate
   goal.activate = function (self)
     event.notify("sprite.play", goal.component.entity, "walking")
+    old_activate(self)
   end
+  local old_terminate = goal.terminate
   goal.terminate = function (self)
     event.notify("sprite.play", goal.component.entity, "idle")
+    old_terminate(self)
   end
   
   return goal
@@ -239,10 +246,13 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
     goal.pos.roomNum = pos.roomNum
     goal.pos.floorNum = pos.floorNum
   end)
+  local old_activate = goal.activate
   goal.activate = function (self)
     event.notify("sprite.play", goal.component.entity, "idle")
     event.notify("sprite.hide", goal.component.entity, true)
+    old_activate(self)
   end
+  local old_terminate = goal.terminate
   goal.terminate = function (self)
     event.notify("entity.move", goal.component.entity, {
       roomNum = goal.pos.roomNum,
@@ -250,6 +260,7 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
     })
     event.notify("sprite.play", goal.component.entity, "idle")
     event.notify("sprite.hide", goal.component.entity, false)
+    old_terminate(self)
   end
   
   return goal
@@ -355,13 +366,15 @@ local newSexGoal = function (self, target)
       self.status = "failed"
       return
     end
+    
+    event.notify("enterRoom", self.component.entity, self.target)
 
     goal:addSubgoal(newSleepGoal(self, SEX_TIME))
     
     old_activate(self)
   end
   
-  local old_teminate = goal.terminate
+  local old_terminate = goal.terminate
   goal.terminate = function(self)
     goal.subgoals = {}
     
@@ -370,7 +383,7 @@ local newSexGoal = function (self, target)
     })
     
     self.component.horny = false
-    old_teminate(self)
+    old_terminate(self)
   end
   
   return goal
@@ -390,11 +403,16 @@ end
 local addVisitGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  
+  local info = room.getInfo(goal.target)
+  local targetPos = room.getPos(goal.target)
+  local sexGoal = nil
     
   local old_activate = goal.activate
   goal.activate = function (self)
     goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), CLIENT_MOVE))
-    goal:addSubgoal(newSexGoal(self.component, target))
+    sexGoal = newSexGoal(self.component, target)
+    goal:addSubgoal(sexGoal)
     old_activate(self)
   end
   
@@ -405,11 +423,141 @@ local addVisitGoal = function (self, target)
   end
   
   goal.getDesirability = function (self, t)
-    if t.horny then
-      return 1
-    else
-      return -1
+    if sexGoal and sexGoal.status == "active" then
+      return 1000
     end
+    if t.horny and not room.isDirty(self.target) and room.occupation(self.target) == 0 then
+      local myPos = transform.getPos(self.component.entity)
+      local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
+        + math.abs(myPos.roomNum - targetPos.roomNum) / STAFF_MOVE
+      return 1/(1+time) + info.desirability
+    end
+    return -1
+  end
+  
+  self.goalEvaluator:addSubgoal(goal)
+end
+
+local addFollowGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  goal.room = nil
+  
+  local sexGoal = nil
+  
+  local onHide = function (hide)
+    if #goal.targetHist == 0 then
+      table.insert(goal.targetHist, {
+        pos = transform.getPos(goal.target),
+      })
+    end
+    if hide then
+      goal.targetHist[#goal.targetHist].hide = true
+      goal.targetHist[#goal.targetHist].unhide = false
+    else
+      goal.targetHist[#goal.targetHist].hide = false
+      goal.targetHist[#goal.targetHist].unhide = true
+    end
+  end
+  
+  local onFlip = function (to)
+    if #goal.targetHist == 0 then
+      table.insert(goal.targetHist, {
+        pos = transform.getPos(goal.target),
+      })
+    end
+    goal.targetHist[#goal.targetHist].flip = true
+    goal.targetHist[#goal.targetHist].flipTo = to
+  end
+  
+  local onPlay = function (animation)
+    if #goal.targetHist == 0 then
+      table.insert(goal.targetHist, {
+        pos = transform.getPos(goal.target),
+      })
+    end
+    goal.targetHist[#goal.targetHist].play = animation
+  end
+  
+  local onEnter = function (room)
+    if #goal.targetHist == 0 then
+      table.insert(goal.targetHist, {
+        pos = transform.getPos(goal.target),
+      })
+    end
+    goal.targetHist[#goal.targetHist].enterRoom = true
+    goal.room = room
+  end
+  
+  local old_activate = goal.activate
+  goal.activate = function (self)
+    self.followDist = FOLLOW_DISTANCE
+    self.targetHist = {{
+      pos = transform.getPos(self.target),
+    }}
+    event.subscribe("sprite.hide", self.target, onHide)
+    event.subscribe("sprite.play", goal.target, onPlay)
+    event.subscribe("sprite.flip", goal.target, onFlip)
+    event.subscribe("enterRoom", self.target, onEnter)
+    old_activate(self)
+  end
+    
+  local old_process = goal.process
+  goal.process = function (self, dt)
+    if not sexGoal then
+      local targetPos = transform.getPos(self.target)
+      local myPos = transform.getPos(self.component.entity)
+      table.insert(self.targetHist, {
+        pos = targetPos,
+      })
+      if goal.room then
+        self.followDist = self.followDist - CLIENT_MOVE*dt
+      end
+      while #self.targetHist > 0 and
+          math.abs(myPos.roomNum - targetPos.roomNum) + math.abs(myPos.floorNum - targetPos.floorNum) >= self.followDist do
+        local next = table.remove(self.targetHist, 1)
+        event.notify("entity.move", self.component.entity, next.pos)
+        if next.hide then 
+          event.notify("sprite.hide", self.component.entity, true)
+        elseif next.unhide then
+          event.notify("sprite.hide", self.component.entity, false)
+        end
+        if next.flip then
+          event.notify("sprite.flip", goal.component.entity, next.flipTo)
+        end
+        if next.play then
+          event.notify("sprite.play", goal.component.entity, next.play)
+        end
+        if next.enterRoom then
+          sexGoal = newSexGoal(self.component, self.room)
+          self:addSubgoal(sexGoal)
+          sexGoal:activate()
+        end
+        myPos = transform.getPos(self.component.entity)
+      end
+      return "active"
+    elseif sexGoal.status == "complete" then
+      sexGoal = nil
+      self.room = nil
+      self.followDist = FOLLOW_DISTANCE
+      return "complete"
+    end
+    return old_process(self,dt)
+  end
+  
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    event.unsubscribe("sprite.hide", self.target, onHide)
+    event.unsubscribe("enterRoom", self.target, onEnter)
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  goal.getDesirability = function (self, t)
+    if t.horny and entity.get(self.target) then
+      return 1
+    end
+    return -1
   end
   
   self.goalEvaluator:addSubgoal(goal)
@@ -483,7 +631,7 @@ local newPerformCleanGoal = function (self, target)
     old_activate(self)
   end
   
-  local old_terminate = goal.activate
+  local old_terminate = goal.terminate
   goal.terminate = function (self)
     event.notify("room.endClean", self.target, {
       id = self.component.entity,
@@ -560,8 +708,9 @@ M.new = function (id)
     
     update = update,
     addGoal = addGoal,
-    addVisitGoal = addVisitGoal,
     addCleanGoal = addCleanGoal,
+    addVisitGoal = addVisitGoal,
+    addFollowGoal = addFollowGoal,
     addExitGoal = addExitGoal,
   })
   com.goalEvaluator = M.newGoal(com)

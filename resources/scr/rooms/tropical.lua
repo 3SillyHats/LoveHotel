@@ -3,6 +3,7 @@ return {
   name = "Tropical",
   cost = 5000,
   profit = 1500,
+  desirability = 150,
   width = 5,
   dirtyable = true,
   defaultBackgroundAnim = "clean",

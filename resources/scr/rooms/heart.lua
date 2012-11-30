@@ -3,6 +3,7 @@ return {
   name = "Heart S.",
   cost = 1200,
   profit = 250,
+  desirability = 25,
   width = 3,
   dirtyable = true,
   defaultBackgroundAnim = "clean",
