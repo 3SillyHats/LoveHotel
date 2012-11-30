@@ -87,6 +87,7 @@ local demolisher = function (id, pos, cost, t)
         entity.delete(room)
         
         event.notify("destroy", id, {id=room, pos=pos, type=type})
+        event.notify("destroy", room, {id=room, pos=pos, type=type})
         event.notify("destroy", 0, {id=room, pos=pos, type=type})
 
         local snd = resource.get("snd/destroy.wav")

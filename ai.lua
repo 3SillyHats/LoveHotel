@@ -117,6 +117,7 @@ M.newGoal = function (com)
     terminate = terminate,
     getStatus = getStatus,
     addSubgoal = addSubgoal,
+    removeSubgoal = removeSubgoal,
     getDesirability = getDesirability,
   }
 end
