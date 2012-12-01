@@ -725,6 +725,48 @@ local addCleanGoal = function (self, target)
   self.goalEvaluator:addSubgoal(goal)
 end
 
+local addEnterGoal = function (self)
+  local goal = M.newGoal(self)
+  goal.pos = transform.getPos(self.entity)
+  
+  local seek = nil
+  
+  local old_activate = goal.activate
+  goal.activate = function (self)
+    seek = newSeekGoal(self.component, goal.pos, {roomNum = 1, floorNum = goal.pos.floorNum}, STAFF_MOVE)
+    self:addSubgoal(seek)
+    old_activate(self)
+  end
+    
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    old_terminate(self)
+    seek = nil
+    self.subgoals = {}
+  end
+  
+  goal.getDesirability = function (self, t)
+    if self.pos.roomNum < .5 or (seek and seek.status == "active") then
+      return 0
+    else
+      return -1
+    end
+  end
+  
+  local onMove = function (pos)
+    goal.pos.roomNum = pos.roomNum
+    goal.pos.floorNum = pos.floorNum
+  end
+  event.subscribe("entity.move", goal.component.entity, onMove)
+  local function delete()
+    event.unsubscribe("entity.move", goal.component.entity, onMove)
+    event.unsubscribe("delete", goal.component.entity, delete)
+  end
+  event.subscribe("delete", goal.component.entity, delete)
+  
+  self.goalEvaluator:addSubgoal(goal)
+end
+
 M.new = function (id)
   local com = entity.newComponent({
     entity = id,
@@ -736,6 +778,7 @@ M.new = function (id)
     addVisitGoal = addVisitGoal,
     addFollowGoal = addFollowGoal,
     addExitGoal = addExitGoal,
+    addEnterGoal = addEnterGoal,
   })
   com.goalEvaluator = M.newGoal(com)
   com.goalEvaluator.arbitrate = arbitrate

@@ -138,6 +138,7 @@ M.new = function ()
       aiComponent:addCleanGoal(t.id)
     end
   end)
+  aiComponent:addEnterGoal()
   entity.addComponent(id, aiComponent)
   
   local check = function (t)
