@@ -174,10 +174,16 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
       return "active"
     end
   end
-  event.subscribe("entity.move", goal.component.entity, function (pos)
+  local onMove = function (pos)
     goal.pos.roomNum = pos.roomNum
     goal.pos.floorNum = pos.floorNum
-  end)
+  end
+  event.subscribe("entity.move", goal.component.entity, onMove)
+  local function delete()
+    event.unsubscribe("entity.move", goal.component.entity, onMove)
+    event.unsubscribe("delete", goal.component.entity, delete)
+  end
+  event.subscribe("delete", goal.component.entity, delete)
   local old_activate = goal.activate
   goal.activate = function (self)
     event.notify("sprite.play", goal.component.entity, "walking")
@@ -185,6 +191,7 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
   end
   local old_terminate = goal.terminate
   goal.terminate = function (self)
+    delete()
     event.notify("sprite.play", goal.component.entity, "idle")
     old_terminate(self)
   end
@@ -242,10 +249,16 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
       return "active"
     end
   end
-  event.subscribe("entity.move", goal.component.entity, function (pos)
+  local onMove = function (pos)
     goal.pos.roomNum = pos.roomNum
     goal.pos.floorNum = pos.floorNum
-  end)
+  end
+  event.subscribe("entity.move", goal.component.entity, onMove)
+  local function delete()
+    event.unsubscribe("entity.move", goal.component.entity, onMove)
+    event.unsubscribe("delete", goal.component.entity, delete)
+  end
+  event.subscribe("delete", goal.component.entity, delete)
   local old_activate = goal.activate
   goal.activate = function (self)
     event.notify("sprite.play", goal.component.entity, "idle")
@@ -254,6 +267,7 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
   end
   local old_terminate = goal.terminate
   goal.terminate = function (self)
+    delete()
     event.notify("entity.move", goal.component.entity, {
       roomNum = goal.pos.roomNum,
       floorNum = math.floor(goal.pos.floorNum + .5)
@@ -496,8 +510,8 @@ local addFollowGoal = function (self, target)
       pos = transform.getPos(self.target),
     }}
     event.subscribe("sprite.hide", self.target, onHide)
-    event.subscribe("sprite.play", goal.target, onPlay)
-    event.subscribe("sprite.flip", goal.target, onFlip)
+    event.subscribe("sprite.play", self.target, onPlay)
+    event.subscribe("sprite.flip", self.target, onFlip)
     event.subscribe("enterRoom", self.target, onEnter)
     old_activate(self)
   end
@@ -548,6 +562,8 @@ local addFollowGoal = function (self, target)
   local old_terminate = goal.terminate
   goal.terminate = function (self)
     event.unsubscribe("sprite.hide", self.target, onHide)
+    event.unsubscribe("sprite.play", self.target, onPlay)
+    event.unsubscribe("sprite.flip", self.target, onFlip)
     event.unsubscribe("enterRoom", self.target, onEnter)
     old_terminate(self)
     self.subgoals = {}

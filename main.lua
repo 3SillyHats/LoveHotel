@@ -693,9 +693,15 @@ event.subscribe("money.change", 0, function (e)
         )
       end
     end
-    event.subscribe("sprite.move", id, function (e)
+    local onMove = function (e)
       com.screenPos = {x = e.x, y = e.y}
-    end)
+    end
+    local function delete ()
+      event.unsubscribe("sprite.move", id, onMove)
+      event.unsubscribe("delete", id, delete)
+    end
+    event.subscribe("sprite.move", id, onMove)
+    event.subscribe("delete", id, delete)
     entity.addComponent(id, com)
   end
 end)

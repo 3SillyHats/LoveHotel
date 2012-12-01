@@ -180,6 +180,7 @@ M.new = function (target)
   event.subscribe("actor.check", 0, check)
 
   local function delete (e)
+    print("unsubscribe")
     event.unsubscribe("actor.check", 0, check)
     event.unsubscribe("delete", id, delete)
   end
