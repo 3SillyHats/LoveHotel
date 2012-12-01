@@ -26,13 +26,9 @@ local infoComponent = function (id, info, pos)
     end
   end
   
-  event.subscribe("room.check", 0, check)
-  
   local getRooms = function (callback)
     callback(id, info.type)
   end
-  
-  event.subscribe("room.all", 0, getRooms)
   
   local unoccupied = function (callback)
     if info.type ~= "elevator" and component.occupied == 0 and not component.messy then
@@ -40,27 +36,19 @@ local infoComponent = function (id, info, pos)
     end
   end
   
-  event.subscribe("room.unoccupied", 0, unoccupied)
-  
   local dirtyRooms = function (callback)
     if component.occupied == 0 and component.messy then
       callback(id, info.type)
     end
   end
   
-  event.subscribe("room.dirty", 0, dirtyRooms)
-  
   local isDirty = function (callback)
     callback(component.messy)
   end
   
-  event.subscribe("room.isDirty", id, isDirty)
-  
   local checkOccupied = function (callback)
     callback(component.occupied)
   end
-  
-  event.subscribe("room.occupation", id, checkOccupied)
   
   local occupy = function (e)
     if component.occupied < 2 then
@@ -74,8 +62,6 @@ local infoComponent = function (id, info, pos)
       e.callback(false)
     end
   end
-  
-  event.subscribe("room.occupy", id, occupy)
   
   local depart = function (e)
     if component.occupied > 0 then
@@ -103,8 +89,6 @@ local infoComponent = function (id, info, pos)
     end
   end
   
-  event.subscribe("room.depart", id, depart)
-  
   local beginClean = function (e)
     if component.occupied > 0 then
       e.callback(false)
@@ -118,8 +102,6 @@ local infoComponent = function (id, info, pos)
     e.callback(true)
   end
   
-  event.subscribe("room.beginClean", id, beginClean)
-  
   local endClean = function (e)
     component.occupied = 0
     component.messy = false
@@ -129,11 +111,11 @@ local infoComponent = function (id, info, pos)
     event.notify("sprite.play", id, "opening")
   end
   
-  event.subscribe("room.endClean", id, endClean)
-  
   local function delete ()
     event.unsubscribe("room.check", 0, check)
+    event.unsubscribe("room.all", 0, getRooms)
     event.unsubscribe("room.unoccupied", 0, unoccupied)
+    event.unsubscribe("room.dirty", 0, dirtyRooms)
     event.unsubscribe("room.isDirty", id, isDirty)
     event.unsubscribe("room.occupation", id, checkOccupied)
     event.unsubscribe("room.occupy", id, occupy)
@@ -143,6 +125,16 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("delete", id, delete)
   end
   
+  event.subscribe("room.check", 0, check)
+  event.subscribe("room.all", 0, getRooms)
+  event.subscribe("room.unoccupied", 0, unoccupied)
+  event.subscribe("room.dirty", 0, dirtyRooms)
+  event.subscribe("room.isDirty", id, isDirty)
+  event.subscribe("room.occupation", id, checkOccupied)
+  event.subscribe("room.occupy", id, occupy)
+  event.subscribe("room.depart", id, depart)
+  event.subscribe("room.beginClean", id, beginClean)
+  event.subscribe("room.endClean", id, endClean)
   event.subscribe("delete", id, delete)
 
   --Return the room info table.

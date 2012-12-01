@@ -449,6 +449,12 @@ local addVisitGoal = function (self, target)
     return -1
   end
   
+  local function destroy (t)
+    self.goalEvaluator:removeSubgoal(goal)
+    event.unsubscribe("destroy", goal.target, destroy)
+  end
+  event.subscribe("destroy", goal.target, destroy)
+  
   self.goalEvaluator:addSubgoal(goal)
 end
 
@@ -710,9 +716,11 @@ local addCleanGoal = function (self, target)
     end
   end
   
-  event.subscribe("destroy", goal.target, function (t)
+  local function destroy (t)
     self.goalEvaluator:removeSubgoal(goal)
-  end)
+    event.unsubscribe("destroy", goal.target, destroy)
+  end
+  event.subscribe("destroy", goal.target, destroy)
   
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -737,13 +745,23 @@ end
 
 path.addEdge(
   {roomNum = -.5, floorNum = GROUND_FLOOR},
+  {roomNum = 0, floorNum = GROUND_FLOOR},
+  .5/CLIENT_MOVE
+)
+path.addEdge(
+  {roomNum = 0, floorNum = GROUND_FLOOR},
+  {roomNum = -.5, floorNum = GROUND_FLOOR},
+  .5/CLIENT_MOVE
+)
+path.addEdge(
+  {roomNum = 0, floorNum = GROUND_FLOOR},
   {roomNum = .5, floorNum = GROUND_FLOOR},
-  1/CLIENT_MOVE
+  .5/CLIENT_MOVE
 )
 path.addEdge(
   {roomNum = .5, floorNum = GROUND_FLOOR},
-  {roomNum = -.5, floorNum = GROUND_FLOOR},
-  1/CLIENT_MOVE
+  {roomNum = 0, floorNum = GROUND_FLOOR},
+  .5/CLIENT_MOVE
 )
 
 event.subscribe("floor.new", 0, function (level)
@@ -751,12 +769,12 @@ event.subscribe("floor.new", 0, function (level)
     path.addEdge(
       {roomNum = i, floorNum = level},
       {roomNum = i+.5, floorNum = level},
-      1/CLIENT_MOVE
+      .5/CLIENT_MOVE
     )
     path.addEdge(
       {roomNum = i+.5, floorNum = level},
       {roomNum = i, floorNum = level},
-      1/CLIENT_MOVE
+      .5/CLIENT_MOVE
     )
   end
 end)

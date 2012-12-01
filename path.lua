@@ -7,7 +7,7 @@ M = {
 
 local serialize = function (t)
   -- Assumes roomNum is integer or integer + 1/2, floorNum is integer
-  return math.floor((t.roomNum+.5)*2)/2 .. ","
+  return math.floor((t.roomNum+.25)*2)/2 .. ","
       .. math.floor((t.floorNum+.5))
 end
 
