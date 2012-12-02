@@ -629,7 +629,7 @@ hudCom.draw = function (self)
       )
       love.graphics.printf(
         info.desc,
-        115, CANVAS_HEIGHT - 14,
+        115, CANVAS_HEIGHT - 15,
         76,
         "left"
       )
@@ -666,7 +666,7 @@ moneyCom.draw = function (self)
   end
   love.graphics.printf(
     str,
-    200, CANVAS_HEIGHT - 14,
+    200, CANVAS_HEIGHT - 15,
     56,
     "right"
   )
