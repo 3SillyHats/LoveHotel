@@ -2,6 +2,7 @@
 
 local event = require("event")
 local entity = require("entity")
+local transform = require("transform")
 local room = require("room")
 local path = require("path")
 
@@ -48,6 +49,9 @@ local process = function (self, dt)
 end
 
 local terminate = function (self)
+  if self.status ~= "complete" then
+    self.status = "failed"
+  end
   if #self.subgoals > 0 and self.subgoals[1].status == "active" then
     self.subgoals[1]:terminate()
   end
@@ -59,6 +63,15 @@ end
 
 local addSubgoal = function (self, subgoal)
   table.insert(self.subgoals, subgoal)
+end
+
+local removeSubgoal = function (self, subgoal)
+  for k,v in ipairs(self.subgoals) do
+    if v == subgoal then
+      table.remove(self.subgoals, k)
+      break
+    end
+  end
 end
 
 local getDesirability = function (self, t)
@@ -88,6 +101,7 @@ local update = function (self, dt)
   end
   if self.currentGoal then
     local result = self.currentGoal:process(dt)
+    self.currentGoal.status = result
     if result == "complete" or result == "failed" then
       self.currentGoal:terminate()
       self.currentGoal = nil
@@ -106,6 +120,7 @@ M.newGoal = function (com)
     terminate = terminate,
     getStatus = getStatus,
     addSubgoal = addSubgoal,
+    removeSubgoal = removeSubgoal,
     getDesirability = getDesirability,
   }
 end
@@ -159,15 +174,26 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
       return "active"
     end
   end
-  event.subscribe("entity.move", goal.component.entity, function (pos)
+  local onMove = function (pos)
     goal.pos.roomNum = pos.roomNum
     goal.pos.floorNum = pos.floorNum
-  end)
+  end
+  event.subscribe("entity.move", goal.component.entity, onMove)
+  local function delete()
+    event.unsubscribe("entity.move", goal.component.entity, onMove)
+    event.unsubscribe("delete", goal.component.entity, delete)
+  end
+  event.subscribe("delete", goal.component.entity, delete)
+  local old_activate = goal.activate
   goal.activate = function (self)
     event.notify("sprite.play", goal.component.entity, "walking")
+    old_activate(self)
   end
+  local old_terminate = goal.terminate
   goal.terminate = function (self)
+    delete()
     event.notify("sprite.play", goal.component.entity, "idle")
+    old_terminate(self)
   end
   
   return goal
@@ -178,7 +204,7 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
   goal.elevator = true
   goal.moveTo = {roomNum = moveTo.roomNum, floorNum = moveTo.floorNum}
   goal.pos = {roomNum = moveFrom.roomNum, floorNum = moveFrom.floorNum}
-  goal.speed = 1
+  goal.speed = ELEVATOR_MOVE
   local goto = function(pos)
     local passable = false
     event.notify("room.check", 0, {
@@ -223,21 +249,32 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
       return "active"
     end
   end
-  event.subscribe("entity.move", goal.component.entity, function (pos)
+  local onMove = function (pos)
     goal.pos.roomNum = pos.roomNum
     goal.pos.floorNum = pos.floorNum
-  end)
+  end
+  event.subscribe("entity.move", goal.component.entity, onMove)
+  local function delete()
+    event.unsubscribe("entity.move", goal.component.entity, onMove)
+    event.unsubscribe("delete", goal.component.entity, delete)
+  end
+  event.subscribe("delete", goal.component.entity, delete)
+  local old_activate = goal.activate
   goal.activate = function (self)
     event.notify("sprite.play", goal.component.entity, "idle")
     event.notify("sprite.hide", goal.component.entity, true)
+    old_activate(self)
   end
+  local old_terminate = goal.terminate
   goal.terminate = function (self)
+    delete()
     event.notify("entity.move", goal.component.entity, {
       roomNum = goal.pos.roomNum,
       floorNum = math.floor(goal.pos.floorNum + .5)
     })
     event.notify("sprite.play", goal.component.entity, "idle")
     event.notify("sprite.hide", goal.component.entity, false)
+    old_terminate(self)
   end
   
   return goal
@@ -249,8 +286,9 @@ local newMoveToGoal = function (self, moveTo, moveSpeed)
   goal.pos = {}
   goal.speed = moveSpeed
   
-  goal.activate = function ()
-    goal.pos = room.getPos(self.entity)
+  local old_activate = goal.activate
+  goal.activate = function (self)
+    goal.pos = transform.getPos(self.component.entity)
     local src = goal.pos
     local dst = goal.moveTo
     
@@ -266,14 +304,21 @@ local newMoveToGoal = function (self, moveTo, moveSpeed)
       for _,pos in ipairs(p) do
         if old then
           if old.floorNum == pos.floorNum then
-            goal:addSubgoal(newSeekGoal(self, old, pos, moveSpeed))
+            goal:addSubgoal(newSeekGoal(self.component, old, pos, moveSpeed))
           else
-            goal:addSubgoal(newElevatorGoal(self, old, pos))
+            goal:addSubgoal(newElevatorGoal(self.component, old, pos))
           end
         end
         old = pos
       end
     end
+    old_activate(self)
+  end
+  
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    old_terminate(self)
+    self.subgoals = {}
   end
   
   return goal
@@ -307,7 +352,7 @@ local newSexGoal = function (self, target)
       return
     end
     
-    local pos = room.getPos(self.component.entity)
+    local pos = transform.getPos(self.component.entity)
     local atRoom = false
     event.notify("room.check", 0, {
       roomNum = pos.roomNum,
@@ -335,20 +380,24 @@ local newSexGoal = function (self, target)
       self.status = "failed"
       return
     end
+    
+    event.notify("enterRoom", self.component.entity, self.target)
 
     goal:addSubgoal(newSleepGoal(self, SEX_TIME))
     
     old_activate(self)
   end
   
-  local old_teminate = goal.terminate
+  local old_terminate = goal.terminate
   goal.terminate = function(self)
+    goal.subgoals = {}
+    
     event.notify("room.depart", self.target, {
       id = self.component.entity,
     })
     
     self.component.horny = false
-    old_teminate(self)
+    old_terminate(self)
   end
   
   return goal
@@ -368,26 +417,169 @@ end
 local addVisitGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  
+  local info = room.getInfo(goal.target)
+  local targetPos = room.getPos(goal.target)
+  local sexGoal = nil
     
   local old_activate = goal.activate
   goal.activate = function (self)
     goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), CLIENT_MOVE))
-    goal:addSubgoal(newSexGoal(self.component, target))
+    sexGoal = newSexGoal(self.component, target)
+    goal:addSubgoal(sexGoal)
     old_activate(self)
   end
   
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    self.subgoals = {}
     old_terminate(self)
+    self.subgoals = {}
   end
   
   goal.getDesirability = function (self, t)
-    if t.horny then
-      return 1
-    else
-      return -1
+    if sexGoal and sexGoal.status == "active" then
+      return 1000
     end
+    if t.horny and not room.isDirty(self.target) and room.occupation(self.target) == 0 then
+      local myPos = transform.getPos(self.component.entity)
+      local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
+        + math.abs(myPos.roomNum - targetPos.roomNum) / STAFF_MOVE
+      return 1/(1+time) + info.desirability
+    end
+    return -1
+  end
+  
+  local function destroy (t)
+    self.goalEvaluator:removeSubgoal(goal)
+    event.unsubscribe("destroy", goal.target, destroy)
+  end
+  event.subscribe("destroy", goal.target, destroy)
+  
+  self.goalEvaluator:addSubgoal(goal)
+end
+
+local addFollowGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  goal.room = nil
+  
+  local sexGoal = nil
+  
+  local onHide = function (hide)
+    if #goal.targetHist == 0 then
+      table.insert(goal.targetHist, {
+        pos = transform.getPos(goal.target),
+      })
+    end
+    if hide then
+      goal.targetHist[#goal.targetHist].hide = true
+      goal.targetHist[#goal.targetHist].unhide = false
+    else
+      goal.targetHist[#goal.targetHist].hide = false
+      goal.targetHist[#goal.targetHist].unhide = true
+    end
+  end
+  
+  local onFlip = function (to)
+    if #goal.targetHist == 0 then
+      table.insert(goal.targetHist, {
+        pos = transform.getPos(goal.target),
+      })
+    end
+    goal.targetHist[#goal.targetHist].flip = true
+    goal.targetHist[#goal.targetHist].flipTo = to
+  end
+  
+  local onPlay = function (animation)
+    if #goal.targetHist == 0 then
+      table.insert(goal.targetHist, {
+        pos = transform.getPos(goal.target),
+      })
+    end
+    goal.targetHist[#goal.targetHist].play = animation
+  end
+  
+  local onEnter = function (room)
+    if #goal.targetHist == 0 then
+      table.insert(goal.targetHist, {
+        pos = transform.getPos(goal.target),
+      })
+    end
+    goal.targetHist[#goal.targetHist].enterRoom = true
+    goal.room = room
+  end
+  
+  local old_activate = goal.activate
+  goal.activate = function (self)
+    self.followDist = FOLLOW_DISTANCE
+    self.targetHist = {{
+      pos = transform.getPos(self.target),
+    }}
+    event.subscribe("sprite.hide", self.target, onHide)
+    event.subscribe("sprite.play", self.target, onPlay)
+    event.subscribe("sprite.flip", self.target, onFlip)
+    event.subscribe("enterRoom", self.target, onEnter)
+    old_activate(self)
+  end
+    
+  local old_process = goal.process
+  goal.process = function (self, dt)
+    if not sexGoal then
+      local targetPos = transform.getPos(self.target)
+      local myPos = transform.getPos(self.component.entity)
+      table.insert(self.targetHist, {
+        pos = targetPos,
+      })
+      if goal.room then
+        self.followDist = self.followDist - CLIENT_MOVE*dt
+      end
+      while #self.targetHist > 0 and
+          math.abs(myPos.roomNum - targetPos.roomNum) + math.abs(myPos.floorNum - targetPos.floorNum) >= self.followDist do
+        local next = table.remove(self.targetHist, 1)
+        event.notify("entity.move", self.component.entity, next.pos)
+        if next.hide then 
+          event.notify("sprite.hide", self.component.entity, true)
+        elseif next.unhide then
+          event.notify("sprite.hide", self.component.entity, false)
+        end
+        if next.flip then
+          event.notify("sprite.flip", goal.component.entity, next.flipTo)
+        end
+        if next.play then
+          event.notify("sprite.play", goal.component.entity, next.play)
+        end
+        if next.enterRoom then
+          sexGoal = newSexGoal(self.component, self.room)
+          self:addSubgoal(sexGoal)
+          sexGoal:activate()
+        end
+        myPos = transform.getPos(self.component.entity)
+      end
+      return "active"
+    elseif sexGoal.status == "complete" then
+      sexGoal = nil
+      self.room = nil
+      self.followDist = FOLLOW_DISTANCE
+      return "complete"
+    end
+    return old_process(self,dt)
+  end
+  
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    event.unsubscribe("sprite.hide", self.target, onHide)
+    event.unsubscribe("sprite.play", self.target, onPlay)
+    event.unsubscribe("sprite.flip", self.target, onFlip)
+    event.unsubscribe("enterRoom", self.target, onEnter)
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  goal.getDesirability = function (self, t)
+    if t.horny and entity.get(self.target) then
+      return 1
+    end
+    return -1
   end
   
   self.goalEvaluator:addSubgoal(goal)
@@ -395,7 +587,7 @@ end
   
 local addExitGoal = function (self)
   local goal = M.newGoal(self)
-    
+  
   local old_activate = goal.activate
   goal.activate = function (self)
     goal:addSubgoal(newMoveToGoal(self.component, {roomNum = -.5, floorNum = GROUND_FLOOR}, CLIENT_MOVE))
@@ -405,8 +597,8 @@ local addExitGoal = function (self)
   
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    self.subgoals = {}
     old_terminate(self)
+    self.subgoals = {}
   end
   
   goal.getDesirability = function (self, t)
@@ -416,16 +608,18 @@ local addExitGoal = function (self)
   self.goalEvaluator:addSubgoal(goal)
 end
 
-local newBeginCleanGoal = function (self, target)
+local newPerformCleanGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
   
-  goal.process = function(self, dt)
+  local old_activate = goal.activate
+  goal.activate = function(self, dt)
     if not self.target then
-      return "failed"
+      self.status = "failed"
+      return 
     end
     
-    local pos = room.getPos(self.component.entity)
+    local pos = transform.getPos(self.component.entity)
     local atRoom = false
     event.notify("room.check", 0, {
       roomNum = pos.roomNum,
@@ -437,7 +631,8 @@ local newBeginCleanGoal = function (self, target)
       end,
     })
     if not atRoom then
-      return "failed"
+      self.status = "failed"
+      return
     end
     
     local cleaning = false
@@ -448,94 +643,126 @@ local newBeginCleanGoal = function (self, target)
       end,
     })
     
-    if cleaning then
-      return "complete"
-    else
-      return "failed"
-    end
-  end
-  
-  goal.terminate = function (self)
-    self.target = nil
-  end
-  
-  return goal
-end
-
-local newEndCleanGoal = function (self, target)
-  local goal = M.newGoal(self)
-  goal.target = target
-  
-  goal.process = function(self, dt)
-    if not self.target then
-      return "failed"
-    end
-    
-    local pos = room.getPos(self.component.entity)
-    local atRoom = false
-    event.notify("room.check", 0, {
-      roomNum = pos.roomNum,
-      floorNum = pos.floorNum,
-      callback = function (id)
-        if id == self.target then
-          atRoom = true
-        end
-      end,
-    })
-    if not atRoom then
-      return "failed"
-    end
-    
-    event.notify("room.endClean", self.target, {
-      id = self.component.entity,
-    })
-    
-    return "complete"
-  end
-  
-  goal.terminate = function (self)
-    self.target = nil
-  end
-  
-  return goal
-end
-
-local addCleanGoal = function (self)
-  local goal = M.newGoal(self)
-  
-  local old_activate = goal.activate
-  goal.activate = function (self)
-    self.status = "active"
-    local target = nil
-    local rooms = {}
-    event.notify("room.dirty", 0, function (id,type)
-      table.insert(rooms,{id=id, type=type})
-    end)
-    if #rooms > 0 then
-      target = rooms[math.random(1,#rooms)].id
-    end
-    
-    if not target then
+    if not cleaning then
       self.status = "failed"
       return
     end
     
-    self:addSubgoal(newMoveToGoal(self.component, room.getPos(target), STAFF_MOVE))
-    self:addSubgoal(newBeginCleanGoal(self.component, target))
+    self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, CLEAN_TIME))
-    self:addSubgoal(newEndCleanGoal(self.component, target))
+    old_activate(self)
+  end
+  
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    event.notify("room.endClean", self.target, {
+      id = self.component.entity,
+    })
+    
+    self.target = nil
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  return goal
+end
+
+local addCleanGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  local info = room.getInfo(goal.target)
+  local targetPos = room.getPos(goal.target)
+  local cleaning = nil
+  
+  local old_activate = goal.activate
+  goal.activate = function (self)    
+    if not self.target then
+      self.status = "failed"
+      return
+    end
+    
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    cleaning = newPerformCleanGoal(self.component, self.target)
+    self:addSubgoal(cleaning)
     old_activate(self)
   end
     
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    self.subgoals = {}
     old_terminate(self)
+    self.subgoals = {}
   end
   
   goal.getDesirability = function (self, t)
-    return 1
+    if cleaning and cleaning.status == "active" then
+      return 1000
+    end
+    local myPos = transform.getPos(self.component.entity)
+    local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
+      + math.abs(myPos.roomNum - targetPos.roomNum) / STAFF_MOVE
+      + CLEAN_TIME
+    if room.isDirty(self.target) then
+      if room.occupation(self.target) == 0 then
+        return info.profit/time
+      else
+        return -1
+      end
+    else
+      if room.occupation(self.target) > 0 and info.dirtyable then
+        return info.profit/math.max(time, SEX_TIME+CLEAN_TIME)
+      else
+        return -1
+      end
+    end
   end
+  
+  local function destroy (t)
+    self.goalEvaluator:removeSubgoal(goal)
+    event.unsubscribe("destroy", goal.target, destroy)
+  end
+  event.subscribe("destroy", goal.target, destroy)
+  
+  self.goalEvaluator:addSubgoal(goal)
+end
+
+local addEnterGoal = function (self)
+  local goal = M.newGoal(self)
+  goal.pos = transform.getPos(self.entity)
+  
+  local seek = nil
+  
+  local old_activate = goal.activate
+  goal.activate = function (self)
+    seek = newSeekGoal(self.component, goal.pos, {roomNum = 1, floorNum = goal.pos.floorNum}, STAFF_MOVE)
+    self:addSubgoal(seek)
+    old_activate(self)
+  end
+    
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    old_terminate(self)
+    seek = nil
+    self.subgoals = {}
+  end
+  
+  goal.getDesirability = function (self, t)
+    if self.pos.roomNum < .5 or (seek and seek.status == "active") then
+      return 0
+    else
+      return -1
+    end
+  end
+  
+  local onMove = function (pos)
+    goal.pos.roomNum = pos.roomNum
+    goal.pos.floorNum = pos.floorNum
+  end
+  event.subscribe("entity.move", goal.component.entity, onMove)
+  local function delete()
+    event.unsubscribe("entity.move", goal.component.entity, onMove)
+    event.unsubscribe("delete", goal.component.entity, delete)
+  end
+  event.subscribe("delete", goal.component.entity, delete)
   
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -547,9 +774,11 @@ M.new = function (id)
     
     update = update,
     addGoal = addGoal,
-    addVisitGoal = addVisitGoal,
     addCleanGoal = addCleanGoal,
+    addVisitGoal = addVisitGoal,
+    addFollowGoal = addFollowGoal,
     addExitGoal = addExitGoal,
+    addEnterGoal = addEnterGoal,
   })
   com.goalEvaluator = M.newGoal(com)
   com.goalEvaluator.arbitrate = arbitrate
@@ -559,13 +788,23 @@ end
 
 path.addEdge(
   {roomNum = -.5, floorNum = GROUND_FLOOR},
+  {roomNum = 0, floorNum = GROUND_FLOOR},
+  .5/CLIENT_MOVE
+)
+path.addEdge(
+  {roomNum = 0, floorNum = GROUND_FLOOR},
+  {roomNum = -.5, floorNum = GROUND_FLOOR},
+  .5/CLIENT_MOVE
+)
+path.addEdge(
+  {roomNum = 0, floorNum = GROUND_FLOOR},
   {roomNum = .5, floorNum = GROUND_FLOOR},
-  1
+  .5/CLIENT_MOVE
 )
 path.addEdge(
   {roomNum = .5, floorNum = GROUND_FLOOR},
-  {roomNum = -.5, floorNum = GROUND_FLOOR},
-  1
+  {roomNum = 0, floorNum = GROUND_FLOOR},
+  .5/CLIENT_MOVE
 )
 
 event.subscribe("floor.new", 0, function (level)
@@ -573,12 +812,12 @@ event.subscribe("floor.new", 0, function (level)
     path.addEdge(
       {roomNum = i, floorNum = level},
       {roomNum = i+.5, floorNum = level},
-      1
+      .5/CLIENT_MOVE
     )
     path.addEdge(
       {roomNum = i+.5, floorNum = level},
       {roomNum = i, floorNum = level},
-      1
+      .5/CLIENT_MOVE
     )
   end
 end)
@@ -596,8 +835,8 @@ event.subscribe("build", 0, function (t)
             roomNum = t.pos.roomNum,
             floorNum = t.pos.floorNum + 1,
           }
-          path.addEdge(t.pos, dst, 1)
-          path.addEdge(dst, t.pos, 1)
+          path.addEdge(t.pos, dst, 1/ELEVATOR_MOVE)
+          path.addEdge(dst, t.pos, 1/ELEVATOR_MOVE)
         end
       end,
     })
@@ -612,8 +851,8 @@ event.subscribe("build", 0, function (t)
             roomNum = t.pos.roomNum,
             floorNum = t.pos.floorNum - 1,
           }
-          path.addEdge(t.pos, dst, 1)
-          path.addEdge(dst, t.pos, 1)
+          path.addEdge(t.pos, dst, 1/ELEVATOR_MOVE)
+          path.addEdge(dst, t.pos, 1/ELEVATOR_MOVE)
         end
       end,
     })

@@ -10,7 +10,7 @@ local transform = require("transform")
 local M = {}
 
 M.new = function ()
-  local id = entity.new(2)
+  local id = entity.new(STATE_PLAY)
   entity.setOrder(id, 50)
   isMale = math.random() < .5  --randomize male or female
   
@@ -112,7 +112,7 @@ M.new = function ()
     update = function (self,dt)
       self.timer = self.timer - dt
       if self.timer <= 0 then
-        money = money - STAFF_WAGE
+        gMoney = gMoney - STAFF_WAGE
         local pos = nil
         event.notify("entity.pos", id, function (e)
           pos = e
@@ -126,11 +126,23 @@ M.new = function ()
     end,
   })
   local aiComponent = ai.new(id)
-  aiComponent:addCleanGoal()
+  event.notify("room.all", 0, function (id,type)
+    local info = room.getInfo(id)
+    if info.dirtyable then
+      aiComponent:addCleanGoal(id)
+    end
+  end)
+  event.subscribe("build", 0, function (t)
+    local info = room.getInfo(t.id)
+    if info.dirtyable then
+      aiComponent:addCleanGoal(t.id)
+    end
+  end)
+  aiComponent:addEnterGoal()
   entity.addComponent(id, aiComponent)
   
   local check = function (t)
-    local epos = room.getPos(id)
+    local epos = transform.getPos(id)
     if t.floorNum == epos.floorNum and t.roomNum < epos.roomNum + 0.5 and t.roomNum + t.width > epos.roomNum + 0.5 then
       t.callback(id)
     end

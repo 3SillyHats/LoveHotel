@@ -3,6 +3,7 @@ return {
   name = "Lily R.",
   cost = 500,
   profit = 100,
+  desirability = 10,
   width = 2,
   dirtyable = true,
   defaultBackgroundAnim = "clean",

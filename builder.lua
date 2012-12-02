@@ -33,7 +33,7 @@ local placer = function (id, type, pos, width, cost, t)
     return (
       clear and
       (component.floor <= gTopFloor and component.floor >= gBottomFloor) and
-      cost <= money
+      cost <= gMoney
     )
   end
   
@@ -92,7 +92,7 @@ local placer = function (id, type, pos, width, cost, t)
       if okay() then
         local pos = {roomNum = component.room, floorNum = component.floor}
         local room = room.new(2, type, pos)
-        money = money - cost
+        gMoney = gMoney - cost
         event.notify("money.change", 0, {
           amount = -cost,
           pos = {roomNum = component.room, floorNum = component.floor},

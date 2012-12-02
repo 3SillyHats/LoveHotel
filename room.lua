@@ -26,7 +26,9 @@ local infoComponent = function (id, info, pos)
     end
   end
   
-  event.subscribe("room.check", 0, check)
+  local getRooms = function (callback)
+    callback(id, info.type)
+  end
   
   local unoccupied = function (callback)
     if info.type ~= "elevator" and component.occupied == 0 and not component.messy then
@@ -34,15 +36,19 @@ local infoComponent = function (id, info, pos)
     end
   end
   
-  event.subscribe("room.unoccupied", 0, unoccupied)
-  
   local dirtyRooms = function (callback)
     if component.occupied == 0 and component.messy then
       callback(id, info.type)
     end
   end
   
-  event.subscribe("room.dirty", 0, dirtyRooms)
+  local isDirty = function (callback)
+    callback(component.messy)
+  end
+  
+  local checkOccupied = function (callback)
+    callback(component.occupied)
+  end
   
   local occupy = function (e)
     if component.occupied < 2 then
@@ -57,19 +63,18 @@ local infoComponent = function (id, info, pos)
     end
   end
   
-  event.subscribe("room.occupy", id, occupy)
-  
   local depart = function (e)
     if component.occupied > 0 then
       component.occupied = component.occupied - 1
     end
     if info.dirtyable and not component.messy then
-      event.notify("sprite.play", e.id, "messy")
       component.messy = true
     end
+    -- Messify and unhide the departing person
+    event.notify("sprite.play", e.id, "messy")
     event.notify("sprite.hide", e.id, false)
     if component.occupied <= 0 then
-      money = money + info.profit
+      gMoney = gMoney + info.profit
       local roomPos = M.getPos(id)
       event.notify("money.change", 0, {
         amount = info.profit,
@@ -84,8 +89,6 @@ local infoComponent = function (id, info, pos)
     end
   end
   
-  event.subscribe("room.depart", id, depart)
-  
   local beginClean = function (e)
     if component.occupied > 0 then
       e.callback(false)
@@ -99,8 +102,6 @@ local infoComponent = function (id, info, pos)
     e.callback(true)
   end
   
-  event.subscribe("room.beginClean", id, beginClean)
-  
   local endClean = function (e)
     component.occupied = 0
     component.messy = false
@@ -110,11 +111,13 @@ local infoComponent = function (id, info, pos)
     event.notify("sprite.play", id, "opening")
   end
   
-  event.subscribe("room.endClean", id, endClean)
-  
   local function delete ()
     event.unsubscribe("room.check", 0, check)
+    event.unsubscribe("room.all", 0, getRooms)
     event.unsubscribe("room.unoccupied", 0, unoccupied)
+    event.unsubscribe("room.dirty", 0, dirtyRooms)
+    event.unsubscribe("room.isDirty", id, isDirty)
+    event.unsubscribe("room.occupation", id, checkOccupied)
     event.unsubscribe("room.occupy", id, occupy)
     event.unsubscribe("room.depart", id, depart)
     event.unsubscribe("room.beginClean", id, beginClean)
@@ -122,17 +125,30 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("delete", id, delete)
   end
   
+  event.subscribe("room.check", 0, check)
+  event.subscribe("room.all", 0, getRooms)
+  event.subscribe("room.unoccupied", 0, unoccupied)
+  event.subscribe("room.dirty", 0, dirtyRooms)
+  event.subscribe("room.isDirty", id, isDirty)
+  event.subscribe("room.occupation", id, checkOccupied)
+  event.subscribe("room.occupy", id, occupy)
+  event.subscribe("room.depart", id, depart)
+  event.subscribe("room.beginClean", id, beginClean)
+  event.subscribe("room.endClean", id, endClean)
   event.subscribe("delete", id, delete)
 
   --Return the room info table.
   return component
 end
 
+local roomInfo = {}
+
 --Room constructor
 M.new = function (state, roomType, pos)
   --Create an entity and get the id for the new room
   local roomId = entity.new(state)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
+  roomInfo[roomId] = room
   room.type = roomType
   local background = resource.get("img/rooms/" .. room.id .. "_background.png")
   local foreground = resource.get("img/rooms/" .. room.id .. "_foreground.png")
@@ -157,7 +173,8 @@ M.new = function (state, roomType, pos)
   }))
 
   --Add position component
-  entity.addComponent(roomId, transform.new(roomId, pos, {x = 0, y = 0}, room.width))
+  entity.addComponent(roomId, transform.new(roomId, pos, {x = 0, y = 0}))
+  
   --Add info component
   entity.addComponent(roomId, infoComponent(roomId, room, pos))
 
@@ -165,12 +182,41 @@ M.new = function (state, roomType, pos)
   return roomId
 end
 
-M.getPos = function (id)
-  local pos
-  event.notify("entity.pos", id, function (e)
-    pos = e
+M.all = function (id)
+  local rooms = {}
+  event.notify("room.all", id, function (id, type)
+    table.insert(rooms, id)
   end)
-  return pos
+  return rooms
+end
+
+M.getInfo = function (id)
+  return roomInfo[id] 
+end
+
+M.getPos = function (id)
+  pos = transform.getPos(id)
+  width = M.getInfo(id).width
+  return {
+    roomNum = pos.roomNum + width/2 - 0.5, 
+    floorNum = pos.floorNum,
+  }
+end
+
+M.isDirty = function (id)
+  local dirty = false
+  event.notify("room.isDirty", id, function (e)
+    dirty = dirty or e
+  end)
+  return dirty
+end
+
+M.occupation = function (id)
+  local occupation = nil
+  event.notify("room.occupation", id, function (e)
+    occupation = e
+  end)
+  return occupation
 end
 
 --Return the module

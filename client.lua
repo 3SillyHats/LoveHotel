@@ -10,7 +10,7 @@ local room = require("room")
 local M = {}
 
 M.new = function (target)
-  local id = entity.new(2)
+  local id = entity.new(STATE_PLAY)
   entity.setOrder(id, 50)
   isMale = math.random(0,1)  --randomize male or female
   nudeimg = "resources/img/people"
@@ -150,13 +150,28 @@ M.new = function (target)
     id, pos, {x = 16, y = 30}
   ))
   local aiComponent = ai.new(id)
+  if target then
+    aiComponent:addFollowGoal(target)
+  else
+    event.notify("room.all", 0, function (id,type)
+      local info = room.getInfo(id)
+      if info.desirability then
+        aiComponent:addVisitGoal(id)
+      end
+    end)
+    event.subscribe("build", 0, function (t)
+      local info = room.getInfo(t.id)
+      if info.desirability then
+        aiComponent:addVisitGoal(t.id)
+      end
+    end)
+  end
   entity.addComponent(id, aiComponent)
-  aiComponent:addVisitGoal(target)
-  aiComponent:addExitGoal(target)
+  aiComponent:addExitGoal()
   aiComponent.horny = true
   
   local check = function (t)
-    local epos = room.getPos(id)
+    local epos = transform.getPos(id)
     if t.floorNum == epos.floorNum and t.roomNum < epos.roomNum + 0.5 and t.roomNum + t.width > epos.roomNum + 0.5 then
       t.callback(id)
     end
@@ -178,37 +193,14 @@ local spawner = entity.new(2)
 local itime = math.random(SPAWN_MIN, SPAWN_MAX)
 local com = entity.newComponent({
   timer = itime,
-  timer2 = itime + .25,
   target = nil,
-  pick_room = function (self)
-    local rooms = {}
-    event.notify("room.unoccupied", 0, function (id,type)
-      table.insert(rooms,{id=id, type=type})
-    end)
-    if #rooms > 0 then
-      self.target = rooms[math.random(1,#rooms)].id
-    else
-      self.target = nul
-    end
-  end,
-  spawn = function (self)
-    if self.target then
-      M.new(self.target)
-    end
-  end,
   update = function (self, dt)
     if self.timer <= 0 then
       self.timer = math.random(SPAWN_MIN, SPAWN_MAX)
-      self.pick_room(self)
-      self.spawn(self)
+      self.target = M.new()
+      M.new(self.target)
     else
       self.timer = self.timer - dt
-    end
-    if self.timer2 <= 0 then
-      self.timer2 = self.timer + .25
-      self.spawn(self)
-    else
-      self.timer2 = self.timer2 - dt
     end
   end,
 })

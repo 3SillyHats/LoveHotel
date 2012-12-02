@@ -3,8 +3,10 @@ local M = {}
 local entity = require("entity")
 local event = require("event")
 
+local position = {}
+
 --Transform Component
-M.new = function (id, pos, offset, width)
+M.new = function (id, pos, offset)
   --Create a new component for position stuff
   local component = entity.newComponent()
 
@@ -16,7 +18,10 @@ M.new = function (id, pos, offset, width)
   component.pos = pos
   component.scroll = gScrollPos
   
+  position[id] = pos
+  
   local updatePos = function ()
+    position[id] = component.pos
     local screenPos = {
       x = math.floor((component.pos.roomNum - 1) * 32) + offset.x + ROOM_INDENT,
       y = math.floor((component.scroll - component.pos.floorNum) * 32) + offset.y + FLOOR_OFFSET,
@@ -47,33 +52,21 @@ M.new = function (id, pos, offset, width)
     updatePos()
   end
 
-  local getPos = function (callback)
-    if width then
-      callback({
-        floorNum = component.pos.floorNum,
-        roomNum = component.pos.roomNum + width/2 - 0.5,
-      })
-    else
-      callback({
-        floorNum = component.pos.floorNum,
-        roomNum = component.pos.roomNum,
-      })
-    end
-  end
-  
   local function delete ()
     event.unsubscribe("scroll", 0, scroll)
     event.unsubscribe("entity.move", id, move)
-    event.unsubscribe("entity.pos", id, getPos)
     event.unsubscribe("delete", id, delete)
   end
   
   event.subscribe("scroll", 0, scroll)
   event.subscribe("entity.move", id, move)
-  event.subscribe("entity.pos", id, getPos)
   event.subscribe("delete", id, delete)
 
   return component
+end
+
+M.getPos = function (id)
+  return {floorNum = position[id].floorNum, roomNum = position[id].roomNum}
 end
 
 return M
