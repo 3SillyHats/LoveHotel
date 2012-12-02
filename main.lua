@@ -176,7 +176,9 @@ local frameQuad = love.graphics.newQuad(
 -- Font
 local font = love.graphics.newImageFont(
   resource.get("img/font.png"),
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$+-./ "
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ..
+  "abcdefghijklmnopqrstuvwxyz" ..
+  "1234567890!,.;:$*-+=/#_%^@\&|?'\" "
 )
 
 --Menu spacing values
