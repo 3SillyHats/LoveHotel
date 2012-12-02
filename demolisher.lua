@@ -44,46 +44,48 @@ local demolisher = function (id, pos, cost, t)
   end
   
   local pressed = function (key)
-    if key == "left" then
-      if component.roomNum > 1 then
-        component.roomNum = component.roomNum - 1
-        updatePosition()
-      end
-    elseif key == "right" then
-      if component.roomNum < 7 then
-        component.roomNum = component.roomNum + 1
-        updatePosition()
-      end
-    elseif key == "a" then
-      local pos = {roomNum = component.roomNum, floorNum = component.floorNum}
-      local roomId = -1
-      local type = ""
-      event.notify("room.check", 0, {
-        roomNum = pos.roomNum,
-        floorNum = pos.floorNum,
-        callback = function (id, t)
-          roomId = id
-          type = t
+    if gState == STATE_PLAY then
+      if key == "left" then
+        if component.roomNum > 1 then
+          component.roomNum = component.roomNum - 1
+          updatePosition()
         end
-      })
-      
-      if roomId == -1 then
-        return
-      end
-
-      local info = resource.get("scr/rooms/" .. string.lower(type) .. ".lua")
-
-      if room.occupation(roomId) == 0 then
-        entity.delete(roomId)
+      elseif key == "right" then
+        if component.roomNum < 7 then
+          component.roomNum = component.roomNum + 1
+          updatePosition()
+        end
+      elseif key == "a" then
+        local pos = {roomNum = component.roomNum, floorNum = component.floorNum}
+        local roomId = -1
+        local type = ""
+        event.notify("room.check", 0, {
+          roomNum = pos.roomNum,
+          floorNum = pos.floorNum,
+          callback = function (id, t)
+            roomId = id
+            type = t
+          end
+        })
         
-        event.notify("destroy", id, {id=roomId, pos=pos, type=type})
-        event.notify("destroy", roomId, {id=roomId, pos=pos, type=type})
-        event.notify("destroy", 0, {id=roomId, pos=pos, type=type})
+        if roomId == -1 then
+          return
+        end
 
-        local snd = resource.get("snd/destroy.wav")
-        snd:setVolume(1)
-        love.audio.rewind(snd)
-        love.audio.play(snd)
+        local info = resource.get("scr/rooms/" .. string.lower(type) .. ".lua")
+
+        if room.occupation(roomId) == 0 then
+          entity.delete(roomId)
+          
+          event.notify("destroy", id, {id=roomId, pos=pos, type=type})
+          event.notify("destroy", roomId, {id=roomId, pos=pos, type=type})
+          event.notify("destroy", 0, {id=roomId, pos=pos, type=type})
+
+          local snd = resource.get("snd/destroy.wav")
+          snd:setVolume(1)
+          love.audio.rewind(snd)
+          love.audio.play(snd)
+        end
       end
     end
   end

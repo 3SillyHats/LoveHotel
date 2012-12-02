@@ -210,7 +210,7 @@ local buildRoom = function (type, pos, baseMenu)
   end
 
   back = function (key)
-    if key == "b" then
+    if gState == STATE_PLAY and key == "b" then
       event.unsubscribe("pressed", 0, back)
       event.unsubscribe("build", buildUtility, onBuild)
       menu.enable(baseMenu)
@@ -237,7 +237,7 @@ local demolishRoom = function (pos, baseMenu)
   end
 
   back = function (key)
-    if key == "b" then
+    if gState == STATE_PLAY and key == "b" then
       event.unsubscribe("pressed", 0, back)
       event.unsubscribe("build", demolishUtility, onBuild)
       menu.enable(baseMenu)
@@ -572,10 +572,12 @@ event.notify("training.load", 0)
 local floorOccupation = 1
 
 event.subscribe("pressed", 0, function (key)
-  if key == "up" and gScrollPos < gTopFloor then
-    event.notify("scroll", 0 , gScrollPos + 1)
-  elseif key == "down" and gScrollPos > gBottomFloor then
-    event.notify("scroll", 0 , gScrollPos - 1)
+  if gState == STATE_PLAY then
+    if key == "up" and gScrollPos < gTopFloor then
+      event.notify("scroll", 0 , gScrollPos + 1)
+    elseif key == "down" and gScrollPos > gBottomFloor then
+      event.notify("scroll", 0 , gScrollPos - 1)
+    end
   end
 end)
 

@@ -78,34 +78,36 @@ local placer = function (id, type, pos, width, cost, t)
   end
   
   local pressed = function (key)
-    if key == "left" then
-      if component.room > 1 then
-        component.room = component.room - 1
-        updatePosition()
-      end
-    elseif key == "right" then
-      if component.room+component.width <= 7 then
-        component.room = component.room + 1
-        updatePosition()
-      end
-    elseif key == "a" then
-      if okay() then
-        local pos = {roomNum = component.room, floorNum = component.floor}
-        local room = room.new(2, type, pos)
-        gMoney = gMoney - cost
-        event.notify("money.change", 0, {
-          amount = -cost,
-          pos = {roomNum = component.room, floorNum = component.floor},
-         })
-        event.notify("build", id, {id=room, pos=pos, type=type})
-        event.notify("build", 0, {id=room, pos=pos, type=type})
-        local snd = resource.get("snd/build.wav")
-        love.audio.rewind(snd)
-        love.audio.play(snd)
-       else
-        local snd = resource.get("snd/error.wav")
-        love.audio.rewind(snd)
-        love.audio.play(snd)
+    if gState == STATE_PLAY then
+      if key == "left" then
+        if component.room > 1 then
+          component.room = component.room - 1
+          updatePosition()
+        end
+      elseif key == "right" then
+        if component.room+component.width <= 7 then
+          component.room = component.room + 1
+          updatePosition()
+        end
+      elseif key == "a" then
+        if okay() then
+          local pos = {roomNum = component.room, floorNum = component.floor}
+          local room = room.new(2, type, pos)
+          gMoney = gMoney - cost
+            event.notify("money.change", 0, {
+            amount = -cost,
+            pos = {roomNum = component.room, floorNum = component.floor},
+           })
+            event.notify("build", id, {id=room, pos=pos, type=type})
+            event.notify("build", 0, {id=room, pos=pos, type=type})
+            local snd = resource.get("snd/build.wav")
+            love.audio.rewind(snd)
+            love.audio.play(snd)
+        else
+          local snd = resource.get("snd/error.wav")
+          love.audio.rewind(snd)
+          love.audio.play(snd)
+        end
       end
     end
   end

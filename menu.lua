@@ -84,32 +84,34 @@ local hud = function (id, pos)
   end
   
   local pressed = function (key)
-    local snd = resource.get("snd/select.wav")
-    if component.enabled then
-      if key == "left" then
-        if selected > 1 then
-          selected = selected - 1
-          event.notify("menu.info", 0, buttons[selected].type)
+    if gState == STATE_PLAY then
+      local snd = resource.get("snd/select.wav")
+      if component.enabled then
+        if key == "left" then
+          if selected > 1 then
+            selected = selected - 1
+            event.notify("menu.info", 0, buttons[selected].type)
+            love.audio.rewind(snd)
+            love.audio.play(snd)
+          end
+        elseif key == "right" then
+          if selected < #buttons then
+            selected = selected + 1
+            event.notify("menu.info", 0, buttons[selected].type)
+            love.audio.rewind(snd)
+            love.audio.play(snd)
+          end
+        elseif key == "a" then
+          if buttons[selected] then
+            buttons[selected].action()
+            love.audio.rewind(snd)
+            love.audio.play(snd)
+          end
+        elseif key == "b" then
+          component.back()
           love.audio.rewind(snd)
           love.audio.play(snd)
         end
-      elseif key == "right" then
-        if selected < #buttons then
-          selected = selected + 1
-          event.notify("menu.info", 0, buttons[selected].type)
-          love.audio.rewind(snd)
-          love.audio.play(snd)
-        end
-      elseif key == "a" then
-        if buttons[selected] then
-          buttons[selected].action()
-          love.audio.rewind(snd)
-          love.audio.play(snd)
-        end
-      elseif key == "b" then
-        component.back()
-        love.audio.rewind(snd)
-        love.audio.play(snd)
       end
     end
   end
