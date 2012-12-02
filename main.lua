@@ -173,6 +173,12 @@ local frameQuad = love.graphics.newQuad(
   frameImage:getWidth(), frameImage:getHeight()
 )
 
+-- Font
+local font = love.graphics.newImageFont(
+  resource.get("img/font.png"),
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$+-./ "
+)
+
 --Menu spacing values
 local mainMenuY = 32*6.5
 local subMenuY = 32*6
@@ -474,18 +480,18 @@ entity.addComponent(controller, sprite.new(controller, {
 }))
 
 local inputLocations = {
-  a={x=207, y=130},
-  b={x=175, y=130},
-  left={x=42, y=120},
-  right={x=70, y=120},
-  up={x=56, y=108},
-  down={x=56, y=134},
-  start={x=135, y=132},
-  select={x=110, y=132},
+  a={x=207, y=130, text="Select"},
+  b={x=175, y=130, text="Back"},
+  left={x=42, y=120, text="Left"},
+  right={x=70, y=120, text="Right"},
+  up={x=56, y=108, text="Up"},
+  down={x=56, y=134, text="Down"},
+  start={x=135, y=132, text="Pause"},
+  select={x=110, y=132, text="Fast Foward"},
 }
-local arrow = entity.new(1)
-entity.addComponent(arrow, sprite.new(
-  arrow, {
+local trainArrow = entity.new(STATE_TRAIN)
+entity.addComponent(trainArrow, sprite.new(
+  trainArrow, {
     image = resource.get("img/arrow.png"),
     width = 24, height = 24,
     animations = {
@@ -500,8 +506,39 @@ entity.addComponent(arrow, sprite.new(
     originY = 24,
   }
 ))
+local trainText = entity.new(STATE_TRAIN)
+trainTextCom = entity.newComponent({
+  draw = function (self)
+    local desc = [[Controller Setup
+    
+    For each input pointed to, choose a key or button and press it.]]
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.printf(
+      desc,
+      1, 9,
+      256,
+      "center"
+    )
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.printf(
+      desc,
+      0, 8,
+      256,
+      "center"
+    )
+    love.graphics.setFont(font)
+    love.graphics.printf(
+      self.text,
+      0, CANVAS_HEIGHT - 32,
+      256,
+      "center"
+    )
+  end,
+})
+entity.addComponent(trainText, trainTextCom)
 event.subscribe("training.current", 0, function (current)
-  event.notify("sprite.move", arrow, inputLocations[current])
+  event.notify("sprite.move", trainArrow, inputLocations[current])
+  trainTextCom.text = inputLocations[current].text
 end)
 
 event.subscribe("training.end", 0, function ()
@@ -552,12 +589,6 @@ event.subscribe("destroy", 0, function (t)
     end
   end
 end)
-
--- Font
-local font = love.graphics.newImageFont(
-  resource.get("img/font.png"),
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890$+-./ "
-)
 
 -- Create the hud bar
 local hudQuad = love.graphics.newQuad(
