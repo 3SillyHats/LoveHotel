@@ -482,12 +482,12 @@ entity.addComponent(controller, sprite.new(controller, {
 }))
 
 local inputLocations = {
-  a={x=207, y=130, text="Select"},
-  b={x=175, y=130, text="Back"},
+  a={x=206, y=130, text="Select"},
+  b={x=174, y=130, text="Back"},
   left={x=42, y=120, text="Left"},
-  right={x=70, y=120, text="Right"},
-  up={x=56, y=108, text="Up"},
-  down={x=56, y=134, text="Down"},
+  right={x=68, y=120, text="Right"},
+  up={x=55, y=108, text="Up"},
+  down={x=55, y=134, text="Down"},
   start={x=135, y=132, text="Pause"},
   select={x=110, y=132, text="Fast Foward"},
 }
