@@ -783,13 +783,68 @@ bdCom.draw = function (self)
 end
 entity.addComponent(backdrop, bdCom)
 
--- GAME PAUSING
+-- GAME PAUSE MENU
+local pauseMenu = entity.new(STATE_PAUSE)
+local pauseCom = entity.newComponent({
+  options = {
+    {
+      text = "Play",
+      onPress = function ()
+        event.notify("state.enter", 0, STATE_PLAY)
+      end,
+    },
+    {
+      text = "Controls",
+      onPress = function ()
+        event.notify("training.begin", 0)
+      end,
+    },
+    {
+      text = "Quit",
+      onPress = function ()
+        -- actually cause the app to quit
+        love.event.push("quit")
+        love.event.push("q")
+      end,
+    },
+  },
+  selected = 1,
+  
+  draw = function (self)
+    love.graphics.setFont(font)
+    for i,option in ipairs(self.options) do
+      if i == self.selected then
+        love.graphics.setColor(255, 255, 255)
+      else
+        love.graphics.setColor(89, 89, 89)
+      end
+      love.graphics.printf(
+        option.text,
+        0, 128 + (16 * i),
+        256,
+        "center"
+      )
+    end
+  end,
+})
+entity.addComponent(pauseMenu, pauseCom)
 event.subscribe("pressed", 0, function (key)
   if key == "start" then
     if gState == STATE_PLAY then
       event.notify("state.enter", 0, STATE_PAUSE)
     elseif gState == STATE_PAUSE then
       event.notify("state.enter", 0, STATE_PLAY)
+    end
+  end
+end)
+event.subscribe("pressed", 0, function (button)
+  if gState == STATE_PAUSE then
+    if button == "a" then
+      pauseCom.options[pauseCom.selected].onPress()
+    elseif button == "up" then
+      pauseCom.selected = math.max(1, pauseCom.selected - 1)
+    elseif button == "down" then
+      pauseCom.selected = math.min(#pauseCom.options, pauseCom.selected + 1)
     end
   end
 end)
@@ -848,8 +903,11 @@ end
 
 function love.keypressed(key)   -- we do not need the unicode, so we can leave it out
   if key == "escape" then
-    love.event.push("quit")   -- actually causes the app to quit
-    love.event.push("q")
+    if gState == STATE_PLAY then
+      event.notify("state.enter", 0, STATE_PAUSE)
+    elseif gState == STATE_PAUSE then
+      event.notify("state.enter", 0, STATE_PLAY)
+    end
   elseif key == "f1" then
     event.notify("training.begin", 0)
   else
