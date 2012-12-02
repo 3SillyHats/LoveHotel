@@ -14,8 +14,8 @@ local M = {}
 
 local demolisher = function (id, pos, cost, t)
   local component = entity.newComponent({
-    room = pos.roomNum,
-    floor = pos.floorNum,
+    roomNum = pos.roomNum,
+    floorNum = pos.floorNum,
     x = 0,
     y = 0,
     pixelWidth = t.width,
@@ -33,7 +33,7 @@ local demolisher = function (id, pos, cost, t)
   local updatePosition = function()
     clear = true
     support = 0
-    event.notify("entity.move", id, {roomNum = component.room, floorNum = component.floor})
+    event.notify("entity.move", id, {roomNum = component.roomNum, floorNum = component.floorNum})
   end
 
   component.update = function (dt)
@@ -45,50 +45,40 @@ local demolisher = function (id, pos, cost, t)
   
   local pressed = function (key)
     if key == "left" then
-      if component.room > 1 then
-        component.room = component.room - 1
+      if component.roomNum > 1 then
+        component.roomNum = component.roomNum - 1
         updatePosition()
       end
     elseif key == "right" then
-      if component.room < 7 then
-        component.room = component.room + 1
+      if component.roomNum < 7 then
+        component.roomNum = component.roomNum + 1
         updatePosition()
       end
     elseif key == "a" then
-      local pos = {roomNum = component.room, floorNum = component.floor}
-      local room = -1
+      local pos = {roomNum = component.roomNum, floorNum = component.floorNum}
+      local roomId = -1
       local type = ""
       event.notify("room.check", 0, {
         roomNum = pos.roomNum,
         floorNum = pos.floorNum,
         callback = function (id, t)
-          room = id
+          roomId = id
           type = t
         end
       })
       
-      if room == -1 then
+      if roomId == -1 then
         return
       end
 
       local info = resource.get("scr/rooms/" .. string.lower(type) .. ".lua")
 
-      local ok = true
-      event.notify("actor.check", 0, {
-        roomNum = component.room,
-        floorNum = component.floor,
-        width = info.width,
-        callback = function (id)
-          ok = false
-        end,
-      })
-
-      if ok then
-        entity.delete(room)
+      if room.occupation(roomId) == 0 then
+        entity.delete(roomId)
         
-        event.notify("destroy", id, {id=room, pos=pos, type=type})
-        event.notify("destroy", room, {id=room, pos=pos, type=type})
-        event.notify("destroy", 0, {id=room, pos=pos, type=type})
+        event.notify("destroy", id, {id=roomId, pos=pos, type=type})
+        event.notify("destroy", roomId, {id=roomId, pos=pos, type=type})
+        event.notify("destroy", 0, {id=roomId, pos=pos, type=type})
 
         local snd = resource.get("snd/destroy.wav")
         snd:setVolume(1)
