@@ -513,7 +513,7 @@ trainTextCom = entity.newComponent({
   draw = function (self)
     local desc = [[Controller Setup
     
-    For each input pointed to, choose a key or button and press it.]]
+    For each input pointed to, choose a key or gamepad button and press it.]]
     love.graphics.setColor(0, 0, 0)
     love.graphics.printf(
       desc,

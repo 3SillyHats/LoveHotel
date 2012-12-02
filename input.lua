@@ -67,7 +67,6 @@ end
 
 M.save = function ()
   local fname = "input_conf.lua"
-  print(fname)
   local s = luatexts.save(map)
   love.filesystem.write(
     fname,
