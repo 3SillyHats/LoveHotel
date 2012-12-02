@@ -1,6 +1,6 @@
 return {
   id = "heart",
-  name = "Heart S.",
+  name = "Heart Suite",
   cost = 1200,
   profit = 250,
   desirability = 25,

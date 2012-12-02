@@ -10,7 +10,7 @@ buttLoc = {
   suites = 1,
   entertainment = 2,
   hotel = 3,
-  manage = 4,
+  staff = 4,
 
   stairs = 8,
   elevator = 9,
@@ -31,7 +31,7 @@ buttLoc = {
   staffRoom = 34,
   kitchen = 35,
    
-  hire = 40,
+  hireCleaner = 40,
   stock = 41,
 }
 

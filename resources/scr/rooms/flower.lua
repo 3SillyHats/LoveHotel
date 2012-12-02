@@ -1,6 +1,6 @@
 return {
   id = "flower",
-  name = "Lily R.",
+  name = "Lily Room",
   cost = 500,
   profit = 100,
   desirability = 10,

@@ -9,10 +9,11 @@ GROUND_FLOOR = 0
 
 STATE_TRAIN = 1
 STATE_PLAY = 2
+STATE_PAUSE = 3
 
 STAFF_MOVE = 1
-STAFF_WAGE = 10
-PAY_PERIOD = 30
+STAFF_WAGE = 20
+PAY_PERIOD = 60
 ELEVATOR_MOVE = 1
 CLIENT_MOVE = 1
 FOLLOW_DISTANCE = 0.5
@@ -55,12 +56,12 @@ conf = {
       name="Hotel",
       desc="",
     },
-    manage = {
-      name="Manage",
+    staff = {
+      name="Staff",
       desc="",
     },
     
-    -- Manage
+    -- Structure
     floorUp =  {
       name="Build Up",
       desc="$500"
@@ -72,6 +73,12 @@ conf = {
     destroy =  {
       name="Destroy",
       desc=""
+    },
+    
+    -- Staff
+    hireCleaner = {
+      name="Hire Cleaner",
+      desc="$20/min"
     },
   },
 }
@@ -451,15 +458,15 @@ menu.addButton(gui, menu.newButton("hotel", function ()
   end)
 end))
 
---Manage button
-menu.addButton(gui, menu.newButton("manage", function ()
+--Staff button
+menu.addButton(gui, menu.newButton("staff", function ()
   menu.disable(gui)
   
   --Create the manage menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
   
   --Hire staff
-  menu.addButton(submenu, menu.newButton("hire", function ()
+  menu.addButton(submenu, menu.newButton("hireCleaner", function ()
     staff.new()
   end))
   --Manage stocking
