@@ -89,9 +89,11 @@ gScrollPos = GROUND_FLOOR
 event.subscribe("scroll", 0, function (scrollPos)
   gScrollPos = scrollPos
 end)
-
+gState = STATE_TRAIN
+event.subscribe("state.enter", 0, function (state)
+  gState = state
+end)
 gGameSpeed = 1
-
 gMoney = 2000
 
 -- Update menu tooltips (get names, costs of rooms)
@@ -481,6 +483,16 @@ menu.addButton(gui, menu.newButton("staff", function ()
   end)
 end))
 
+-- Background music
+event.subscribe("state.enter", 0, function (state)
+  local bgm = resource.get("snd/gettingfreaky.ogg")
+  if state == STATE_PLAY then
+    love.audio.play(bgm)
+  else
+    love.audio.pause(bgm)
+  end
+end)
+
 -- Input training
 local controller = entity.new(1)
 entity.addComponent(controller, sprite.new(controller, {
@@ -551,9 +563,7 @@ event.subscribe("training.current", 0, function (current)
 end)
 
 event.subscribe("training.end", 0, function ()
-  event.notify("state.enter", 0, 2)-- BGM
-  local bgm = resource.get("snd/gettingfreaky.ogg")
-  love.audio.play(bgm)
+  event.notify("state.enter", 0, 2)
 end)
 
 event.notify("training.begin", 0)
@@ -772,6 +782,17 @@ bdCom.draw = function (self)
   )
 end
 entity.addComponent(backdrop, bdCom)
+
+-- GAME PAUSING
+event.subscribe("pressed", 0, function (key)
+  if key == "start" then
+    if gState == STATE_PLAY then
+      event.notify("state.enter", 0, STATE_PAUSE)
+    elseif gState == STATE_PAUSE then
+      event.notify("state.enter", 0, STATE_PLAY)
+    end
+  end
+end)
 
 love.draw = function ()
   -- Draw to canvas without scaling
