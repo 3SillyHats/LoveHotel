@@ -187,7 +187,7 @@ local font = love.graphics.newImageFont(
   resource.get("img/font.png"),
   "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ..
   "abcdefghijklmnopqrstuvwxyz" ..
-  "1234567890!,.;:$*-+=/#_%^@\&|?'\" "
+  "1234567890!,.;:$*-+=/#_%^@\\&|?'\" "
 )
 
 --Menu spacing values
