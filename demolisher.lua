@@ -91,7 +91,7 @@ local demolisher = function (id, pos, cost, t)
   end
 
   local scroll = function (scrollPos)
-    component.floor = scrollPos
+    component.floorNum = scrollPos
     updatePosition()
   end
 
