@@ -95,6 +95,7 @@ event.subscribe("state.enter", 0, function (state)
 end)
 gGameSpeed = 1
 gMoney = 2000
+gReputation = 15
 
 -- Update menu tooltips (get names, costs of rooms)
 for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
@@ -677,20 +678,6 @@ moneyCom.draw = function (self)
     56,
     "right"
   )
-  local str = ""
-  if self.change > 0 then 
-    love.graphics.setColor(0, 184, 0)
-    str = "+"..self.change
-  elseif self.change < 0 then
-    love.graphics.setColor(172, 16, 0)
-    str = self.change
-  end
-  love.graphics.printf(
-    str .. "k",
-    200, CANVAS_HEIGHT - 15,
-    56,
-    "right"
-  )
 end
 moneyCom.update = function (self, dt)
   self.changeTimer = self.changeTimer - dt
@@ -759,6 +746,22 @@ event.subscribe("money.change", 0, function (e)
     entity.addComponent(id, com)
   end
 end)
+
+-- Create the Reputation display
+local repDisplay = entity.new(STATE_PLAY)
+entity.setOrder(repDisplay, 100)
+local repCom = entity.newComponent()
+repCom.draw = function (self)
+  love.graphics.setFont(font)
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.printf(
+    "R:" .. math.min(100, math.floor(gReputation)),
+    200, CANVAS_HEIGHT - 15,
+    56,
+    "right"
+  )
+end
+entity.addComponent(repDisplay, repCom)
 
 -- Create the backdrop
 local backdrop = entity.new(STATE_PLAY)

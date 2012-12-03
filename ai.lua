@@ -598,6 +598,13 @@ local addExitGoal = function (self)
   local old_terminate = goal.terminate
   goal.terminate = function (self)
     old_terminate(self)
+    if self.status == "complete" then
+      if self.component.horny then
+        gReputation = gReputation - 2.5
+      else
+        gReputation = gReputation + .5
+      end
+    end
     self.subgoals = {}
   end
   
