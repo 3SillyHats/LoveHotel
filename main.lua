@@ -101,7 +101,7 @@ for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
   local room = resource.get("scr/rooms/" .. fname)
   conf.menu[room.id] = {
     name = room.name,
-    desc = "$" .. room.cost,
+    desc = "$" .. room.cost .."k",
   }
 end
 
@@ -307,7 +307,7 @@ local floorUp = function()
       amount = -cost,
     })
     gTopFloor = gTopFloor + 1
-    conf.menu["floorUp"].desc = "$" .. (500 * (gTopFloor + 1))
+    conf.menu["floorUp"].desc = "$" .. (500 * (gTopFloor + 1)) .."k"
     local newFloor = newFloor(gTopFloor)
   else
     local snd = resource.get("snd/error.wav")
@@ -324,7 +324,7 @@ local floorDown = function()
       amount = -cost,
     })
     gBottomFloor = gBottomFloor - 1
-    conf.menu["floorDown"].desc = "$" .. (1000 * (1 - gBottomFloor))
+    conf.menu["floorDown"].desc = "$" .. (1000 * (1 - gBottomFloor)) .."k"
     local newFloor = newFloor(gBottomFloor)
   else
     local snd = resource.get("snd/error.wav")
@@ -672,7 +672,7 @@ moneyCom.draw = function (self)
   love.graphics.setFont(font)
   love.graphics.setColor(255, 255, 255)
   love.graphics.printf(
-    "$" .. gMoney,
+    "$" .. gMoney .. "k",
     200, CANVAS_HEIGHT - 26,
     56,
     "right"
@@ -686,7 +686,7 @@ moneyCom.draw = function (self)
     str = self.change
   end
   love.graphics.printf(
-    str,
+    str .. "k",
     200, CANVAS_HEIGHT - 15,
     56,
     "right"
@@ -742,7 +742,7 @@ event.subscribe("money.change", 0, function (e)
       for i = 1, #colors do
         love.graphics.setColor(colors[i])
         love.graphics.print(
-          str,
+          str .. "k",
           self.screenPos.x+1-i, self.screenPos.y-i+1
         )
       end
