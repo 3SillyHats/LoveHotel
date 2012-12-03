@@ -167,9 +167,11 @@ if not love.graphics.newPixelEffect then
   love.graphics.setPixelEffect = function () end
 else
   pixelEffect = resource.get("pfx/nes.glsl")
-  pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-  pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-  pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
+  if pixelEffect then
+    pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+    pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+    pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
+  end
 end
 
 -- Create screen frame
@@ -855,7 +857,7 @@ love.draw = function ()
   -- Draw to canvas without scaling
   love.graphics.setCanvas(canvas)
   love.graphics.clear()
-  if love.graphics.newPixelEffect then
+  if pixelEffect then
     love.graphics.setPixelEffect()
   end
   love.graphics.setColor(255, 255, 255)
@@ -883,7 +885,7 @@ love.draw = function ()
     CANVAS_HEIGHT * conf.screen.scale
   )
   
-  if love.graphics.newPixelEffect then
+  if pixelEffect then
     love.graphics.setPixelEffect(pixelEffect)
   end
   love.graphics.setColor(255, 255, 255)
