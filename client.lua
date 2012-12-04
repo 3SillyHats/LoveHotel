@@ -9,140 +9,86 @@ local room = require("room")
 
 local M = {}
 
-M.new = function (target)
+local bodyParts = {
+  "nude",
+  "bottom",
+  "top",
+  "hair",
+  "hat",
+}
+
+local bodyAnimations = {
+  idle = {
+    first = 0,
+    last = 0,
+    speed = 1,
+  },
+  walking = {
+    first = 1,
+    last = 2,
+    speed = .2,
+  },
+}
+
+local hairAnimations = {}
+for i = 1, 4 do
+  hairAnimations[i] = {
+    neat = {
+      first = i - 1,
+      last = i - 1,
+      speed = 1,
+    },
+    messy = {
+      first = i + 3,
+      last = i + 3,
+      speed = 1,
+    },
+  }
+end
+
+M.new = function (t)
   local id = entity.new(STATE_PLAY)
   entity.setOrder(id, 50)
-  isMale = math.random(0,1)  --randomize male or female
-  nudeimg = "resources/img/people"
-  hairimg = "resources/img/people"
-  topimg = "resources/img/people"
-  bottomimg = "resources/img/people"
-  if isMale==1 then
-    nudeimg = nudeimg .. "/man/nude/"
-    hairimg = hairimg .. "/man/hair/"
-    topimg = topimg .. "/man/top/"
-    bottomimg = bottomimg .. "/man/bottom/"
+  isMale = math.random() < 0.5  --randomize male or female
+  hairColour = math.random(1, 4)
+  
+  local prefix
+  if isMale then
+    prefix = "resources/img/people/man/"
   else
-    nudeimg = nudeimg .. "/woman/nude/"
-    hairimg = hairimg .. "/woman/hair/"
-    topimg = topimg .. "/woman/top/"
-    bottomimg = bottomimg .. "/woman/bottom/"
+    prefix = "resources/img/people/woman/"
   end
-  nudes = love.filesystem.enumerate(nudeimg)
-  hairs = love.filesystem.enumerate(hairimg)
-  tops = love.filesystem.enumerate(topimg)
-  bottoms = love.filesystem.enumerate(bottomimg)
-  nudeimg = nudeimg .. nudes[math.random(1,#nudes)] --randomize skin colour, hair, clothes
-  hairimg = hairimg .. hairs[math.random(1,#hairs)]
-  topimg = topimg .. tops[math.random(1,#tops)] 
-  bottomimg = bottomimg .. bottoms[math.random(1,#bottoms)]
-  nudeimg = string.sub(nudeimg,10)        --remove "resources/"
-  hairimg = string.sub(hairimg,10)
-  topimg = string.sub(topimg,10)
-  bottomimg = string.sub(bottomimg,10)
-  haircolour = math.random(0,3)
-      --add skin
-  entity.addComponent(id, sprite.new(
-    id, {
-      image = resource.get(nudeimg),
-      width = 24, height = 24,
-      originX = 8, originY = 24,
-      animations = {
-        idle = {
-          first = 0,
-          last = 0,
-          speed = 1,
-        },
-        walking = {
-          first = 1,
-          last = 2,
-          speed = .2,
-        },
-      },
-      playing = "idle",
-    }
-  ))  --add bottom
-  entity.addComponent(id, sprite.new(
-    id, {
-      image = resource.get(bottomimg),
-      width = 24, height = 24,
-      originX = 8, originY = 24,
-      animations = {
-        idle = {
-          first = 0,
-          last = 0,
-          speed = 1,
-        },
-        walking = {
-          first = 1,
-          last = 2,
-          speed = .2,
-        },
-      },
-      playing = "idle",
-    }
-  ))  --add top
-  entity.addComponent(id, sprite.new(
-    id, {
-      image = resource.get(topimg),
-      width = 24, height = 24,
-      originX = 8, originY = 24,
-      animations = {
-        idle = {
-          first = 0,
-          last = 0,
-          speed = 1,
-        },
-        walking = {
-          first = 0,
-          last = 0,
-          speed = 1,
-        },
-      },
-      playing = "idle",
-    }
-  ))  --add hair
-  entity.addComponent(id, sprite.new(
-    id, {
-      image = resource.get(hairimg),
-      width = 24, height = 24,
-      originX = 8, originY = 24,
-      animations = {
-        neat = {
-          first = haircolour,
-          last = haircolour,
-          speed = 1,
-        },
-        messy = {
-          first = haircolour + 4,
-          last = haircolour + 4,
-          speed = 1,
-        },
-      },
-      playing = "neat",
-    }
-  ))  --add hat
-  if( math.random(0,8)==1 ) then
-    entity.addComponent(id, sprite.new(
-      id, {
-        image = resource.get("img/people/man/hat/tophat.png"),
-        width = 24, height = 24,
-        originX = 8, originY = 24,
-        animations = {
-          idle = {
-            first = 0,
-            last = 0,
-            speed = 1,
-          },
-          walking = {
-            first = 0,
-            last = 0,
-            speed = 1,
-          },
-        },
-        playing = "idle",
-      }
-    ))
+  local spriteData = {
+    width = 24, height = 24,
+    originX = 8, originY = 24,
+  }
+  
+  for _,part in ipairs(bodyParts) do
+    if part ~= "hat" or math.random() < 0.125 then
+      -- Pick a random image for this body part
+      local dir = prefix .. part
+      local images = love.filesystem.enumerate(dir)
+      local fname = dir .. "/" .. images[math.random(1, #images)]
+      
+      -- Remove 'resources/' from the start of the filename for resource.get()
+      fname = string.sub(fname, 10)
+      
+      -- Prepare the sprite data based on body part type
+      spriteData.image = resource.get(fname)
+      if part == "nude" or part == "bottom" then
+        spriteData.animations = bodyAnimations
+        spriteData.playing = "walking"
+      elseif part == "hair" then
+        spriteData.animations = hairAnimations[hairColour]
+        spriteData.playing = "neat"
+      else
+       spriteData.animations = nil
+       spriteData.playing = nil
+      end
+      
+      -- Add the body part image as a sprite to the client
+      entity.addComponent(id, sprite.new(id, spriteData))
+    end
   end
 
   local pos = {roomNum = -.5, floorNum = GROUND_FLOOR}
@@ -150,8 +96,8 @@ M.new = function (target)
     id, pos, {x = 16, y = 30}
   ))
   local aiComponent = ai.new(id)
-  if target then
-    aiComponent:addFollowGoal(target)
+  if t and t.target then
+    aiComponent:addFollowGoal(t.target)
   else
     event.notify("room.all", 0, function (id,type)
       local info = room.getInfo(id)
@@ -189,7 +135,7 @@ M.new = function (target)
   return id
 end
 
-local spawner = entity.new(2)
+local spawner = entity.new(STATE_PLAY)
 local itime = math.random(SPAWN_MIN, SPAWN_MAX)
 local com = entity.newComponent({
   timer = itime,
@@ -200,7 +146,9 @@ local com = entity.newComponent({
       local spawnMax = SPAWN_MAX * SPAWN_FACTOR / (gReputation + 1)
       self.timer = math.random(spawnMin, spawnMax)
       self.target = M.new()
-      M.new(self.target)
+      M.new({
+        target = self.target,
+      })
     else
       self.timer = self.timer - dt
     end
