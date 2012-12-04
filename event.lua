@@ -52,7 +52,7 @@ M.notify = function (event, id, data)
   notifyDepth = notifyDepth + 1
   if manager.events[event] and manager.events[event][id] then
     for _,callback in ipairs(manager.events[event][id]) do
-      callback(data)
+      if callback(data) then break end
     end
   end
   notifyDepth = notifyDepth - 1

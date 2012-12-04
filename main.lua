@@ -10,6 +10,7 @@ GROUND_FLOOR = 0
 STATE_TRAIN = 1
 STATE_PLAY = 2
 STATE_PAUSE = 3
+STATE_DECISION = 4
 
 STAFF_MOVE = 1
 STAFF_WAGE = 20
@@ -43,6 +44,7 @@ local staff = require("staff")
 local client = require("client")
 local transform = require("transform")
 local path = require("path")
+local decision = require("decision")
 
 conf = {
   menu = {
@@ -101,8 +103,24 @@ event.subscribe("state.enter", 0, function (state)
   gState = state
 end)
 gGameSpeed = 1
-gMoney = 2000
+gMoney = 200000
 gReputation = REP_INIT
+
+moneyChange = function (c)
+  gMoney = math.max(0, gMoney + c)
+end
+
+reputationChange = function (c)
+  gReputation = math.max(math.min(gReputation + c, REP_MAX), 0)
+end
+
+-- Font
+gFont = love.graphics.newImageFont(
+  resource.get("img/font.png"),
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ..
+  "abcdefghijklmnopqrstuvwxyz" ..
+  "1234567890!,.;:$*-+=/#_%^@\\&|?'\" "
+)
 
 -- Update menu tooltips (get names, costs of rooms)
 for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
@@ -136,7 +154,7 @@ local setupScreen = function (modes)
         CANVAS_HEIGHT * (scale + 1) <= mode.height do
       scale = scale + 1
   end
-  
+  --[[
   return {
     x = math.floor((mode.width - (CANVAS_WIDTH * scale)) / 2),
     y = math.floor((mode.height - (CANVAS_HEIGHT * scale)) / 2),
@@ -144,6 +162,15 @@ local setupScreen = function (modes)
     height = mode.height,
     scale = scale,
     fullscreen = true,
+  }
+  --]]
+  return {
+    x = 0,
+    y = 0,
+    width = 256*4,
+    height = 224*4,
+    scale = 4,
+    fullscreen = false,
   }
 end
 conf.screen = setupScreen(love.graphics.getModes())
@@ -190,14 +217,6 @@ local frameQuad = love.graphics.newQuad(
   conf.screen.width / conf.screen.scale,
   conf.screen.height / conf.screen.scale,
   frameImage:getWidth(), frameImage:getHeight()
-)
-
--- Font
-local font = love.graphics.newImageFont(
-  resource.get("img/font.png"),
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ..
-  "abcdefghijklmnopqrstuvwxyz" ..
-  "1234567890!,.;:$*-+=/#_%^@\\&|?'\" "
 )
 
 --Menu spacing values
@@ -359,7 +378,7 @@ menu.addButton(gui, menu.newButton("infrastructure", function ()
   
   --Stairs
   menu.addButton(submenu, menu.newButton("stairs", function ()
-    print("Build stairs")
+    print("Stairs")
   end))
   --Elevator
   menu.addButton(submenu, menu.newButton("elevator", function ()
@@ -557,7 +576,7 @@ trainTextCom = entity.newComponent({
       256,
       "center"
     )
-    love.graphics.setFont(font)
+    love.graphics.setFont(gFont)
     love.graphics.printf(
       self.text,
       0, CANVAS_HEIGHT - 32,
@@ -649,7 +668,7 @@ hudCom.draw = function (self)
     if info then
       -- draw info
       love.graphics.setColor(255, 255, 255)
-      love.graphics.setFont(font)
+      love.graphics.setFont(gFont)
       love.graphics.printf(
         info.name,
         115, CANVAS_HEIGHT - 26,
@@ -677,7 +696,7 @@ local moneyCom = entity.newComponent()
 moneyCom.change = 0
 moneyCom.changeTimer = 0
 moneyCom.draw = function (self)
-  love.graphics.setFont(font)
+  love.graphics.setFont(gFont)
   love.graphics.setColor(255, 255, 255)
   love.graphics.printf(
     "$" .. gMoney .. "k",
@@ -723,7 +742,7 @@ event.subscribe("money.change", 0, function (e)
       end
     end
     com.draw = function (self)
-      love.graphics.setFont(font)
+      love.graphics.setFont(gFont)
       local colors = { {0, 0, 0} }
       local str = ""
       if self.amount > 0 then 
@@ -759,18 +778,20 @@ local repDisplay = entity.new(STATE_PLAY)
 entity.setOrder(repDisplay, 100)
 local repCom = entity.newComponent()
 repCom.draw = function (self)
-  love.graphics.setFont(font)
-  if gReputation < REP_THRESH_1 then
-    love.graphics.setColor(252, 56, 0)
-  elseif gReputation < REP_THRESH_2 then
-    love.graphics.setColor(252, 184, 0)
-  elseif gReputation < REP_THRESH_3 then
-    love.graphics.setColor(0, 184, 0)
-  else
-    love.graphics.setColor(56, 192, 252)
+  if gReputation > 0 then
+    love.graphics.setFont(gFont)
+    if gReputation < REP_THRESH_1 then
+      love.graphics.setColor(252, 56, 0)
+    elseif gReputation < REP_THRESH_2 then
+      love.graphics.setColor(252, 184, 0)
+    elseif gReputation < REP_THRESH_3 then
+      love.graphics.setColor(0, 184, 0)
+    else
+      love.graphics.setColor(56, 192, 252)
+    end
+    local w = math.floor(math.min(REP_MAX, gReputation) * .4) + 1
+    love.graphics.rectangle("fill", 197, 215, w, 5)
   end
-  local w = math.floor(math.min(REP_MAX, gReputation) * .4) + 1
-  love.graphics.rectangle("fill", 197, 215, w, 5)
 end
 entity.addComponent(repDisplay, repCom)
 
@@ -829,7 +850,7 @@ local pauseCom = entity.newComponent({
   selected = 1,
   
   draw = function (self)
-    love.graphics.setFont(font)
+    love.graphics.setFont(gFont)
     for i,option in ipairs(self.options) do
       if i == self.selected then
         love.graphics.setColor(255, 255, 255)
