@@ -162,7 +162,7 @@ local setupScreen = function (modes)
         CANVAS_HEIGHT * (scale + 1) <= mode.height do
       scale = scale + 1
   end
-  --[[
+
   return {
     x = math.floor((mode.width - (CANVAS_WIDTH * scale)) / 2),
     y = math.floor((mode.height - (CANVAS_HEIGHT * scale)) / 2),
@@ -171,17 +171,36 @@ local setupScreen = function (modes)
     scale = scale,
     fullscreen = true,
   }
-  --]]
-  return {
-    x = 0,
-    y = 0,
-    width = 256*4,
-    height = 224*4,
+end
+conf.screenModes = {
+  setupScreen(love.graphics.getModes()),
+  {
+    x = 0, y = 0,
+    width = CANVAS_WIDTH, height = CANVAS_HEIGHT,
+    scale = 1,
+    fullscreen = false,
+  },
+  {
+    x = 0, y = 0,
+    width = CANVAS_WIDTH * 2, height = CANVAS_HEIGHT * 2,
+    scale = 2,
+    fullscreen = false,
+  },
+  {
+    x = 0, y = 0,
+    width = CANVAS_WIDTH * 3, height = CANVAS_HEIGHT * 3,
+    scale = 3,
+    fullscreen = false,
+  },
+  {
+    x = 0, y = 0,
+    width = CANVAS_WIDTH * 4, height = CANVAS_HEIGHT * 4,
     scale = 4,
     fullscreen = false,
-  }
-end
-conf.screen = setupScreen(love.graphics.getModes())
+  },
+}
+conf.screenModeCurrent = 1
+conf.screen = conf.screenModes[conf.screenModeCurrent]
 
 love.filesystem.setIdentity("love-hotel")
 
@@ -963,6 +982,17 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
     end
   elseif key == "f1" then
     event.notify("training.begin", 0)
+  elseif key == "f11" then
+    conf.screenModeCurrent = conf.screenModeCurrent + 1
+    if conf.screenModeCurrent > #conf.screenModes then
+      conf.screenModeCurrent = 1
+    end
+    conf.screen = conf.screenModes[conf.screenModeCurrent]
+    --[[love.graphics.setMode(
+      conf.screen.width,
+      conf.screen.height,
+      conf.screen.fullscreen
+    )--]]
   else
     input.keyPressed(key)
   end
