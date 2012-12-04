@@ -853,7 +853,7 @@ bdCom.draw = function (self)
   love.graphics.setColor(255, 255, 255)
   love.graphics.draw(
     bdImg,
-    0, 192 + (gScrollPos * 32) - bdImg:getHeight(),
+    0, 464 + (gScrollPos * 32) - bdImg:getHeight(),
     0
   )
 end
