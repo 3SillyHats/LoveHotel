@@ -196,8 +196,8 @@ local com = entity.newComponent({
   target = nil,
   update = function (self, dt)
     if self.timer <= 0 then
-      local spawnMin = SPAWN_MIN * 15 / gReputation
-      local spawnMax = SPAWN_MAX * 15 / gReputation
+      local spawnMin = SPAWN_MIN * SPAWN_FACTOR / gReputation
+      local spawnMax = SPAWN_MAX * SPAWN_FACTOR / gReputation
       self.timer = math.random(spawnMin, spawnMax)
       self.target = M.new()
       M.new(self.target)

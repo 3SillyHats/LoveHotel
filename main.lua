@@ -21,6 +21,13 @@ SEX_TIME = 7
 CLEAN_TIME = 15
 SPAWN_MIN = 10
 SPAWN_MAX = 20
+SPAWN_FACTOR = 10
+
+REP_INIT = 10
+REP_MAX = 100
+REP_THRESH_1 = 25
+REP_THRESH_2 = 50
+REP_THRESH_3 = 75
 
 local event = require("event")
 local entity = require("entity")
@@ -95,7 +102,7 @@ event.subscribe("state.enter", 0, function (state)
 end)
 gGameSpeed = 1
 gMoney = 2000
-gReputation = 15
+gReputation = REP_INIT
 
 -- Update menu tooltips (get names, costs of rooms)
 for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
@@ -674,7 +681,7 @@ moneyCom.draw = function (self)
   love.graphics.setColor(255, 255, 255)
   love.graphics.printf(
     "$" .. gMoney .. "k",
-    200, CANVAS_HEIGHT - 26,
+    197, CANVAS_HEIGHT - 28,
     56,
     "right"
   )
@@ -753,13 +760,17 @@ entity.setOrder(repDisplay, 100)
 local repCom = entity.newComponent()
 repCom.draw = function (self)
   love.graphics.setFont(font)
-  love.graphics.setColor(255, 255, 255)
-  love.graphics.printf(
-    "R:" .. math.min(100, math.floor(gReputation)),
-    200, CANVAS_HEIGHT - 15,
-    56,
-    "right"
-  )
+  if gReputation < REP_THRESH_1 then
+    love.graphics.setColor(252, 56, 0)
+  elseif gReputation < REP_THRESH_2 then
+    love.graphics.setColor(252, 184, 0)
+  elseif gReputation < REP_THRESH_3 then
+    love.graphics.setColor(0, 184, 0)
+  else
+    love.graphics.setColor(56, 192, 252)
+  end
+  local w = math.floor(math.min(REP_MAX, gReputation) * .4) + 1
+  love.graphics.rectangle("fill", 197, 215, w, 5)
 end
 entity.addComponent(repDisplay, repCom)
 
