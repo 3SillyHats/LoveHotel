@@ -49,8 +49,9 @@ end
 M.new = function (t)
   local id = entity.new(STATE_PLAY)
   entity.setOrder(id, 50)
-  isMale = math.random() < 0.5  --randomize male or female
-  hairColour = math.random(1, 4)
+  local isMale = math.random() < 0.5  --randomize male or female
+  local hairColour = math.random(1, 4)
+  local hatChance = .125
   
   local prefix
   if isMale then
@@ -58,16 +59,29 @@ M.new = function (t)
   else
     prefix = "resources/img/people/woman/"
   end
+  local categoryPrefix = prefix .. t.category .. "/"
+  if t.category == "rich" then
+    hatChance = 1
+  end
   local spriteData = {
     width = 24, height = 24,
     originX = 8, originY = 24,
   }
   
   for _,part in ipairs(bodyParts) do
-    if part ~= "hat" or math.random() < 0.125 then
+    -- Everything but nude and hair parts are category-specific
+    local dir
+    if part == "nude" or part == "hair" then
+      dir = prefix .. part
+    else
+      dir = categoryPrefix .. part
+    end
+    local images = love.filesystem.enumerate(dir)
+
+    -- Skip part if no images exist, and only give a chance of a hat
+    if #images > 0 and 
+        (part ~= "hat" or math.random() < hatChance) then
       -- Pick a random image for this body part
-      local dir = prefix .. part
-      local images = love.filesystem.enumerate(dir)
       local fname = dir .. "/" .. images[math.random(1, #images)]
       
       -- Remove 'resources/' from the start of the filename for resource.get()
@@ -142,12 +156,24 @@ local com = entity.newComponent({
   target = nil,
   update = function (self, dt)
     if self.timer <= 0 then
+      local category
+      local c = (math.random() + (2 * gReputation / REP_MAX)) / 3
+      if c < .33 then
+        category = "poor"
+      elseif c > .66 then
+        category = "rich"
+      else
+        category = "working"
+      end
       local spawnMin = SPAWN_MIN * SPAWN_FACTOR / (gReputation + 1)
       local spawnMax = SPAWN_MAX * SPAWN_FACTOR / (gReputation + 1)
       self.timer = math.random(spawnMin, spawnMax)
-      self.target = M.new()
+      self.target = M.new({
+        category = category,
+      })
       M.new({
         target = self.target,
+        category = category,
       })
     else
       self.timer = self.timer - dt
