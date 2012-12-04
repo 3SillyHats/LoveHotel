@@ -125,55 +125,66 @@ M.newGoal = function (com)
   }
 end
 
+local seekGoto = function (self,pos)
+  local passable = false
+  if (pos.floorNum >= gBottomFloor and
+      pos.floorNum <= gTopFloor) or
+    (pos.roomNum < 7.5 and
+     pos.floorNum == GROUND_FLOOR) then
+      passable = true
+  end
+  if passable then
+    event.notify("entity.move", self.component.entity, pos)
+  else
+    return "failed"
+  end
+end
+
+local seekProcess = function  (self, dt)
+  if not self.moveTo or not self.pos then
+    return "failed"
+  end
+  if self.moveTo.floorNum ~= self.pos.floorNum then
+    return "failed"
+  end
+  if math.abs(self.moveTo.roomNum - self.pos.roomNum) < self.speed*dt then
+    local result = seekGoto(self, {
+      roomNum = self.moveTo.roomNum,
+      floorNum = self.pos.floorNum,
+    })
+    if result then return result end
+    return "complete"
+  else
+    local delta = self.speed*dt
+    if self.moveTo.roomNum < self.pos.roomNum then
+      delta = delta * -1
+      event.notify("sprite.flip", self.component.entity, true)
+    else
+      event.notify("sprite.flip", self.component.entity, false)
+    end
+    local result = seekGoto(self, {
+      roomNum = self.pos.roomNum + delta,
+      floorNum = self.pos.floorNum,
+    })
+    if result then return result end
+    return "active"
+  end
+end
+
 local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
+  collectgarbage("collect")
+  local a = collectgarbage("count")
   local goal = M.newGoal(com)
+  collectgarbage("collect")
+  local b = collectgarbage("count")
+  print(b, b-a, com.entity, "init seek goal")
   goal.moveTo = {roomNum = moveTo.roomNum, floorNum = moveTo.floorNum}
   goal.pos = {roomNum = moveFrom.roomNum, floorNum = moveFrom.floorNum}
   goal.speed = moveSpeed
-  local goto = function(pos)
-    local passable = false
-    if (pos.floorNum >= gBottomFloor and
-        pos.floorNum <= gTopFloor) or
-        (pos.roomNum < 7.5 and
-        pos.floorNum == GROUND_FLOOR) then
-      passable = true
-    end
-    if passable then
-      event.notify("entity.move", goal.component.entity, pos)
-    else
-      return "failed"
-    end
-  end
-  goal.process = function (self, dt)
-    if not self.moveTo or not self.pos then
-      return "failed"
-    end
-    if self.moveTo.floorNum ~= self.pos.floorNum then
-      return "failed"
-    end
-    if math.abs(self.moveTo.roomNum - self.pos.roomNum) < self.speed*dt then
-      local result = goto{
-        roomNum = self.moveTo.roomNum,
-        floorNum = self.pos.floorNum,
-      }
-      if result then return result end
-      return "complete"
-    else
-      local delta = self.speed*dt
-      if self.moveTo.roomNum < self.pos.roomNum then
-        delta = delta * -1
-        event.notify("sprite.flip", goal.component.entity, true)
-      else
-        event.notify("sprite.flip", goal.component.entity, false)
-      end
-      local result = goto{
-        roomNum = self.pos.roomNum + delta,
-        floorNum = self.pos.floorNum,
-      }
-      if result then return result end
-      return "active"
-    end
-  end
+  goal.process = seekProcess
+  collectgarbage("collect")
+  local b = collectgarbage("count")
+  print(b, b-a, com.entity, "init seek attributes")
   local onMove = function (pos)
     goal.pos.roomNum = pos.roomNum
     goal.pos.floorNum = pos.floorNum
@@ -195,8 +206,56 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
     event.notify("sprite.play", goal.component.entity, "idle")
     old_terminate(self)
   end
+  local b = collectgarbage("count")
+  print(b, b-a, com.entity, "method seek")
   
   return goal
+end
+
+local elevatorGoto = function(self, pos)
+  local passable = false
+  event.notify("room.check", 0, {
+    roomNum = pos.roomNum,
+    floorNum = pos.floorNum,
+    callback = function (id, roomType)
+      if roomType == "elevator" then
+        passable = true
+      end
+    end,
+  })
+  if passable then
+    event.notify("entity.move", goal.component.entity, pos)
+  else
+    return "failed"
+  end
+end
+
+local elevatorProcess = function (self, dt)
+  if not self.moveTo or not self.pos then
+    return "failed"
+  end
+  if self.moveTo.roomNum ~= self.pos.roomNum then
+    return "failed"
+  end
+  if math.abs(self.moveTo.floorNum - self.pos.floorNum) < self.speed*dt then
+    local result = elevatorGoto(self, {
+      roomNum = self.moveTo.roomNum,
+      floorNum = self.pos.floorNum,
+    })
+    if result then return result end
+    return "complete"
+  else
+    local delta = self.speed*dt
+    if self.moveTo.floorNum < self.pos.floorNum then
+      delta = delta * -1
+    end
+    local result = elevatorGoto(self, {
+      roomNum = self.pos.roomNum,
+      floorNum = self.pos.floorNum + delta,
+    })
+    if result then return result end
+    return "active"
+  end
 end
 
 local newElevatorGoal = function (com, moveFrom, moveTo)
@@ -205,50 +264,7 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
   goal.moveTo = {roomNum = moveTo.roomNum, floorNum = moveTo.floorNum}
   goal.pos = {roomNum = moveFrom.roomNum, floorNum = moveFrom.floorNum}
   goal.speed = ELEVATOR_MOVE
-  local goto = function(pos)
-    local passable = false
-    event.notify("room.check", 0, {
-      roomNum = pos.roomNum,
-      floorNum = pos.floorNum,
-      callback = function (id, roomType)
-        if roomType == "elevator" then
-          passable = true
-        end
-      end,
-    })
-    if passable then
-      event.notify("entity.move", goal.component.entity, pos)
-    else
-      return "failed"
-    end
-  end
-  goal.process = function (self, dt)
-    if not self.moveTo or not self.pos then
-      return "failed"
-    end
-    if self.moveTo.roomNum ~= self.pos.roomNum then
-      return "failed"
-    end
-    if math.abs(self.moveTo.floorNum - self.pos.floorNum) < self.speed*dt then
-      local result = goto{
-        roomNum = self.moveTo.roomNum,
-        floorNum = self.pos.floorNum,
-      }
-      if result then return result end
-      return "complete"
-    else
-      local delta = self.speed*dt
-      if self.moveTo.floorNum < self.pos.floorNum then
-        delta = delta * -1
-      end
-      local result = goto{
-        roomNum = self.pos.roomNum,
-        floorNum = self.pos.floorNum + delta,
-      }
-      if result then return result end
-      return "active"
-    end
-  end
+  goal.process = elevatorProcess
   local onMove = function (pos)
     goal.pos.roomNum = pos.roomNum
     goal.pos.floorNum = pos.floorNum
@@ -300,16 +316,32 @@ local newMoveToGoal = function (self, moveTo, moveSpeed)
     if not p then
       goal.status = "failed"
     else
+      local last = nil
       local old = nil
       for _,pos in ipairs(p) do
         if old then
-          if old.floorNum == pos.floorNum then
-            goal:addSubgoal(newSeekGoal(self.component, old, pos, moveSpeed))
-          else
-            goal:addSubgoal(newElevatorGoal(self.component, old, pos))
+          print(last.floorNum, last.roomNum)
+          print(old.floorNum, old.roomNum)
+          print(pos.floorNum, pos.roomNum)
+          if last.floorNum == old.floorNum and last.roomNum ~= old.roomNum and old.floorNum ~= pos.floorNum then
+            goal:addSubgoal(newSeekGoal(self.component, last, old, moveSpeed))
+            last = old
+          end
+          if last.roomNum == old.roomNum and last.floorNum ~= old.floorNum and old.roomNum ~= pos.roomNum then
+            goal:addSubgoal(newElevatorGoal(self.component, last, old))
+            last = old
           end
         end
         old = pos
+        if not last then last = old end
+      end
+      if last then
+        if last.floorNum == pos.floorNum and last.roomNum ~= pos.roomNum then
+          goal:addSubgoal(newSeekGoal(self.component, last, pos, moveSpeed))
+        end
+        if last.roomNum == pos.roomNum and last.floorNum ~= pos.floorNum then
+          goal:addSubgoal(newElevatorGoal(self.component, last, pos))
+        end
       end
     end
     old_activate(self)
