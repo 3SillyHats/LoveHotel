@@ -172,56 +172,60 @@ local setupScreen = function (modes)
     fullscreen = true,
   }
 end
-conf.screenModes = {
-  setupScreen(love.graphics.getModes()),
-  {
-    x = 0, y = 0,
-    width = CANVAS_WIDTH, height = CANVAS_HEIGHT,
-    scale = 1,
-    fullscreen = false,
+conf.screen = {
+  modes = {
+    setupScreen(love.graphics.getModes()),
+    {
+      x = 0, y = 0,
+      width = CANVAS_WIDTH, height = CANVAS_HEIGHT,
+      scale = 1,
+      fullscreen = false,
+    },
+    {
+      x = 0, y = 0,
+      width = CANVAS_WIDTH * 2, height = CANVAS_HEIGHT * 2,
+      scale = 2,
+      fullscreen = false,
+    },
+    {
+      x = 0, y = 0,
+      width = CANVAS_WIDTH * 3, height = CANVAS_HEIGHT * 3,
+      scale = 3,
+      fullscreen = false,
+    },
+    {
+      x = 0, y = 0,
+      width = CANVAS_WIDTH * 4, height = CANVAS_HEIGHT * 4,
+      scale = 4,
+      fullscreen = false,
+    },
   },
-  {
-    x = 0, y = 0,
-    width = CANVAS_WIDTH * 2, height = CANVAS_HEIGHT * 2,
-    scale = 2,
-    fullscreen = false,
-  },
-  {
-    x = 0, y = 0,
-    width = CANVAS_WIDTH * 3, height = CANVAS_HEIGHT * 3,
-    scale = 3,
-    fullscreen = false,
-  },
-  {
-    x = 0, y = 0,
-    width = CANVAS_WIDTH * 4, height = CANVAS_HEIGHT * 4,
-    scale = 4,
-    fullscreen = false,
-  },
+  i = 1
 }
-conf.screenModeCurrent = 1
-conf.screen = conf.screenModes[conf.screenModeCurrent]
 
 love.filesystem.setIdentity("love-hotel")
 
 -- Create the window
 love.graphics.setMode(
-  conf.screen.width,
-  conf.screen.height,
-  conf.screen.fullscreen
+  conf.screen.modes[conf.screen.i].width,
+  conf.screen.modes[conf.screen.i].height,
+  conf.screen.modes[conf.screen.i].fullscreen
 )
 love.graphics.setBackgroundColor(0, 0, 0)
 
 love.mouse.setVisible(false)
 
 -- Create the canvas
-if not love.graphics.newCanvas then
-  -- Support love2d versions before 0.8
-  love.graphics.newCanvas = love.graphics.newFramebuffer
-  love.graphics.setCanvas = love.graphics.setRenderTarget
+createCanvas = function ()
+  if not love.graphics.newCanvas then
+    -- Support love2d versions before 0.8
+    love.graphics.newCanvas = love.graphics.newFramebuffer
+    love.graphics.setCanvas = love.graphics.setRenderTarget
+  end
+  canvas = love.graphics.newCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
+  canvas:setFilter("nearest", "nearest")
 end
-canvas = love.graphics.newCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
-canvas:setFilter("nearest", "nearest")
+createCanvas()
 
 -- Create the pixel effect
 if not love.graphics.newPixelEffect then
@@ -232,7 +236,7 @@ else
   if pixelEffect then
     pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
     pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-    pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
+    pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.modes[conf.screen.i].scale, CANVAS_HEIGHT*conf.screen.modes[conf.screen.i].scale})
   end
 end
 
@@ -241,8 +245,8 @@ local frameImage = resource.get("img/frame.png")
 frameImage:setWrap("repeat", "repeat")
 local frameQuad = love.graphics.newQuad(
   0, 0,
-  conf.screen.width / conf.screen.scale,
-  conf.screen.height / conf.screen.scale,
+  conf.screen.modes[conf.screen.i].width / conf.screen.modes[conf.screen.i].scale,
+  conf.screen.modes[conf.screen.i].height / conf.screen.modes[conf.screen.i].scale,
   frameImage:getWidth(), frameImage:getHeight()
 )
 
@@ -941,16 +945,16 @@ love.draw = function ()
     frameImage, frameQuad,
     0, 0,
     0,
-    conf.screen.scale, conf.screen.scale
+    conf.screen.modes[conf.screen.i].scale, conf.screen.modes[conf.screen.i].scale
   )
   -- Fill the screen area black for pixel effect
   love.graphics.setColor(0, 0, 0)
   love.graphics.rectangle(
     "fill", 
-    conf.screen.x,
-    conf.screen.y,
-    CANVAS_WIDTH * conf.screen.scale,
-    CANVAS_HEIGHT * conf.screen.scale
+    conf.screen.modes[conf.screen.i].x,
+    conf.screen.modes[conf.screen.i].y,
+    CANVAS_WIDTH * conf.screen.modes[conf.screen.i].scale,
+    CANVAS_HEIGHT * conf.screen.modes[conf.screen.i].scale
   )
   
   if pixelEffect then
@@ -959,11 +963,11 @@ love.draw = function ()
   love.graphics.setColor(255, 255, 255)
   love.graphics.draw(
     canvas,
-    conf.screen.x,
-    conf.screen.y,
+    conf.screen.modes[conf.screen.i].x,
+    conf.screen.modes[conf.screen.i].y,
     0,
-    conf.screen.scale,
-    conf.screen.scale
+    conf.screen.modes[conf.screen.i].scale,
+    conf.screen.modes[conf.screen.i].scale
   )
 end
 
@@ -983,16 +987,15 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
   elseif key == "f1" then
     event.notify("training.begin", 0)
   elseif key == "f11" then
-    conf.screenModeCurrent = conf.screenModeCurrent + 1
-    if conf.screenModeCurrent > #conf.screenModes then
-      conf.screenModeCurrent = 1
+    conf.screen.i = conf.screen.i + 1
+    if conf.screen.i > #conf.screen.modes then
+      conf.screen.i = 1
     end
-    conf.screen = conf.screenModes[conf.screenModeCurrent]
-    --[[love.graphics.setMode(
-      conf.screen.width,
-      conf.screen.height,
-      conf.screen.fullscreen
-    )--]]
+    --love.graphics.setMode(
+    --  conf.screen.modes[conf.screen.i].width,
+    --  conf.screen.modes[conf.screen.i].height,
+    --  conf.screen.modes[conf.screen.i].fullscreen
+    --)
   else
     input.keyPressed(key)
   end
