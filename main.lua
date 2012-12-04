@@ -111,7 +111,15 @@ moneyChange = function (c)
 end
 
 reputationChange = function (c)
+  local old = gReputation
   gReputation = math.max(math.min(gReputation + c, REP_MAX), 0)
+  if old < REP_THRESH_1 and gReputation >= REP_THRESH_1 then
+    event.notify("reputation.threshold", 0, 1)
+  elseif old < REP_THRESH_2 and gReputation >= REP_THRESH_2 then
+    event.notify("reputation.threshold", 0, 2)
+  elseif old < REP_THRESH_3 and gReputation >= REP_THRESH_3 then
+    event.notify("reputation.threshold", 0, 3)
+  end
 end
 
 -- Font
@@ -415,14 +423,20 @@ menu.addButton(gui, menu.newButton("suites", function ()
   menu.addButton(submenu, menu.newButton("flower", function ()
     buildRoom("flower", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
-  --Heart
-  menu.addButton(submenu, menu.newButton("heart", function ()
-    buildRoom("heart", {roomNum = 1, floorNum = gScrollPos}, submenu)
-  end))
-  --Tropical
-  menu.addButton(submenu, menu.newButton("tropical", function ()
-    buildRoom("tropical", {roomNum = 1, floorNum = gScrollPos}, submenu)
-  end))
+  
+  if gReputation > REP_THRESH_1 then
+    --Heart
+    menu.addButton(submenu, menu.newButton("heart", function ()
+      buildRoom("heart", {roomNum = 1, floorNum = gScrollPos}, submenu)
+    end))
+  end
+  
+  if gReputation > REP_THRESH_2 then
+    --Tropical
+    menu.addButton(submenu, menu.newButton("tropical", function ()
+      buildRoom("tropical", {roomNum = 1, floorNum = gScrollPos}, submenu)
+    end))
+  end
 
   --The back button deletes the submenu
   menu.setBack(submenu, function ()
