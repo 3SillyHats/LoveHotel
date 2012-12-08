@@ -172,19 +172,11 @@ local seekProcess = function  (self, dt)
 end
 
 local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
-  collectgarbage("collect")
-  local a = collectgarbage("count")
   local goal = M.newGoal(com)
-  collectgarbage("collect")
-  local b = collectgarbage("count")
-  print(b, b-a, com.entity, "init seek goal")
   goal.moveTo = {roomNum = moveTo.roomNum, floorNum = moveTo.floorNum}
   goal.pos = {roomNum = moveFrom.roomNum, floorNum = moveFrom.floorNum}
   goal.speed = moveSpeed
   goal.process = seekProcess
-  collectgarbage("collect")
-  local b = collectgarbage("count")
-  print(b, b-a, com.entity, "init seek attributes")
   local onMove = function (pos)
     goal.pos.roomNum = pos.roomNum
     goal.pos.floorNum = pos.floorNum
@@ -206,8 +198,6 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
     event.notify("sprite.play", goal.component.entity, "idle")
     old_terminate(self)
   end
-  local b = collectgarbage("count")
-  print(b, b-a, com.entity, "method seek")
   
   return goal
 end
@@ -320,9 +310,6 @@ local newMoveToGoal = function (self, moveTo, moveSpeed)
       local old = nil
       for _,pos in ipairs(p) do
         if old then
-          print(last.floorNum, last.roomNum)
-          print(old.floorNum, old.roomNum)
-          print(pos.floorNum, pos.roomNum)
           if last.floorNum == old.floorNum and last.roomNum ~= old.roomNum and old.floorNum ~= pos.floorNum then
             goal:addSubgoal(newSeekGoal(self.component, last, old, moveSpeed))
             last = old
