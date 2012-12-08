@@ -214,7 +214,7 @@ local elevatorGoto = function(self, pos)
     end,
   })
   if passable then
-    event.notify("entity.move", goal.component.entity, pos)
+    event.notify("entity.move", self.component.entity, pos)
   else
     return "failed"
   end
@@ -462,7 +462,7 @@ local addVisitGoal = function (self, target)
     if t.horny and not room.isDirty(self.target) and room.occupation(self.target) == 0 then
       local myPos = transform.getPos(self.component.entity)
       local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
-        + math.abs(myPos.roomNum - targetPos.roomNum) / STAFF_MOVE
+        + math.abs(myPos.roomNum - targetPos.roomNum) / CLIENT_MOVE
       return 1/(1+time) + info.desirability
     end
     return -1
