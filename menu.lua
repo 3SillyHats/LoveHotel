@@ -11,6 +11,7 @@ buttLoc = {
   entertainment = 2,
   hotel = 3,
   staff = 4,
+  locked = 7,
 
   stairs = 8,
   elevator = 9,

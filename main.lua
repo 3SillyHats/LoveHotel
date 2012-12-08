@@ -69,6 +69,10 @@ conf = {
       name="Staff",
       desc="",
     },
+    locked = {
+      name="Locked",
+      desc="Needs stars"
+    },
     
     -- Structure
     floorUp =  {
@@ -391,6 +395,15 @@ local floorDown = function()
   end
 end
 
+local addLockButton = function (submenu)
+  local callback = function ()
+    local snd = resource.get("snd/error.wav")
+    love.audio.rewind(snd)
+    love.audio.play(snd)
+  end
+  menu.addButton(submenu, menu.newButton("locked", callback))
+end
+
 --Main menu
 local gui = menu.new(STATE_PLAY, mainMenuY)
 
@@ -452,6 +465,8 @@ menu.addButton(gui, menu.newButton("suites", function ()
     menu.addButton(submenu, menu.newButton("heart", function ()
       buildRoom("heart", {roomNum = 1, floorNum = gScrollPos}, submenu)
     end))
+  else
+    addLockButton(submenu)
   end
   
   if gReputation > REP_THRESH_2 then
@@ -459,6 +474,8 @@ menu.addButton(gui, menu.newButton("suites", function ()
     menu.addButton(submenu, menu.newButton("tropical", function ()
       buildRoom("tropical", {roomNum = 1, floorNum = gScrollPos}, submenu)
     end))
+  else
+    addLockButton(submenu)
   end
 
   --The back button deletes the submenu
