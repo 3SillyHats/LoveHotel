@@ -32,8 +32,10 @@ buttLoc = {
   staffRoom = 34,
   kitchen = 35,
    
-  hireCleaner = 40,
-  stock = 41,
+  cleaner = 40,
+  bellhop = 41,
+  cook = 42,
+  maintenance = 43,
 }
 
 local defaultAction = function ()

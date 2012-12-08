@@ -89,9 +89,21 @@ conf = {
     },
     
     -- Staff
-    hireCleaner = {
-      name="Hire Cleaner",
+    cleaner = {
+      name="Cleaner",
+      desc="$10/min"
+    },
+    bellhop = {
+      name="Bellhop",
       desc="$20/min"
+    },
+    cook = {
+      name="Cook",
+      desc="$40/min"
+    },
+    maintenance = {
+      name="Maintenance",
+      desc="$100/min"
     },
   },
 }
@@ -551,12 +563,17 @@ menu.addButton(gui, menu.newButton("staff", function ()
   local submenu = menu.new(STATE_PLAY, subMenuY)
   
   --Hire staff
-  menu.addButton(submenu, menu.newButton("hireCleaner", function ()
-    staff.new()
+  menu.addButton(submenu, menu.newButton("cleaner", function ()
+    staff.new("cleaner")
   end))
-  --Manage stocking
-  menu.addButton(submenu, menu.newButton("stock", function ()
-    print("stock")
+  menu.addButton(submenu, menu.newButton("bellhop", function ()
+    staff.new("bellhop")
+  end))
+  menu.addButton(submenu, menu.newButton("cook", function ()
+    staff.new("cook")
+  end))
+  menu.addButton(submenu, menu.newButton("maintenance", function ()
+    staff.new("maintenance")
   end))
 
   --The back button deletes the submenu

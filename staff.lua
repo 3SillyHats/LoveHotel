@@ -9,32 +9,29 @@ local transform = require("transform")
 
 local M = {}
 
-M.new = function ()
+M.new = function (type)
   local id = entity.new(STATE_PLAY)
   entity.setOrder(id, 50)
   isMale = math.random() < .5  --randomize male or female
-  
+
   local prefix = "resources/img/people"
-  local nudeimg = nil
-  local hairimg = nil
-  local staffimg = nil
+  local nudeimg
+  local hairimg
+  local staffimg
   if isMale then
     nudeimg = prefix .. "/man/nude/"
     hairimg = prefix .. "/man/hair/crewcut.png"
-    staffimg = prefix .. "/man/staff/"
+    staffimg = "img/people/man/staff/" .. type .. ".png"
   else
     nudeimg = prefix .. "/woman/nude/"
     hairimg = prefix .. "/woman/hair/curled.png"
-    staffimg = prefix .. "/woman/staff/"
+    staffimg = "img/people/woman/staff/" .. type .. ".png"
   end
   local nudes = love.filesystem.enumerate(nudeimg)
   local hairs = love.filesystem.enumerate(hairimg)
-  local staffs = love.filesystem.enumerate(staffimg)
   nudeimg = nudeimg .. nudes[math.random(1,#nudes)]
-  staffimg = staffimg .. staffs[math.random(1, #staffs)]
   nudeimg = string.sub(nudeimg,10)  -- remove "resources/"
   hairimg = string.sub(hairimg,10)
-  staffimg = string.sub(staffimg,10)
   local haircolour = math.random(0,3)
   
   --add skin
