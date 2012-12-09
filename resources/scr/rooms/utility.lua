@@ -6,6 +6,8 @@ return {
   desirability = 2,
   width = 1,
   dirtyable = false,
+  cleaningSupplies = true,
+  stock = 5,
   defaultBackgroundAnim = "stocked3",
   defaultForegroundAnim = "opening",
 

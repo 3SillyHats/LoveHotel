@@ -17,6 +17,9 @@ local infoComponent = function (id, info, pos)
   local component = entity.newComponent(info)
   component.occupied = 0
   component.messy = false
+  if info.cleaningSupplies then
+    component.stock = info.stock
+  end
   
   local check = function (t)
     if math.ceil(t.floorNum) == pos.floorNum and
@@ -111,6 +114,26 @@ local infoComponent = function (id, info, pos)
     event.notify("sprite.play", id, "opening")
   end
   
+  local beginSupply = function (e)
+    if component.occupied > 0 or component.stock == 0 then
+      e.callback(false)
+      return
+    end
+    
+    component.occupied = component.occupied + 1
+    
+    event.notify("sprite.hide", e.id, true)
+    event.notify("sprite.play", id, "closing")
+    e.callback(true)
+  end
+  
+  local endSupply = function (e)
+    component.occupied = 0
+    
+    event.notify("sprite.hide", e.id, false)
+    event.notify("sprite.play", id, "opening")
+  end
+  
   local function delete ()
     event.unsubscribe("room.check", 0, check)
     event.unsubscribe("room.all", 0, getRooms)
@@ -122,6 +145,8 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("room.depart", id, depart)
     event.unsubscribe("room.beginClean", id, beginClean)
     event.unsubscribe("room.endClean", id, endClean)
+    event.unsubscribe("room.beginSupply", id, beginSupply)
+    event.unsubscribe("room.endSupply", id, endSupply)
     event.unsubscribe("delete", id, delete)
   end
   
@@ -135,6 +160,8 @@ local infoComponent = function (id, info, pos)
   event.subscribe("room.depart", id, depart)
   event.subscribe("room.beginClean", id, beginClean)
   event.subscribe("room.endClean", id, endClean)
+  event.subscribe("room.beginSupply", id, beginSupply)
+  event.subscribe("room.endSupply", id, endSupply)
   event.subscribe("delete", id, delete)
 
   --Return the room info table.
