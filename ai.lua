@@ -640,7 +640,7 @@ local newPerformCleanGoal = function (self, target)
   
   local old_activate = goal.activate
   goal.activate = function(self, dt)
-    if not self.target then
+    if not self.target or self.component.supply == 0 then
       self.status = "failed"
       return 
     end
@@ -685,6 +685,7 @@ local newPerformCleanGoal = function (self, target)
       id = self.component.entity,
     })
     
+    self.component.supply = 0
     self.target = nil
     old_terminate(self)
     self.subgoals = {}
@@ -723,6 +724,9 @@ local addCleanGoal = function (self, target)
     if cleaning and cleaning.status == "active" then
       return 1000
     end
+    if self.component.supply == 0 then
+      return -1
+    end
     local myPos = transform.getPos(self.component.entity)
     local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
       + math.abs(myPos.roomNum - targetPos.roomNum) / STAFF_MOVE
@@ -748,6 +752,117 @@ local addCleanGoal = function (self, target)
   end
   event.subscribe("destroy", goal.target, destroy)
   
+  self.goalEvaluator:addSubgoal(goal)
+end
+
+local newGetSupplyGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  
+  local old_activate = goal.activate
+  goal.activate = function(self, dt)
+    if not self.target then
+      self.status = "failed"
+      return 
+    end
+    
+    local pos = transform.getPos(self.component.entity)
+    local atRoom = false
+    event.notify("room.check", 0, {
+      roomNum = pos.roomNum,
+      floorNum = pos.floorNum,
+      callback = function (id)
+        if id == self.target then
+          atRoom = true
+        end
+      end,
+    })
+    if not atRoom then
+      self.status = "failed"
+      return
+    end
+    
+    local supplying = false
+    event.notify("room.beginSupply", self.target, {
+      id = self.component.entity,
+      callback = function (res)
+        supplying = res
+      end,
+    })
+    
+    if not supplying then
+      self.status = "failed"
+      return
+    end
+    
+    self.status = "active"
+    self:addSubgoal(newSleepGoal(self.component, SUPPLY_TIME))
+    old_activate(self)
+  end
+  
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    event.notify("room.endSupply", self.target, {
+      id = self.component.entity,
+    })
+    self.component.supply = 1
+    
+    self.target = nil
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  return goal
+end
+
+local addSupplyGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  local info = room.getInfo(goal.target)
+  local targetPos = room.getPos(goal.target)
+  local supply = nil
+  
+  local old_activate = goal.activate
+  goal.activate = function (self)    
+    if not self.target then
+      self.status = "failed"
+      return
+    end
+    
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    supply = newGetSupplyGoal(self.component, self.target)
+    self:addSubgoal(supply)
+    old_activate(self)
+  end
+    
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  goal.getDesirability = function (self, t)
+    if supply and supply.status == "active" then
+      return 1000
+    end
+    local myPos = transform.getPos(self.component.entity)
+    local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
+      + math.abs(myPos.roomNum - targetPos.roomNum) / STAFF_MOVE
+    --local stock = room.getStock(self.target)
+    if self.component.supply == 0 then
+      return 1 / time
+    else
+      return -1
+    end
+  end
+  
+  local destroy
+  destroy = function (t)
+    self.goalEvaluator:removeSubgoal(goal)
+    event.unsubscribe("destroy", goal.target, destroy)
+  end
+  event.subscribe("destroy", goal.target, destroy)
+
   self.goalEvaluator:addSubgoal(goal)
 end
 
@@ -805,6 +920,7 @@ M.new = function (id)
     addFollowGoal = addFollowGoal,
     addExitGoal = addExitGoal,
     addEnterGoal = addEnterGoal,
+    addSupplyGoal = addSupplyGoal,
   })
   com.goalEvaluator = M.newGoal(com)
   com.goalEvaluator.arbitrate = arbitrate

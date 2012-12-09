@@ -123,17 +123,21 @@ M.new = function (type)
     end,
   })
   local aiComponent = ai.new(id)
-  event.notify("room.all", 0, function (id,type)
+  aiComponent.supply = 1
+  
+  local addRoomGoal = function (id)
     local info = room.getInfo(id)
     if info.dirtyable then
       aiComponent:addCleanGoal(id)
+    elseif info.cleaningSupplies then
+      aiComponent:addSupplyGoal(id)
     end
+  end
+  event.notify("room.all", 0, function (id,type)
+    addRoomGoal(id)
   end)
   event.subscribe("build", 0, function (t)
-    local info = room.getInfo(t.id)
-    if info.dirtyable then
-      aiComponent:addCleanGoal(t.id)
-    end
+    addRoomGoal(t.id)
   end)
   aiComponent:addEnterGoal()
   entity.addComponent(id, aiComponent)
