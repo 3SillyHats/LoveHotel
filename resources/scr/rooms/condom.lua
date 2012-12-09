@@ -5,6 +5,7 @@ return {
   width = 1,
   condomSupplies = true,
   stock = 3,
+  restockCost = 20,
 
   sprites = {
     {

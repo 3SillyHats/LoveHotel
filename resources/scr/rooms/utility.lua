@@ -8,6 +8,7 @@ return {
   dirtyable = false,
   cleaningSupplies = true,
   stock = 3,
+  restockCost = 50,
   
   sprites = {
     {

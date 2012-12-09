@@ -77,13 +77,13 @@ local stocker = function (id, pos, cost, t)
 
         if room.occupation(roomId) == 0 and
             stock < info.stock and
-            gMoney > 50 then
+            gMoney > info.restockCost then
           
           event.notify("stock", id, {id=roomId, pos=pos, type=type})
           room.setStock(roomId, 3)
-          moneyChange(-50)
+          moneyChange(-info.restockCost)
           event.notify("money.change", 0, {
-            amount = -50,
+            amount = -info.restockCost,
             pos = pos,
           })
 

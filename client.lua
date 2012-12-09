@@ -111,20 +111,24 @@ M.new = function (t)
   ))
   local aiComponent = ai.new(id)
   aiComponent.leader = t.leader
+  
+  local addRoomGoal = function (id)
+    local info = room.getInfo(id)
+    if info.desirability then
+      aiComponent:addVisitGoal(id)
+    elseif info.condomSupplies then
+      aiComponent:addCondomGoal(id)
+    end
+  end
+  
   if t and t.target then
     aiComponent:addFollowGoal(t.target)
   else
     event.notify("room.all", 0, function (id,type)
-      local info = room.getInfo(id)
-      if info.desirability then
-        aiComponent:addVisitGoal(id)
-      end
+      addRoomGoal(id)
     end)
     event.subscribe("build", 0, function (t)
-      local info = room.getInfo(t.id)
-      if info.desirability then
-        aiComponent:addVisitGoal(t.id)
-      end
+      addRoomGoal(id)
     end)
   end
   entity.addComponent(id, aiComponent)
@@ -133,7 +137,7 @@ M.new = function (t)
     horniness = 100,
     hunger = 0,
   }
-  aiComponent.supply = 2
+  aiComponent.supply = 1
   aiComponent.money = 250
 
   local old_update = aiComponent.update
