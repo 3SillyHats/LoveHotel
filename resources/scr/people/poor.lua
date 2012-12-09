@@ -13,7 +13,7 @@ return {
   spawnChance = {
     1,
     .5,
-    0,
+    .1,
     0,
     0,
   },
