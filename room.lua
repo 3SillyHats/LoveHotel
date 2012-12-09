@@ -53,6 +53,10 @@ local infoComponent = function (id, info, pos)
     callback(component.occupied)
   end
   
+  local getStock = function (callback)
+    callback(component.stock)
+  end
+  
   local occupy = function (e)
     if component.occupied < 2 then
       component.occupied = component.occupied + 1
@@ -129,8 +133,10 @@ local infoComponent = function (id, info, pos)
   
   local endSupply = function (e)
     component.occupied = 0
+    component.stock = component.stock - 1
     
     event.notify("sprite.hide", e.id, false)
+    event.notify("sprite.play", id, "stocked" .. component.stock)
     event.notify("sprite.play", id, "opening")
   end
   
@@ -141,6 +147,7 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("room.dirty", 0, dirtyRooms)
     event.unsubscribe("room.isDirty", id, isDirty)
     event.unsubscribe("room.occupation", id, checkOccupied)
+    event.unsubscribe("room.getStock", id, getStock)
     event.unsubscribe("room.occupy", id, occupy)
     event.unsubscribe("room.depart", id, depart)
     event.unsubscribe("room.beginClean", id, beginClean)
@@ -156,6 +163,7 @@ local infoComponent = function (id, info, pos)
   event.subscribe("room.dirty", 0, dirtyRooms)
   event.subscribe("room.isDirty", id, isDirty)
   event.subscribe("room.occupation", id, checkOccupied)
+  event.subscribe("room.getStock", id, getStock)
   event.subscribe("room.occupy", id, occupy)
   event.subscribe("room.depart", id, depart)
   event.subscribe("room.beginClean", id, beginClean)
@@ -244,6 +252,14 @@ M.occupation = function (id)
     occupation = e
   end)
   return occupation
+end
+
+M.getStock = function (id)
+  local stock = nil
+  event.notify("room.getStock", id, function (e)
+    stock = e
+  end)
+  return stock
 end
 
 --Return the module

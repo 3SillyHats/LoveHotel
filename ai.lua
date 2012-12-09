@@ -848,8 +848,8 @@ local addSupplyGoal = function (self, target)
     local myPos = transform.getPos(self.component.entity)
     local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
       + math.abs(myPos.roomNum - targetPos.roomNum) / STAFF_MOVE
-    --local stock = room.getStock(self.target)
-    if self.component.supply == 0 then
+    local stock = room.getStock(self.target)
+    if stock > 0 and self.component.supply == 0 then
       return 1 / time
     else
       return -1

@@ -7,16 +7,11 @@ return {
   width = 1,
   dirtyable = false,
   cleaningSupplies = true,
-  stock = 5,
+  stock = 3,
   defaultBackgroundAnim = "stocked3",
   defaultForegroundAnim = "opening",
 
   backgroundAnimations = {
-      dirty = {
-        first = 0,
-        last = 0,
-        speed = 1,
-      },
       stocked3 = {
         first = 0,
         last = 0,
