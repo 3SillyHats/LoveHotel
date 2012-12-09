@@ -576,9 +576,9 @@ menu.addButton(gui, menu.newButton("hotel", function ()
   menu.addButton(submenu, menu.newButton("reception", function ()
     print("reception")
   end))
-  --Staff Room
-  menu.addButton(submenu, menu.newButton("stockRoom", function ()
-    print("stockRoom")
+  --Stock Room
+  menu.addButton(submenu, menu.newButton("freezerRoom", function ()
+    print("freezerRoom")
   end))
   --Kitchen
   menu.addButton(submenu, menu.newButton("kitchen", function ()

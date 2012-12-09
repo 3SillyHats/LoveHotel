@@ -31,8 +31,8 @@ buttLoc = {
 
   utility = 32,
   reception = 33,
-  kitchen = 34,
-  storeRoom = 35,
+  freezerRoom = 34,
+  kitchen = 35,
    
   cleaner = 40,
   bellhop = 41,
