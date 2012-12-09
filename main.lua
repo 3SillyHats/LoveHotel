@@ -1073,6 +1073,8 @@ love.update = function (dt)
   input.update(dt)
 end
 
+local returnDown = false
+
 function love.keypressed(key)   -- we do not need the unicode, so we can leave it out
   if key == "escape" then
     if gState == STATE_PLAY then
@@ -1092,12 +1094,19 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
     --  conf.screen.modes[conf.screen.i].height,
     --  conf.screen.modes[conf.screen.i].fullscreen
     --)
+  elseif key == "return" and (gState == STATE_PAUSE or gState == STATE_DECISION) and not input.isMapped("return") then
+    returnDown = true
+    event.notify("pressed", 0, "a")
   else
     input.keyPressed(key)
   end
 end
 
 love.keyreleased = function (key)
+  if returnDown and key == "return" then
+    event.notify("released", 0, "a")
+    returnDown = false
+  end
   input.keyReleased(key)
 end
 
