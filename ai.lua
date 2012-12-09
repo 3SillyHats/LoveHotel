@@ -1017,6 +1017,122 @@ local addCondomGoal = function (self, target)
   self.goalEvaluator:addSubgoal(goal)
 end
 
+
+local newGetFoodGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  
+  local old_activate = goal.activate
+  goal.activate = function(self, dt)
+    if not self.target then
+      self.status = "failed"
+      return 
+    end
+    
+    local pos = transform.getPos(self.component.entity)
+    local atRoom = false
+    event.notify("room.check", 0, {
+      roomNum = pos.roomNum,
+      floorNum = pos.floorNum,
+      callback = function (id)
+        if id == self.target then
+          atRoom = true
+        end
+      end,
+    })
+    if not atRoom then
+      self.status = "failed"
+      return
+    end
+    
+    local eating = false
+    event.notify("room.beginSupply", self.target, {
+      id = self.component.entity,
+      enter = false,
+      callback = function (res)
+        eating = res
+      end,
+    })
+    
+    if not eating then
+      self.status = "failed"
+      return
+    end
+    
+    self.status = "active"
+    self:addSubgoal(newSleepGoal(self.component, EAT_TIME))
+    old_activate(self)
+  end
+  
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    event.notify("room.endSupply", self.target, {
+      id = self.component.entity,
+    })
+    self.component.needs.hunger = math.max(0, self.component.needs.hunger - 30)
+    
+    self.target = nil
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  return goal
+end
+
+local addFoodGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  local info = room.getInfo(goal.target)
+  local targetPos = room.getPos(goal.target)
+  local food = nil
+  
+  local old_activate = goal.activate
+  goal.activate = function (self)    
+    if not self.target then
+      self.status = "failed"
+      return
+    end
+    
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, CLIENT_MOVE))
+    food = newGetFoodGoal(self.component, self.target)
+    self:addSubgoal(food)
+    old_activate(self)
+  end
+    
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  goal.getDesirability = function (self, t)
+    if food and food.status == "active" then
+      return 1000
+    end
+    local myPos = transform.getPos(self.component.entity)
+    local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
+      + math.abs(myPos.roomNum - targetPos.roomNum) / CLIENT_MOVE
+    local stock = room.getStock(self.target)
+    local occupation = room.occupation(self.target)
+    if stock > 0 and occupation == 0 and
+        self.component.needs.hunger > self.component.needs.horniness then
+      return self.component.needs.hunger / time
+    else
+      return -1
+    end
+  end
+  
+  local destroy
+  destroy = function (t)
+    self.goalEvaluator:removeSubgoal(goal)
+    event.unsubscribe("destroy", goal.target, destroy)
+  end
+  event.subscribe("destroy", goal.target, destroy)
+
+  self.goalEvaluator:addSubgoal(goal)
+end
+
+
 local addEnterGoal = function (self)
   local goal = M.newGoal(self)
   goal.pos = transform.getPos(self.entity)
@@ -1073,6 +1189,7 @@ M.new = function (id)
     addEnterGoal = addEnterGoal,
     addSupplyGoal = addSupplyGoal,
     addCondomGoal = addCondomGoal,
+    addFoodGoal = addFoodGoal,
   })
   com.goalEvaluator = M.newGoal(com)
   com.goalEvaluator.arbitrate = arbitrate
