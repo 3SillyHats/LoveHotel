@@ -75,8 +75,9 @@ local stocker = function (id, pos, cost, t)
         local info = resource.get("scr/rooms/" .. string.lower(type) .. ".lua")
         local stock = room.getStock(roomId)
 
-        if room.occupation(roomId) == 0 and
+        if info.stock and
             stock < info.stock and
+            room.occupation(roomId) == 0 and
             gMoney > info.restockCost then
           
           event.notify("stock", id, {id=roomId, pos=pos, type=type})
