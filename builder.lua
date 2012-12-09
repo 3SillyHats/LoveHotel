@@ -92,17 +92,17 @@ local placer = function (id, type, pos, width, cost, t)
       elseif key == "a" then
         if okay() then
           local pos = {roomNum = component.room, floorNum = component.floor}
-          local room = room.new(2, type, pos)
+          local roomId = room.new(STATE_PLAY, type, pos)
           gMoney = gMoney - cost
             event.notify("money.change", 0, {
             amount = -cost,
             pos = {roomNum = component.room, floorNum = component.floor},
-           })
-            event.notify("build", id, {id=room, pos=pos, type=type})
-            event.notify("build", 0, {id=room, pos=pos, type=type})
-            local snd = resource.get("snd/build.wav")
-            love.audio.rewind(snd)
-            love.audio.play(snd)
+          })
+          event.notify("build", id, {id=roomId, pos=pos, type=type})
+          event.notify("build", 0, {id=roomId, pos=pos, type=type})
+          local snd = resource.get("snd/build.wav")
+          love.audio.rewind(snd)
+          love.audio.play(snd)
         else
           local snd = resource.get("snd/error.wav")
           love.audio.rewind(snd)
