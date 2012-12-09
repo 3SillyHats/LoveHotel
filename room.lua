@@ -68,6 +68,7 @@ local infoComponent = function (id, info, pos)
       event.notify("sprite.hide", e.id, true)
       if component.occupied == 2 then
         event.notify("sprite.play", id, "closing")
+        event.notify("sprite.play", id, "hearts")
       end
       e.callback(true)
     else
@@ -88,6 +89,7 @@ local infoComponent = function (id, info, pos)
     event.notify("sprite.hide", e.id, false)
     if component.occupied <= 0 then
       component.occupied = 0
+      event.notify("sprite.play", id, "heartless")
       event.notify("sprite.play", id, "opening")
     end
   end
@@ -200,6 +202,27 @@ M.new = function (state, roomType, pos)
       playing = s.playing,
     }))
   end
+  
+  --Add love heart sprite components
+  entity.addComponent(roomId, sprite.new(roomId, {
+    image = resource.get("img/rooms/love_hearts.png"),
+    width = 32,
+    height = 32,
+    originX = (roomWidth / 2) - 16,
+    animations = {
+      hearts = {
+        first = 1,
+        last = 8,
+        speed = 0.1,
+      },
+      heartless = {
+        first = 0,
+        last = 0,
+        speed = 1,
+      },
+    },
+    playing = "heartless",
+  }))
 
   --Add position component
   entity.addComponent(roomId, transform.new(roomId, pos, {x = 0, y = 0}))
