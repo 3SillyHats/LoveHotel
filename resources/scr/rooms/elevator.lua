@@ -4,39 +4,46 @@ return {
   cost = 100,
   width = 1,
   dirtyable = false,
-  defaultBackgroundAnim = "default",
-  defaultForegroundAnim = "closing",
-
-  backgroundAnimations = {
-      default = {
-        first = 0,
-        last = 0,
-        speed = 1,
+  
+  sprites = {
+    {
+      name = "background",
+      animations = {
+        idle = {
+          first = 0,
+          last = 0,
+          speed = 1,
+        },
       },
+      playing = "idle",
     },
-
-  foregroundAnimations = { 
-      opened = { 
-        first = 0, 
-        last = 0, 
-        speed = 1, 
-      }, 
-      closed = { 
-        first = 5, 
-        last = 5, 
-        speed = 1, 
-      }, 
-      closing = { 
-        first = 0, 
-        last = 5, 
-        speed = 0.2, 
-        goto = "closed", 
-      }, 
-      opening = { 
-        first = 5,
-        last = 0, 
-        speed = 0.2, 
-        goto = "opened", 
-      }, 
+    {
+      name = "foreground",
+      animations = {
+        opened = {
+          first = 0,
+          last = 0,
+          speed = 1,
+        },
+        closed = {
+          first = 5,
+          last = 5,
+          speed = 1,
+        },
+        closing = {
+          first = 0,
+          last = 5,
+          speed = 0.2,
+          goto = "closed",
+        },
+        opening = {
+          first = 5,
+          last = 0,
+          speed = 0.2,
+          goto = "opened",
+        },
+      },
+      playing = "opening",
     },
+  },
 }

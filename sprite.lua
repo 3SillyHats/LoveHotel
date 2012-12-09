@@ -100,6 +100,10 @@ M.new = function (id, t)
     hide = hide,
   })
   
+  if sprite.animations and sprite.animations[sprite.playing] == nil then
+    sprite.playing = nil
+  end
+  
   -- Setup arrays of animation frames
   if sprite.animations then
     for _, anim in pairs(sprite.animations) do

@@ -7,7 +7,8 @@ return {
   stock = 3,
 
   sprites = {
-    machine = {
+    {
+      name = "machine",
       animations = {
         stocked3 = {
           first = 0,

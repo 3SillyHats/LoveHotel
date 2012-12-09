@@ -188,13 +188,13 @@ M.new = function (state, roomType, pos)
   local prefix = "img/rooms/" .. room.id .. "_"
   
   --Add sprite components
-  for k,v in pairs(room.sprites) do
+  for _,s in pairs(room.sprites) do
     entity.addComponent(roomId, sprite.new(roomId, {
-      image = resource.get(prefix .. k .. ".png"),
+      image = resource.get(prefix .. s.name .. ".png"),
       width = roomWidth,
       height = roomHeight,
-      animations = v.animations,
-      playing = v.playing,
+      animations = s.animations,
+      playing = s.playing,
     }))
   end
 
