@@ -714,7 +714,7 @@ local newPerformCleanGoal = function (self, target)
       id = self.component.entity,
     })
     
-    self.component.supply = 0
+    self.component.supply = self.component.supply - 1
     self.target = nil
     old_terminate(self)
     self.subgoals = {}
@@ -835,7 +835,7 @@ local newGetSupplyGoal = function (self, target)
     event.notify("room.endSupply", self.target, {
       id = self.component.entity,
     })
-    self.component.supply = 1
+    self.component.supply = 3
     
     self.target = nil
     old_terminate(self)

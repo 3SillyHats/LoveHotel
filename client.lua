@@ -9,6 +9,17 @@ local room = require("room")
 
 local M = {}
 
+local categories = {}
+local totalChance = {0, 0, 0, 0, 0}
+local files = love.filesystem.enumerate("resources/scr/people/")
+for _, fname in ipairs(files) do
+  local info = resource.get("scr/people/" .. fname)
+  table.insert(categories, info.name)
+  for i,c in ipairs(info.spawnChance) do
+    totalChance[i] = totalChance[i] + c
+  end
+end
+
 local bodyParts = {
   "nude",
   "bottom",
@@ -133,12 +144,14 @@ M.new = function (t)
   end
   entity.addComponent(id, aiComponent)
   aiComponent:addExitGoal()
-  aiComponent.needs= {
-    horniness = 100,
-    hunger = 0,
+  
+  local info = resource.get("scr/people/" .. t.category .. ".lua")
+  aiComponent.needs = {
+    horniness = math.random(info.minHorniness, info.maxHorniness),
+    hunger = math.random(info.minHunger, info.maxHunger),
   }
-  aiComponent.supply = 1
-  aiComponent.money = 250
+  aiComponent.supply = math.random(info.minSupply, info.maxSupply)
+  aiComponent.money = math.random(info.minMoney, info.maxMoney)
 
   local old_update = aiComponent.update
   aiComponent.update = function (self, dt)
@@ -173,16 +186,20 @@ local com = entity.newComponent({
   update = function (self, dt)
     if self.timer <= 0 then
       local category
-      local c = (math.random() + (2 * gReputation / REP_MAX)) / 3
-      if c < .33 then
-        category = "poor"
-      elseif c > .66 then
-        category = "rich"
-      else
-        category = "working"
+      local c = math.random() * totalChance[gStars]
+
+      for _,cat in ipairs(categories) do
+        local info = resource.get("scr/people/" .. cat .. ".lua")
+        if c < info.spawnChance[gStars] then
+          category = cat
+          break
+        else
+          c = c - info.spawnChance[gStars]
+        end
       end
-      local spawnMin = SPAWN_MIN * SPAWN_FACTOR / (gReputation + 1)
-      local spawnMax = SPAWN_MAX * SPAWN_FACTOR / (gReputation + 1)
+      
+      local spawnMin = SPAWN_MIN * (3 / (2 + gStars))
+      local spawnMax = SPAWN_MAX * (3 / (2 + gStars))
       self.timer = math.random(spawnMin, spawnMax)
       self.target = M.new({
         category = category,
