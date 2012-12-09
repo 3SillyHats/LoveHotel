@@ -939,7 +939,7 @@ local newGetCondomGoal = function (self, target)
     end
     
     self.status = "active"
-    self:addSubgoal(newSleepGoal(self.component, SUPPLY_TIME))
+    self:addSubgoal(newSleepGoal(self.component, CONDOM_TIME))
     old_activate(self)
   end
   
