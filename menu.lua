@@ -25,13 +25,14 @@ buttLoc = {
   tropical = 18,
   
   condom = 24,
-  spa = 25,
-  dining = 26,
+  vending = 25,
+  spa = 26,
+  dining = 27,
 
   utility = 32,
   reception = 33,
-  staffRoom = 34,
-  kitchen = 35,
+  kitchen = 34,
+  storeRoom = 35,
    
   cleaner = 40,
   bellhop = 41,

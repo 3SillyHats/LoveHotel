@@ -541,6 +541,10 @@ menu.addButton(gui, menu.newButton("entertainment", function ()
   menu.addButton(submenu, menu.newButton("condom", function ()
     buildRoom("condom", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
+  --Vending machine
+  menu.addButton(submenu, menu.newButton("vending", function ()
+    buildRoom("vending", {roomNum = 1, floorNum = gScrollPos}, submenu)
+  end))
   --Spa room
   menu.addButton(submenu, menu.newButton("spa", function ()
     print("spa")
@@ -573,8 +577,8 @@ menu.addButton(gui, menu.newButton("hotel", function ()
     print("reception")
   end))
   --Staff Room
-  menu.addButton(submenu, menu.newButton("staffRoom", function ()
-    print("staffRoom")
+  menu.addButton(submenu, menu.newButton("stockRoom", function ()
+    print("stockRoom")
   end))
   --Kitchen
   menu.addButton(submenu, menu.newButton("kitchen", function ()
