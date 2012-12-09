@@ -25,11 +25,18 @@ SPAWN_MIN = 10
 SPAWN_MAX = 20
 SPAWN_FACTOR = 10
 
-REP_INIT = 10
-REP_MAX = 100
-REP_THRESH_1 = 25
-REP_THRESH_2 = 50
-REP_THRESH_3 = 75
+REP_INITIAL = 5
+REP_MAX = 500
+STARS_INITIAL = 1
+STARS_MAX = 5
+REP_THRESHOLDS = {
+  0,
+  20,
+  40,
+  80,
+  160,
+  500,
+}
 
 local event = require("event")
 local entity = require("entity")
@@ -126,21 +133,18 @@ event.subscribe("state.enter", 0, function (state)
 end)
 gGameSpeed = 1
 gMoney = 200000
-gReputation = REP_INIT
+gReputation = REP_INITIAL
+gStars = STARS_INITIAL
 
 moneyChange = function (c)
   gMoney = math.max(0, gMoney + c)
 end
 
 reputationChange = function (c)
-  local old = gReputation
-  gReputation = math.max(math.min(gReputation + c, REP_MAX), 0)
-  if old < REP_THRESH_1 and gReputation >= REP_THRESH_1 then
-    event.notify("reputation.threshold", 0, 1)
-  elseif old < REP_THRESH_2 and gReputation >= REP_THRESH_2 then
-    event.notify("reputation.threshold", 0, 2)
-  elseif old < REP_THRESH_3 and gReputation >= REP_THRESH_3 then
-    event.notify("reputation.threshold", 0, 3)
+  gReputation = math.max(math.min(gReputation + c, REP_MAX - 1), 0)
+
+  if gStars < STARS_MAX and gReputation >= REP_THRESHOLDS[gStars + 1] then
+    gStars = gStars + 1
   end
 end
 
@@ -505,7 +509,7 @@ menu.addButton(gui, menu.newButton("suites", function ()
     buildRoom("flower", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
   
-  if gReputation > REP_THRESH_1 then
+  if gStars >= 2 then
     --Heart
     menu.addButton(submenu, menu.newButton("heart", function ()
       buildRoom("heart", {roomNum = 1, floorNum = gScrollPos}, submenu)
@@ -514,7 +518,7 @@ menu.addButton(gui, menu.newButton("suites", function ()
     addLockButton(submenu)
   end
   
-  if gReputation > REP_THRESH_2 then
+  if gStars >= 3 then
     --Tropical
     menu.addButton(submenu, menu.newButton("tropical", function ()
       buildRoom("tropical", {roomNum = 1, floorNum = gScrollPos}, submenu)
@@ -887,23 +891,29 @@ event.subscribe("money.change", 0, function (e)
 end)
 
 -- Create the Reputation display
+local hudImage = resource.get("img/hud.png")
+local repQuad = love.graphics.newQuad(
+  0, 160, -- x, y
+  16, 16, -- viewport width, height
+  hudImage:getWidth(), hudImage:getHeight() -- image width, height
+)
 local repDisplay = entity.new(STATE_PLAY)
 entity.setOrder(repDisplay, 100)
 local repCom = entity.newComponent()
 repCom.draw = function (self)
   if gReputation > 0 then
-    love.graphics.setFont(gFont)
-    if gReputation < REP_THRESH_1 then
-      love.graphics.setColor(252, 56, 0)
-    elseif gReputation < REP_THRESH_2 then
-      love.graphics.setColor(252, 184, 0)
-    elseif gReputation < REP_THRESH_3 then
-      love.graphics.setColor(0, 184, 0)
-    else
-      love.graphics.setColor(56, 192, 252)
-    end
-    local w = math.floor(math.min(REP_MAX, gReputation) * .4) + 1
-    love.graphics.rectangle("fill", 197, 215, w, 5)
+    local a = gReputation - REP_THRESHOLDS[gStars]
+    local b = REP_THRESHOLDS[gStars + 1] - REP_THRESHOLDS[gStars]
+    love.graphics.setColor(252, 184, 0)
+    local w = 57 * math.min(a / b, 1)
+    love.graphics.rectangle("fill", 196, 219, w, 2)
+  end
+  love.graphics.setColor(255, 255, 255)
+  for i=1,gStars do
+    love.graphics.drawq(
+      hudImage, repQuad,
+      184 + (i * 11), 208 -- x, y
+    )
   end
 end
 entity.addComponent(repDisplay, repCom)
