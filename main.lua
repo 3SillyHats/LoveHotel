@@ -41,6 +41,7 @@ local menu = require("menu")
 local ai = require("ai")
 local builder = require("builder")
 local demolisher = require("demolisher")
+local stocker = require("stocker")
 local staff = require("staff")
 local client = require("client")
 local transform = require("transform")
@@ -68,6 +69,10 @@ conf = {
     },
     staff = {
       name="Staff",
+      desc="",
+    },
+    stock = {
+      name="Stock",
       desc="",
     },
     locked = {
@@ -308,7 +313,7 @@ local demolishRoom = function (pos, baseMenu)
     
   local function onDestroy ()
     event.unsubscribe("pressed", 0, back)
-    event.unsubscribe("build", demolishUtility, onBuild)
+    event.unsubscribe("destroy", demolishUtility, onDestroy)
     menu.enable(baseMenu)
     entity.delete(demolishUtility)
   end
@@ -316,7 +321,7 @@ local demolishRoom = function (pos, baseMenu)
   back = function (key)
     if gState == STATE_PLAY and key == "b" then
       event.unsubscribe("pressed", 0, back)
-      event.unsubscribe("build", demolishUtility, onBuild)
+      event.unsubscribe("destroy", demolishUtility, onDestroy)
       menu.enable(baseMenu)
       entity.delete(demolishUtility)
     end
@@ -324,6 +329,33 @@ local demolishRoom = function (pos, baseMenu)
 
   event.subscribe("pressed", 0, back)
   event.subscribe("destroy", demolishUtility, onDestroy)
+end
+
+local stockRoom = function (pos, baseMenu)
+  menu.disable(baseMenu)
+
+  local stockUtility = stocker.new(STATE_PLAY, pos)
+    
+  local back = function () end
+    
+  local function onStock ()
+    event.unsubscribe("pressed", 0, back)
+    event.unsubscribe("stock", stockUtility, onStock)
+    menu.enable(baseMenu)
+    entity.delete(stockUtility)
+  end
+
+  back = function (key)
+    if gState == STATE_PLAY and key == "b" then
+      event.unsubscribe("pressed", 0, back)
+      event.unsubscribe("stock", stockUtility, onStock)
+      menu.enable(baseMenu)
+      entity.delete(stockUtility)
+    end
+  end
+
+  event.subscribe("pressed", 0, back)
+  event.subscribe("stock", stockUtility, onStock)
 end
 
 -- Roof entity
@@ -582,6 +614,11 @@ menu.addButton(gui, menu.newButton("staff", function ()
     entity.delete(submenu)
     menu.enable(gui)
   end)
+end))
+
+--Stock tool
+menu.addButton(gui, menu.newButton("stock", function ()
+  stockRoom({roomNum = 1, floorNum = gScrollPos}, gui)
 end))
 
 -- Background music
