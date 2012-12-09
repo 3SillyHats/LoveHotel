@@ -849,7 +849,8 @@ local addSupplyGoal = function (self, target)
     local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
       + math.abs(myPos.roomNum - targetPos.roomNum) / STAFF_MOVE
     local stock = room.getStock(self.target)
-    if stock > 0 and self.component.supply == 0 then
+    local occupation = room.occupation(self.target)
+    if stock > 0 and occupation == 0 and self.component.supply == 0 then
       return 1 / time
     else
       return -1
