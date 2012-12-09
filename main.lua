@@ -976,6 +976,11 @@ local pauseCom = entity.newComponent({
   selected = 1,
   
   draw = function (self)
+    -- Draw title
+    local img = resource.get("img/title.png")
+    love.graphics.draw(img, 0, 0)
+  
+    -- Draw menu
     love.graphics.setFont(gFont)
     for i,option in ipairs(self.options) do
       if i == self.selected then
