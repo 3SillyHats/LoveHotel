@@ -220,7 +220,7 @@ M.all = function (id)
 end
 
 M.getInfo = function (id)
-  return roomInfo[id] 
+  return roomInfo[id]
 end
 
 M.getPos = function (id)
