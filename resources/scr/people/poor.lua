@@ -7,8 +7,8 @@ return {
   maxHunger = 50,
   minSupply = 1,
   maxSupply = 2,
-  minMoney = 150,
-  maxMoney = 300,
+  minMoney = 100,
+  maxMoney = 150,
  
   spawnChance = {
     1,

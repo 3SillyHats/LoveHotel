@@ -115,6 +115,47 @@ M.new = function (t)
       entity.addComponent(id, sprite.new(id, spriteData))
     end
   end
+  
+  -- Add thought bubble sprite component
+  entity.addComponent(id, sprite.new(id, {
+    image = resource.get("img/people/bubbles.png"),
+    width = 16,
+    height = 8,
+    originY = 24,
+    animations = {
+      thoughtNone = {
+        first = 0,
+        last = 0,
+        speed = 1,
+      },
+      thoughtHappy = {
+        first = 1,
+        last = 1,
+        speed = 1,
+      },
+      thoughtBroke = {
+        first = 2,
+        last = 2,
+        speed = 1,
+      },
+      thoughtHungry = {
+        first = 3,
+        last = 3,
+        speed = 1,
+      },
+      thoughtCondomless = {
+        first = 4,
+        last = 4,
+        speed = 1,
+      },
+      thoughtRoomless = {
+        first = 5,
+        last = 5,
+        speed = 1,
+      },
+    },
+    playing = "thoughtNone",
+  }))
 
   local pos = {roomNum = -.5, floorNum = GROUND_FLOOR}
   entity.addComponent(id, transform.new(

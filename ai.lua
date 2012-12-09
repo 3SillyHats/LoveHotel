@@ -640,6 +640,34 @@ local addExitGoal = function (self)
   
   local old_activate = goal.activate
   goal.activate = function (self)
+    if self.component.needs.horniness == 0 then
+      event.notify("sprite.play", self.component.entity, "thoughtHappy")
+    elseif self.component.needs.hunger > self.component.needs.horniness then
+      event.notify("sprite.play", self.component.entity, "thoughtHungry")
+    elseif self.component.supply == 0 then
+      event.notify("sprite.play", self.component.entity, "thoughtCondomless")
+    else
+      local minCost = 9999999999
+      event.notify("room.all", 0, function (id, type)
+        local info = room.getInfo(id)
+        if info.profit then
+          local available = true
+          if room.occupation(id) > 0 or
+              (info.dirtyable and room.isDirty(id)) then
+            available = false
+          end
+          if avaialble and info.profit < minCost then
+            minCost = info.profit
+          end
+        end
+      end)
+      if minCost == 9999999999 then
+        event.notify("sprite.play", self.component.entity, "thoughtRoomless")
+      elseif minCost > self.component.money then
+        event.notify("sprite.play", self.component.entity, "thoughtBroke")
+      end
+    end
+  
     goal:addSubgoal(newMoveToGoal(self.component, {roomNum = -.5, floorNum = GROUND_FLOOR}, CLIENT_MOVE))
     goal:addSubgoal(newDestroyGoal(self.component))
     old_activate(self)
@@ -648,6 +676,7 @@ local addExitGoal = function (self)
   local old_terminate = goal.terminate
   goal.terminate = function (self)
     old_terminate(self)
+    event.notify("sprite.play", self.component.entity, "thoughtNone")
     if self.component.leader and self.status == "complete" then
       if self.component.needs.horniness > 99 then
         reputationChange(-2.5)
