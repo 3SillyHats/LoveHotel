@@ -104,6 +104,7 @@ local infoComponent = function (id, info, pos)
     
     event.notify("sprite.hide", e.id, true)
     event.notify("sprite.play", id, "closing")
+    event.notify("sprite.play", id, "cleaning")
     e.callback(true)
   end
   
@@ -113,6 +114,7 @@ local infoComponent = function (id, info, pos)
     
     event.notify("sprite.hide", e.id, false)
     event.notify("sprite.play", id, "clean")
+    event.notify("sprite.play", id, "cleanless")
     event.notify("sprite.play", id, "opening")
   end
   
@@ -202,6 +204,27 @@ M.new = function (state, roomType, pos)
       playing = s.playing,
     }))
   end
+  
+  --Add cleaning sign sprite components
+  entity.addComponent(roomId, sprite.new(roomId, {
+    image = resource.get("img/rooms/cleaning.png"),
+    width = 32,
+    height = 32,
+    originX = -(roomWidth/2),
+    animations = {
+      cleaning = {
+        first = 1,
+        last = 1,
+        speed = 1,
+      },
+      cleanless = {
+        first = 0,
+        last = 0,
+        speed = 1,
+      },
+    },
+    playing = "heartless",
+  }))
   
   --Add love heart sprite components
   entity.addComponent(roomId, sprite.new(roomId, {
