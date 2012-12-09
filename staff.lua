@@ -123,7 +123,7 @@ M.new = function (type)
     end,
   })
   local aiComponent = ai.new(id)
-  aiComponent.supply = 1
+  aiComponent.supply = 3
   
   local addRoomGoal = function (id)
     local info = room.getInfo(id)

@@ -19,11 +19,11 @@ ELEVATOR_MOVE = 1
 CLIENT_MOVE = 1
 FOLLOW_DISTANCE = 0.5
 SEX_TIME = 7
-CLEAN_TIME = 15
-SUPPLY_TIME = 10
-SPAWN_MIN = 10
-SPAWN_MAX = 20
-SPAWN_FACTOR = 10
+CLEAN_TIME = 10
+SUPPLY_TIME = 4
+CONDOM_TIME = 2
+SPAWN_MIN = 20
+SPAWN_MAX = 30
 
 REP_INITIAL = 5
 REP_MAX = 500
@@ -145,6 +145,8 @@ reputationChange = function (c)
 
   if gStars < STARS_MAX and gReputation >= REP_THRESHOLDS[gStars + 1] then
     gStars = gStars + 1
+  elseif gStars > 1 and gReputation < REP_THRESHOLDS[gStars] then
+    gStars = gStars - 1
   end
 end
 
