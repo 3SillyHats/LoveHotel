@@ -66,12 +66,12 @@ conf = {
       name="Suites",
       desc=""
     },
-    entertainment = {
-      name="Entertain.",
+    food = {
+      name="Food",
       desc=""
     },
-    hotel = {
-      name="Hotel",
+    services = {
+      name="Services",
       desc="",
     },
     staff = {
@@ -534,51 +534,20 @@ menu.addButton(gui, menu.newButton("suites", function ()
   end)
 end))
 
---Entertainment button
-menu.addButton(gui, menu.newButton("entertainment", function ()
+--Food button
+menu.addButton(gui, menu.newButton("food", function ()
   menu.disable(gui)
   
-  --Create the entertainment menu
+  --Create the food menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
   
-  --Condom machine
-  menu.addButton(submenu, menu.newButton("condom", function ()
-    buildRoom("condom", {roomNum = 1, floorNum = gScrollPos}, submenu)
-  end))
   --Vending machine
   menu.addButton(submenu, menu.newButton("vending", function ()
     buildRoom("vending", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
-  --Spa room
-  menu.addButton(submenu, menu.newButton("spa", function ()
-    print("spa")
-  end))
   --Dining room
   menu.addButton(submenu, menu.newButton("dining", function ()
     print("dining")
-  end))
-
-  --The back button deletes the submenu
-  menu.setBack(submenu, function ()
-    entity.delete(submenu)
-    menu.enable(gui)
-  end)
-end))
-
---Hotel button
-menu.addButton(gui, menu.newButton("hotel", function ()
-  menu.disable(gui)
-  
-  --Create the hotel menu
-  local submenu = menu.new(STATE_PLAY, subMenuY)
-
-  --Utility
-  menu.addButton(submenu, menu.newButton("utility", function ()
-    buildRoom("utility", {roomNum = 1, floorNum = gScrollPos}, submenu)
-  end))
-  --Reception
-  menu.addButton(submenu, menu.newButton("reception", function ()
-    print("reception")
   end))
   --Stock Room
   menu.addButton(submenu, menu.newButton("freezerRoom", function ()
@@ -587,6 +556,38 @@ menu.addButton(gui, menu.newButton("hotel", function ()
   --Kitchen
   menu.addButton(submenu, menu.newButton("kitchen", function ()
     print("kitchen")
+  end))
+
+
+  --The back button deletes the submenu
+  menu.setBack(submenu, function ()
+    entity.delete(submenu)
+    menu.enable(gui)
+  end)
+end))
+
+--Services button
+menu.addButton(gui, menu.newButton("services", function ()
+  menu.disable(gui)
+  
+  --Create the services menu
+  local submenu = menu.new(STATE_PLAY, subMenuY)
+
+   --Reception
+  menu.addButton(submenu, menu.newButton("reception", function ()
+    print("reception")
+  end))
+ --Utility
+  menu.addButton(submenu, menu.newButton("utility", function ()
+    buildRoom("utility", {roomNum = 1, floorNum = gScrollPos}, submenu)
+  end))
+  --Condom machine
+  menu.addButton(submenu, menu.newButton("condom", function ()
+    buildRoom("condom", {roomNum = 1, floorNum = gScrollPos}, submenu)
+  end))
+  --Spa room
+  menu.addButton(submenu, menu.newButton("spa", function ()
+    print("spa")
   end))
 
    --The back button deletes the submenu
