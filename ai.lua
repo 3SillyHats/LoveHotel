@@ -92,7 +92,11 @@ local arbitrate = function (self, t)
 end
 
 local update = function (self, dt)
-  local desirabilityFactors = {horny = self.horny}
+  local desirabilityFactors = {
+    needs = self.needs,
+    money = self.money,
+    supply = self.supply,
+  }
   local newGoal = self.goalEvaluator.arbitrate(self, desirabilityFactors)
   if newGoal ~= self.currentGoal then
     if self.currentGoal then self.currentGoal:terminate() end
@@ -359,14 +363,18 @@ local newSleepGoal = function (self, t)
   return goal
 end
   
-local newSexGoal = function (self, target)
-  local goal = M.newGoal(self)
+local newSexGoal = function (com, target)
+  local goal = M.newGoal(com)
   goal.target = target
   goal.time = t
+  goal.profit = room.getInfo(goal.target).profit
+  goal.inRoom = false
 
   local old_activate = goal.activate
   goal.activate = function(self)
-    if not self.target then
+    if not self.target or
+        self.component.supply == 0 or
+        self.component.money < self.profit then
       self.status = "failed"
       return
     end
@@ -401,22 +409,39 @@ local newSexGoal = function (self, target)
     end
     
     event.notify("enterRoom", self.component.entity, self.target)
+    self.inRoom = true
 
-    goal:addSubgoal(newSleepGoal(self, SEX_TIME))
+    self:addSubgoal(newSleepGoal(self.component, SEX_TIME))
     
     old_activate(self)
   end
   
   local old_terminate = goal.terminate
   goal.terminate = function(self)
-    goal.subgoals = {}
+    if self.inRoom then
+      event.notify("room.depart", self.target, {
+        id = self.component.entity,
+      })
+      self.inRoom = false
+    end
     
-    event.notify("room.depart", self.target, {
-      id = self.component.entity,
-    })
+    if self.status == "complete" and self.component.leader then
+      moneyChange(self.profit)
+      local roomPos = room.getPos(self.target)
+      event.notify("money.change", 0, {
+        amount = self.profit,
+        pos = {
+          roomNum = roomPos.roomNum,
+          floorNum = roomPos.floorNum,
+        },
+      })
+      self.component.needs.horniness = self.component.needs.horniness - 50
+      self.component.money = self.component.money - self.profit
+      self.component.supply = self.component.supply - 1
+    end
     
-    self.component.horny = false
     old_terminate(self)
+    goal.subgoals = {}
   end
   
   return goal
@@ -459,7 +484,11 @@ local addVisitGoal = function (self, target)
     if sexGoal and sexGoal.status == "active" then
       return 1000
     end
-    if t.horny and not room.isDirty(self.target) and room.occupation(self.target) == 0 then
+    if t.needs.horniness > t.needs.hunger and
+        not room.isDirty(self.target) and
+        room.occupation(self.target) == 0 and
+        self.component.money >= info.profit and
+        self.component.supply > 0 then
       local myPos = transform.getPos(self.component.entity)
       local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
         + math.abs(myPos.roomNum - targetPos.roomNum) / CLIENT_MOVE
@@ -595,7 +624,7 @@ local addFollowGoal = function (self, target)
   end
   
   goal.getDesirability = function (self, t)
-    if t.horny and entity.get(self.target) then
+    if entity.get(self.target) then
       return 1
     end
     return -1
@@ -617,8 +646,8 @@ local addExitGoal = function (self)
   local old_terminate = goal.terminate
   goal.terminate = function (self)
     old_terminate(self)
-    if self.status == "complete" then
-      if self.component.horny then
+    if self.component.leader and self.status == "complete" then
+      if self.component.needs.horniness > 99 then
         reputationChange(-2.5)
       else
         reputationChange(.5)

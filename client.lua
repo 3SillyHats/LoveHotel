@@ -110,6 +110,7 @@ M.new = function (t)
     id, pos, {x = 16, y = 30}
   ))
   local aiComponent = ai.new(id)
+  aiComponent.leader = t.leader
   if t and t.target then
     aiComponent:addFollowGoal(t.target)
   else
@@ -128,7 +129,18 @@ M.new = function (t)
   end
   entity.addComponent(id, aiComponent)
   aiComponent:addExitGoal()
-  aiComponent.horny = true
+  aiComponent.needs= {
+    horniness = 100,
+    hunger = 0,
+  }
+  aiComponent.supply = 1
+  aiComponent.money = 1000
+
+  local old_update = aiComponent.update
+  aiComponent.update = function (self, dt)
+    aiComponent.needs.hunger = aiComponent.needs.hunger + dt
+    old_update(self, dt)
+  end
   
   local check = function (t)
     local epos = transform.getPos(id)
@@ -170,10 +182,12 @@ local com = entity.newComponent({
       self.timer = math.random(spawnMin, spawnMax)
       self.target = M.new({
         category = category,
+        leader = true,
       })
       M.new({
         target = self.target,
         category = category,
+        leader = false,
       })
     else
       self.timer = self.timer - dt

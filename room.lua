@@ -81,22 +81,13 @@ local infoComponent = function (id, info, pos)
     end
     if info.dirtyable and not component.messy then
       component.messy = true
+      event.notify("sprite.play", id, "dirty")
     end
     -- Messify and unhide the departing person
     event.notify("sprite.play", e.id, "messy")
     event.notify("sprite.hide", e.id, false)
     if component.occupied <= 0 then
-      gMoney = gMoney + info.profit
-      local roomPos = M.getPos(id)
-      event.notify("money.change", 0, {
-        amount = info.profit,
-        pos = {
-          roomNum = roomPos.roomNum,
-          floorNum = roomPos.floorNum,
-        },
-      })
       component.occupied = 0
-      event.notify("sprite.play", id, "dirty")
       event.notify("sprite.play", id, "opening")
     end
   end
