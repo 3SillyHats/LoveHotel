@@ -133,8 +133,8 @@ M.new = function (t)
     horniness = 100,
     hunger = 0,
   }
-  aiComponent.supply = 1
-  aiComponent.money = 1000
+  aiComponent.supply = 2
+  aiComponent.money = 250
 
   local old_update = aiComponent.update
   aiComponent.update = function (self, dt)

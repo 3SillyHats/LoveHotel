@@ -143,17 +143,21 @@ M.new = function (state, roomType, pos)
   local id = entity.new(state)
   entity.setOrder(id, 100)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
-  local imgForeground = resource.get("img/rooms/" .. room.id .. "_foreground.png")
+  local roomWidth = room.width*32
+  local roomHeight = 32
+  local prefix = "img/rooms/" .. room.id .. "_"
+  
+  --Add sprite components
+  for k,v in pairs(room.sprites) do
+    entity.addComponent(id, sprite.new(id, {
+      image = resource.get(prefix .. k .. ".png"),
+      width = roomWidth,
+      height = roomHeight,
+      animations = v.animations,
+      playing = v.playing,
+    }))
+  end
 
-  --Add a sprite for the front layer of the room
-  entity.addComponent(id, sprite.new(id, {
-    image = imgForeground,
-    width = room.width*32,
-    height = 32,
-    --Used the closed door front layer
-    animations = room.foregroundAnimations,
-    playing = "closed",
-  }))
   --Add position component
   entity.addComponent(id, transform.new(id, pos))
   --Add placer component (including outline)

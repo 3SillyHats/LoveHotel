@@ -183,27 +183,20 @@ M.new = function (state, roomType, pos)
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
   roomInfo[roomId] = room
   room.type = roomType
-  local background = resource.get("img/rooms/" .. room.id .. "_background.png")
-  local foreground = resource.get("img/rooms/" .. room.id .. "_foreground.png")
   local roomWidth = room.width*32
   local roomHeight = 32
-
-  --Add a sprite component for the back layer of the room
-  entity.addComponent(roomId, sprite.new(roomId, {
-    image = background,
-    width = roomWidth,
-    height = roomHeight,
-    animations = room.backgroundAnimations,
-    playing = room.defaultBackgroundAnim,
-  }))
-  --Add a sprite component for the front layer of the room
-  entity.addComponent(roomId, sprite.new(roomId, {
-    image = foreground,
-    width = roomWidth,
-    height = roomHeight,
-    animations = room.foregroundAnimations,
-    playing = room.defaultForegroundAnim,
-  }))
+  local prefix = "img/rooms/" .. room.id .. "_"
+  
+  --Add sprite components
+  for k,v in pairs(room.sprites) do
+    entity.addComponent(roomId, sprite.new(roomId, {
+      image = resource.get(prefix .. k .. ".png"),
+      width = roomWidth,
+      height = roomHeight,
+      animations = v.animations,
+      playing = v.playing,
+    }))
+  end
 
   --Add position component
   entity.addComponent(roomId, transform.new(roomId, pos, {x = 0, y = 0}))

@@ -539,7 +539,7 @@ menu.addButton(gui, menu.newButton("entertainment", function ()
   
   --Condom machine
   menu.addButton(submenu, menu.newButton("condom", function ()
-    print("condom")
+    buildRoom("condom", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
   --Spa room
   menu.addButton(submenu, menu.newButton("spa", function ()
