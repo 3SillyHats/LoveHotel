@@ -226,4 +226,12 @@ M.update = function (dt)
   end
 end
 
+M.isMapped = function (key)
+  if map.keys[key] then
+    return true
+  else
+    return false
+  end
+end
+
 return M

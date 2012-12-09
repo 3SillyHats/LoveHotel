@@ -129,6 +129,8 @@ M.new = function (t)
       aiComponent:addVisitGoal(id)
     elseif info.condomSupplies then
       aiComponent:addCondomGoal(id)
+    elseif info.foodSupplies then
+      aiComponent:addFoodGoal(id)
     end
   end
   
