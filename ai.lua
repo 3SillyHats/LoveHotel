@@ -490,8 +490,10 @@ local addVisitGoal = function (self, target)
         self.component.money >= info.profit and
         self.component.supply > 0 then
       local myPos = transform.getPos(self.component.entity)
-      local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
-        + math.abs(myPos.roomNum - targetPos.roomNum) / CLIENT_MOVE
+      local time = path.getCost(myPos, targetPos)
+      if time == -1 then
+        return -1
+      end
       return 1/(1+time) + info.desirability
     end
     return -1
@@ -757,9 +759,10 @@ local addCleanGoal = function (self, target)
       return -1
     end
     local myPos = transform.getPos(self.component.entity)
-    local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
-      + math.abs(myPos.roomNum - targetPos.roomNum) / STAFF_MOVE
-      + CLEAN_TIME
+    local time = path.getCost(myPos, targetPos) + CLEAN_TIME
+    if time == -1 then
+      return -1
+    end
     if room.isDirty(self.target) then
       if room.occupation(self.target) == 0 then
         return info.profit/time
@@ -876,8 +879,10 @@ local addSupplyGoal = function (self, target)
       return 1000
     end
     local myPos = transform.getPos(self.component.entity)
-    local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
-      + math.abs(myPos.roomNum - targetPos.roomNum) / STAFF_MOVE
+    local time = path.getCost(myPos, targetPos)
+    if time == -1 then
+      return -1
+    end
     local stock = room.getStock(self.target)
     local occupation = room.occupation(self.target)
     if stock > 0 and occupation == 0 and self.component.supply == 0 then
@@ -989,8 +994,10 @@ local addCondomGoal = function (self, target)
       return 1000
     end
     local myPos = transform.getPos(self.component.entity)
-    local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
-      + math.abs(myPos.roomNum - targetPos.roomNum) / CLIENT_MOVE
+    local time = path.getCost(myPos, targetPos)
+    if time == -1 then
+      return -1
+    end
     local stock = room.getStock(self.target)
     local occupation = room.occupation(self.target)
     if stock > 0 and occupation == 0 and self.component.supply == 0 then

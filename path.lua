@@ -3,6 +3,8 @@
 
 M = {
   edges = {},
+  costs = {},
+  last = nil,
 }
 
 local serialize = function (t)
@@ -22,6 +24,8 @@ M.addEdge = function (src, dst, cost)
     src = src,
     dst = dst,
   }
+  M.costs = {}
+  M.last = nil
 end
 
 M.removeEdges = function (src)
@@ -32,6 +36,8 @@ M.removeEdges = function (src)
       M.edges[s_dst][s_src] = nil
     end
   end
+  M.costs = {}
+  M.last = nil
 end
 
 M.removeEdge = function (src, dst)
@@ -40,11 +46,17 @@ M.removeEdge = function (src, dst)
   if M.edges[s_src] then
     M.edges[s_src][s_dst] = nil
   end
+  M.costs = {}
+  M.last = nil
 end
 
 M.get = function (src, dst, heuristic)
   local s_src = serialize(src)
   local s_dst = serialize(dst)
+  
+  if M.prev and M.prev.src == s_src and M.prev.dst == s_dst then
+    return M.prev.path
+  end
 
   local spt = {}
   local sf = {}
@@ -70,6 +82,12 @@ M.get = function (src, dst, heuristic)
       while serialize(path[1]) ~= s_src do
         table.insert(path, 1, spt[serialize(path[1])])
       end
+      path.cost = costs[s_dst]
+      M.prev = {
+        src = s_src,
+        dst = s_dst,
+        path = path,
+      }
       return path
     end
     
@@ -97,6 +115,33 @@ M.get = function (src, dst, heuristic)
       end
     end
   end
+  
+  M.prev = {
+    src = s_src,
+    dst = s_dst,
+    path = nil,
+  }
+  return nil
+end
+
+M.getCost = function (src, dst)
+  local s_src = serialize(src)
+  local s_dst = serialize(dst)
+  
+  if M.costs[s_src] and M.costs[s_src][s_dst] then
+    return M.costs[s_src][s_dst]
+  end
+  
+  local p = M.get(src, dst)
+  local cost = -1
+  if p then
+    cost = p.cost
+  end
+  if not M.costs[s_src] then
+    M.costs[s_src] = {}
+  end
+  M.costs[s_src][s_dst] = cost
+  return cost
 end
 
 return M
