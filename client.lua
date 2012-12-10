@@ -168,6 +168,8 @@ M.new = function (t)
     local info = room.getInfo(id)
     if info.desirability then
       aiComponent:addVisitGoal(id)
+    elseif info.reception then
+      aiComponent:addCheckInGoal(id)
     elseif info.condomSupplies then
       aiComponent:addCondomGoal(id)
     elseif info.foodSupplies then
