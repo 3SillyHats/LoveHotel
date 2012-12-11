@@ -178,7 +178,7 @@ M.new = function (t)
   end
   
   if t and t.target then
-    aiComponent:addFollowGoal(t.target)
+    aiComponent:addFollowGoal(t.target, "client")
   else
     event.notify("room.all", 0, function (id,type)
       addRoomGoal(id)

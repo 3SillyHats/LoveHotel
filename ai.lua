@@ -403,7 +403,9 @@ local newSexGoal = function (com, target)
       end,
     })
     
-    if not occupied then
+    if occupied then
+      event.notify("sprite.hide", self.component.entity, true)
+    else
       self.status = "failed"
       return
     end
@@ -423,6 +425,10 @@ local newSexGoal = function (com, target)
         id = self.component.entity,
       })
       self.inRoom = false
+      
+      -- Messify and unhide the departing person
+      event.notify("sprite.play", self.component.entity, "messy")
+      event.notify("sprite.hide", self.component.entity, false)
     end
     
     if self.status == "complete" and self.component.leader then
@@ -466,13 +472,11 @@ local newWaitForReceptionGoal = function (com, target)
 
   local queryHandler = function (e)
     if com.leader then
-      print("callback!")
       e.callback(com.entity)
     end
   end
   
   local serveHandler = function (e)
-    print("been served!")
     com.beenServed = true
     goal.status = "complete"
   end
@@ -588,7 +592,6 @@ local addVisitGoal = function (self, target)
     if not self.component.beenServed then
       return -1
     end
-    print("visiting room!")
     if sexGoal and sexGoal.status == "active" then
       return 1000
     end
@@ -616,10 +619,17 @@ local addVisitGoal = function (self, target)
   self.goalEvaluator:addSubgoal(goal)
 end
 
-local addFollowGoal = function (self, target)
+local addFollowGoal = function (self, target, type)
   local goal = M.newGoal(self)
   goal.target = target
+  goal.type = type
   goal.room = nil
+
+  if type == "client" then
+    goal.move = CLIENT_MOVE
+  elseif type == "staff" then
+    goal.move = STAFF_MOVE
+  end
   
   local sexGoal = nil
   
@@ -689,7 +699,7 @@ local addFollowGoal = function (self, target)
         pos = targetPos,
       })
       if goal.room then
-        self.followDist = self.followDist - CLIENT_MOVE*dt
+        self.followDist = self.followDist - self.move*dt
       end
       while #self.targetHist > 0 and
           math.abs(myPos.roomNum - targetPos.roomNum) + math.abs(myPos.floorNum - targetPos.floorNum) >= self.followDist do
@@ -707,9 +717,13 @@ local addFollowGoal = function (self, target)
           event.notify("sprite.play", goal.component.entity, next.play)
         end
         if next.enterRoom then
-          sexGoal = newSexGoal(self.component, self.room)
-          self:addSubgoal(sexGoal)
-          sexGoal:activate()
+          if self.type == "client" then
+            sexGoal = newSexGoal(self.component, self.room)
+            self:addSubgoal(sexGoal)
+            sexGoal:activate()
+          elseif self.type == "staff" then
+            return "complete"
+          end
         end
         myPos = transform.getPos(self.component.entity)
       end
@@ -731,6 +745,11 @@ local addFollowGoal = function (self, target)
     event.unsubscribe("enterRoom", self.target, onEnter)
     old_terminate(self)
     self.subgoals = {}
+    
+    if self.type == "staff" then
+      self.component.following = false
+      self.component.goalEvaluator:removeSubgoal(goal)
+    end
   end
   
   goal.getDesirability = function (self, t)
@@ -1343,8 +1362,9 @@ local newReceptionGoal = function (com, target)
         client = id
       end,
     })
-    print(client)
     event.notify("staff.bellhop.serve", client, {})
+    self.component:addFollowGoal(client, "staff")
+    self.component.following = true
   
     old_terminate(self)
     goal.subgoals = {}
@@ -1380,6 +1400,9 @@ local addBellhopGoal = function (self, target)
   end
   
   goal.getDesirability = function (self, t)
+    if self.component.following == true then
+      return -1
+    end
     if reception and reception.status == "active" then
       return 1000
     end
@@ -1449,7 +1472,6 @@ M.new = function (id)
     currentGoal = nil,
     
     update = update,
-    addGoal = addGoal,
     addCleanGoal = addCleanGoal,
     addVisitGoal = addVisitGoal,
     addFollowGoal = addFollowGoal,
