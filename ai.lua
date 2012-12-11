@@ -471,7 +471,7 @@ local newWaitForReceptionGoal = function (com, target)
   goal.target = target
 
   local queryHandler = function (e)
-    if com.leader then
+    if com.leader and not com.beenServed then
       e.callback(com.entity)
     end
   end
@@ -531,6 +531,7 @@ end
 local addCheckInGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  -- goal.name = "checkIn"
   
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
@@ -573,6 +574,7 @@ end
 local addVisitGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  -- goal.name = "visit"
   
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
@@ -628,6 +630,7 @@ local addFollowGoal = function (self, target, type)
   goal.target = target
   goal.type = type
   goal.room = nil
+  -- goal.name = "follow"
 
   if type == "client" then
     goal.move = CLIENT_MOVE
@@ -767,6 +770,7 @@ end
 
 local addExitGoal = function (self)
   local goal = M.newGoal(self)
+  -- goal.name = "exit"
   
   local old_activate = goal.activate
   goal.activate = function (self)
@@ -887,6 +891,7 @@ end
 local addCleanGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  -- goal.name = "clean"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local cleaning = nil
@@ -1010,6 +1015,7 @@ end
 local addSupplyGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  -- goal.name = "supply"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local supply = nil
@@ -1125,6 +1131,7 @@ end
 local addCondomGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  -- goal.name = "condom"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local condom = nil
@@ -1240,6 +1247,7 @@ end
 local addFoodGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  -- goal.name = "food"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local food = nil
@@ -1306,7 +1314,7 @@ local newWaitForOccupationGoal = function (com, target)
   
   goal.process = function (self, dt)
     local occupation = room.occupation(self.target)
-    
+
     if occupation == 0 then
       return "active"
     else
@@ -1364,9 +1372,11 @@ local newReceptionGoal = function (com, target)
         client = id
       end,
     })
-    event.notify("staff.bellhop.serve", client, {})
-    self.component:addFollowGoal(client, "staff")
-    self.component.following = true
+    if client then
+      event.notify("staff.bellhop.serve", client, {})
+      self.component:addFollowGoal(client, "staff")
+      self.component.following = true
+    end
   
     old_terminate(self)
     goal.subgoals = {}
@@ -1378,6 +1388,7 @@ end
 local addBellhopGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  -- goal.name = "bellhop"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local reception = nil
@@ -1429,6 +1440,7 @@ end
 local addEnterGoal = function (self)
   local goal = M.newGoal(self)
   goal.pos = transform.getPos(self.entity)
+  -- goal.name = "enter"
   
   local seek = nil
   
