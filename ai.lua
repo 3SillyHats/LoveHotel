@@ -478,7 +478,13 @@ local newWaitForReceptionGoal = function (com, target)
   
   local serveHandler = function (e)
     com.beenServed = true
-    goal.status = "complete"
+  end
+  
+  goal.process = function (self, dt)
+    if self.component.beenServed then
+      return "complete"
+    end
+    return "active"
   end
 
   local old_activate = goal.activate
@@ -508,14 +514,12 @@ local newWaitForReceptionGoal = function (com, target)
   
   local old_terminate = goal.terminate
   goal.terminate = function(self)
-    if self.component.beenServed then
-      event.notify("room.depart", self.target, {
-        id = self.component.entity,
-      })
-  
-      event.unsubscribe("staff.bellhop.queryServe", self.target, queryHandler)
-      event.unsubscribe("staff.bellhop.serve", com.entity, serveHandler)
-    end
+    event.notify("room.depart", self.target, {
+      id = self.component.entity,
+    })
+    
+    event.unsubscribe("staff.bellhop.queryServe", self.target, queryHandler)
+    event.unsubscribe("staff.bellhop.serve", com.entity, serveHandler)
   
     old_terminate(self)
     goal.subgoals = {}
@@ -705,7 +709,7 @@ local addFollowGoal = function (self, target, type)
           math.abs(myPos.roomNum - targetPos.roomNum) + math.abs(myPos.floorNum - targetPos.floorNum) >= self.followDist do
         local next = table.remove(self.targetHist, 1)
         event.notify("entity.move", self.component.entity, next.pos)
-        if next.hide then 
+        if next.hide and not next.enterRoom then 
           event.notify("sprite.hide", self.component.entity, true)
         elseif next.unhide then
           event.notify("sprite.hide", self.component.entity, false)
@@ -743,13 +747,12 @@ local addFollowGoal = function (self, target, type)
     event.unsubscribe("sprite.play", self.target, onPlay)
     event.unsubscribe("sprite.flip", self.target, onFlip)
     event.unsubscribe("enterRoom", self.target, onEnter)
-    old_terminate(self)
-    self.subgoals = {}
-    
     if self.type == "staff" then
       self.component.following = false
-      self.component.goalEvaluator:removeSubgoal(goal)
+      self.component.goalEvaluator:removeSubgoal(self)
     end
+    old_terminate(self)
+    self.subgoals = {}
   end
   
   goal.getDesirability = function (self, t)
@@ -1313,7 +1316,6 @@ local newWaitForOccupationGoal = function (com, target)
   
   local old_terminate = goal.terminate
   goal.terminate = function(self)
-    
     old_terminate(self)
     goal.subgoals = {}
   end
