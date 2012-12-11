@@ -6,6 +6,7 @@ local resource = require("resource")
 local ai = require("ai")
 local transform = require("transform")
 local room = require("room")
+local path = require("path")
 
 local M = {}
 
@@ -157,9 +158,8 @@ M.new = function (t)
     playing = "thoughtNone",
   }))
 
-  local pos = {roomNum = -.5, floorNum = GROUND_FLOOR}
   entity.addComponent(id, transform.new(
-    id, pos, {x = 16, y = 30}
+    id, t.pos, {x = 16, y = 30}
   ))
   local aiComponent = ai.new(id)
   aiComponent.leader = t.leader
@@ -221,43 +221,97 @@ M.new = function (t)
   return id
 end
 
-local spawner = entity.new(STATE_PLAY)
-local itime = math.random(SPAWN_MIN, SPAWN_MAX)
-local com = entity.newComponent({
-  timer = itime,
-  target = nil,
-  update = function (self, dt)
-    if self.timer <= 0 then
-      local category
-      local c = math.random() * totalChance[gStars]
+-- SPAWNER
+local getRandomCategory = function ()
+  local category
+  local c = math.random() * totalChance[gStars]
 
-      for _,cat in ipairs(categories) do
-        local info = resource.get("scr/people/" .. cat .. ".lua")
-        if c < info.spawnChance[gStars] then
-          category = cat
-          break
-        else
-          c = c - info.spawnChance[gStars]
-        end
-      end
-      
-      local spawnMin = SPAWN_MIN * (3 / (2 + gStars))
-      local spawnMax = SPAWN_MAX * (3 / (2 + gStars))
-      self.timer = math.random(spawnMin, spawnMax)
-      self.target = M.new({
-        category = category,
-        leader = true,
-      })
-      M.new({
-        target = self.target,
-        category = category,
-        leader = false,
-      })
+  for _,cat in ipairs(categories) do
+    local info = resource.get("scr/people/" .. cat .. ".lua")
+    if c < info.spawnChance[gStars] then
+      category = cat
+      break
     else
-      self.timer = self.timer - dt
+      c = c - info.spawnChance[gStars]
     end
-  end,
-})
-entity.addComponent(spawner, com)
+  end
+  
+  return category
+end
+
+M.newSpawner = function (type, pos)
+  local spawner = entity.new(STATE_PLAY)
+  local itime = math.random(SPAWN_MIN, SPAWN_MAX)
+  local com = entity.newComponent({
+    timer = itime,
+    target = nil,
+    update = function (self, dt)
+      if self.timer <= 0 then
+        local category
+        if type == nil then
+          category = getRandomCategory()
+        else
+          category = type
+        end
+        
+        local spawnMin = SPAWN_MIN * (3 / (2 + gStars))
+        local spawnMax = SPAWN_MAX * (3 / (2 + gStars))
+        self.timer = math.random(spawnMin, spawnMax)
+        self.target = M.new({
+          category = category,
+          pos = pos,
+          leader = true,
+        })
+        M.new({
+          target = self.target,
+          category = category,
+          pos = pos,
+          leader = false,
+        })
+      else
+        self.timer = self.timer - dt
+      end
+    end,
+  })
+  entity.addComponent(spawner, com)
+end
+M.newSpawner(nil, {roomNum = -.5, floorNum = GROUND_FLOOR})
+
+event.subscribe("floor.new", 0, function (level)
+  local newFloor = false
+  if level == GROUND_FLOOR + 8 then
+    M.newSpawner("poor", {roomNum = -.5, floorNum = GROUND_FLOOR + 8})
+    newFloor = true
+  elseif level == GROUND_FLOOR - 8 then
+    M.newSpawner("working", {roomNum = -.5, floorNum = GROUND_FLOOR - 8})
+    newFloor = true
+  elseif level == GROUND_FLOOR + 16 then
+    M.newSpawner("rich", {roomNum = -.5, floorNum = GROUND_FLOOR + 16})
+    newFloor = true
+  end
+  
+  if newFloor then
+    path.addEdge(
+      {roomNum = -.5, floorNum = level},
+      {roomNum = 0, floorNum = level},
+      .5/CLIENT_MOVE
+    )
+    path.addEdge(
+      {roomNum = 0, floorNum = level},
+      {roomNum = -.5, floorNum = level},
+      .5/CLIENT_MOVE
+    )
+    path.addEdge(
+      {roomNum = 0, floorNum = level},
+      {roomNum = .5, floorNum = level},
+      .5/CLIENT_MOVE
+    )
+    path.addEdge(
+      {roomNum = .5, floorNum = level},
+      {roomNum = 0, floorNum = level},
+      .5/CLIENT_MOVE
+    )
+  end
+end)
 
 return M
