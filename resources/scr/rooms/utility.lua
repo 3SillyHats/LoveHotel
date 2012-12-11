@@ -7,35 +7,60 @@ return {
   width = 1,
   dirtyable = false,
   cleaningSupplies = true,
-  stock = 3,
+  stock = 8,
   restockCost = 50,
   
   sprites = {
     {
       name = "background",
       animations = {
-        stocked3 = {
+        stocked8 = {
           first = 0,
           last = 0,
           speed = 1,
         },
-         stocked2 = {
+         stocked7 = {
           first = 1,
           last = 1,
           speed = 1,
         },     
-        stocked1 = {
+        stocked6 = {
           first = 2,
           last = 2,
           speed = 1,
         },
-        stocked0 = {
+        stocked5 = {
           first = 3,
           last = 3,
           speed = 1,
         },
+        stocked4 = {
+          first = 4,
+          last = 4,
+          speed = 1,
+        },
+         stocked3 = {
+          first = 5,
+          last = 5,
+          speed = 1,
+        },     
+        stocked2 = {
+          first = 6,
+          last = 6,
+          speed = 1,
+        },
+        stocked1 = {
+          first = 7,
+          last = 7,
+          speed = 1,
+        },
+        stocked0 = {
+          first = 8,
+          last = 8,
+          speed = 1,
+        },
       },
-      playing = "stocked3",
+      playing = "stocked8",
     },
     {
       name = "foreground",

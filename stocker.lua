@@ -81,7 +81,7 @@ local stocker = function (id, pos, cost, t)
             gMoney > info.restockCost then
           
           event.notify("stock", id, {id=roomId, pos=pos, type=type})
-          room.setStock(roomId, 3)
+          room.setStock(roomId, 8)
           moneyChange(-info.restockCost)
           event.notify("money.change", 0, {
             amount = -info.restockCost,
