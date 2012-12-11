@@ -63,7 +63,7 @@ M.new = function (t)
   entity.setOrder(id, 50)
   local isMale = math.random() < 0.5  --randomize male or female
   local hairColour = math.random(1, 4)
-  local hatChance = .125
+  local hatChance = 1
   
   local prefix
   if isMale then
@@ -72,8 +72,8 @@ M.new = function (t)
     prefix = "resources/img/people/woman/"
   end
   local categoryPrefix = prefix .. t.category .. "/"
-  if t.category == "rich" then
-    hatChance = 1
+  if t.category == "poor" or t.category == "working" then
+    hatChance = .125
   end
   local spriteData = {
     width = 24, height = 24,
@@ -280,13 +280,13 @@ M.newSpawner(nil, {roomNum = -.5, floorNum = GROUND_FLOOR})
 event.subscribe("floor.new", 0, function (level)
   local newFloor = false
   if level == SKY_SPAWN then
-    M.newSpawner("poor", {roomNum = -.5, floorNum = SKY_SPAWN})
+    M.newSpawner("sky", {roomNum = -.5, floorNum = SKY_SPAWN})
     newFloor = true
   elseif level == GROUND_SPAWN then
-    M.newSpawner("working", {roomNum = -.5, floorNum = GROUND_SPAWN})
+    M.newSpawner("ground", {roomNum = -.5, floorNum = GROUND_SPAWN})
     newFloor = true
   elseif level == SPACE_SPAWN then
-    M.newSpawner("rich", {roomNum = -.5, floorNum = SPACE_SPAWN})
+    M.newSpawner("space", {roomNum = -.5, floorNum = SPACE_SPAWN})
     newFloor = true
   end
   
