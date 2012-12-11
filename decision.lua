@@ -7,6 +7,33 @@ local input = require("input")
 local M = {}
 
 local decisions = {
+  skySpawn = {
+    prompt = "Sky travellers can now reach Love Hotel, and they're horny!",
+    options = {
+      {
+        text = "Okay",
+        func = nil,
+      },
+    },
+  },
+  groundSpawn = {
+    prompt = "That cave seems to be letting in other-worldly demons...",
+    options = {
+      {
+        text = "Okay",
+        func = nil,
+      },
+    },
+  },
+  spaceSpawn = {
+    prompt = "They came from outer space!",
+    options = {
+      {
+        text = "Okay",
+        func = nil,
+      },
+    },
+  },
   burialGround = {
     prompt = "While digging out the new underground floor the work " ..
     "crew discovers an ancient native burial ground filled with " ..
@@ -135,6 +162,17 @@ end)
 
 -- Setup some handlers to prompt decisions
 event.subscribe("floor.new", 0, function (level)
+  if level == SKY_SPAWN then
+    M.prompt("skySpawn")
+    return
+  elseif level == GROUND_SPAWN then
+    M.prompt("groundSpawn")
+    return
+  elseif level == SPACE_SPAWN then
+    M.prompt("spaceSpawn")
+    return
+  end
+
   if level > 2 and level < 6 then
     if math.random() < 0.5 then
       M.prompt("zoningPermit")

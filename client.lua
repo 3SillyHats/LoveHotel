@@ -279,14 +279,14 @@ M.newSpawner(nil, {roomNum = -.5, floorNum = GROUND_FLOOR})
 
 event.subscribe("floor.new", 0, function (level)
   local newFloor = false
-  if level == GROUND_FLOOR + 8 then
-    M.newSpawner("poor", {roomNum = -.5, floorNum = GROUND_FLOOR + 8})
+  if level == SKY_SPAWN then
+    M.newSpawner("poor", {roomNum = -.5, floorNum = SKY_SPAWN})
     newFloor = true
-  elseif level == GROUND_FLOOR - 8 then
-    M.newSpawner("working", {roomNum = -.5, floorNum = GROUND_FLOOR - 8})
+  elseif level == GROUND_SPAWN then
+    M.newSpawner("working", {roomNum = -.5, floorNum = GROUND_SPAWN})
     newFloor = true
-  elseif level == GROUND_FLOOR + 16 then
-    M.newSpawner("rich", {roomNum = -.5, floorNum = GROUND_FLOOR + 16})
+  elseif level == SPACE_SPAWN then
+    M.newSpawner("rich", {roomNum = -.5, floorNum = SPACE_SPAWN})
     newFloor = true
   end
   
