@@ -8,8 +8,8 @@ local resource = require("resource")
 buttLoc = {
   infrastructure = 0,
   suites = 1,
-  food = 2,
-  services = 3,
+  services = 2,
+  food = 3,
   staff = 4,
   stock = 5,
   locked = 7,
@@ -20,8 +20,8 @@ buttLoc = {
   floorDown = 11,
   destroy = 12,
  
-  flower = 16,
-  heart = 17,
+  spoon = 16,
+  missionary = 17,
   tropical = 18,
   
   vending = 24,
