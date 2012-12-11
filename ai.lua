@@ -668,7 +668,16 @@ local addExitGoal = function (self)
       end
     end
   
-    goal:addSubgoal(newMoveToGoal(self.component, {roomNum = -.5, floorNum = GROUND_FLOOR}, CLIENT_MOVE))
+    local level = GROUND_FLOOR
+    if self.component.category == "sky" then
+      level = SKY_SPAWN
+    elseif self.component.category == "ground" then
+      level = GROUND_SPAWN
+    elseif self.component.category == "space" then
+      level = SPACE_SPAWN
+    end
+  
+    goal:addSubgoal(newMoveToGoal(self.component, {roomNum = -.5, floorNum = level}, CLIENT_MOVE))
     goal:addSubgoal(newDestroyGoal(self.component))
     old_activate(self)
   end

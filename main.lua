@@ -512,9 +512,9 @@ menu.addButton(gui, menu.newButton("suites", function ()
   --Create the suites menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
   
-  --Flower
-  menu.addButton(submenu, menu.newButton("flower", function ()
-    buildRoom("flower", {roomNum = 1, floorNum = gScrollPos}, submenu)
+  --Spoon
+  menu.addButton(submenu, menu.newButton("spoon", function ()
+    buildRoom("spoon", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
   
   if gStars >= 2 then
