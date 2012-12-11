@@ -686,7 +686,11 @@ local addFollowGoal = function (self, target, type)
   
   local old_activate = goal.activate
   goal.activate = function (self)
-    self.followDist = FOLLOW_DISTANCE
+    if self.type == "staff" then
+      self.followDist = BELLHOP_DISTANCE
+    else
+      self.followDist = FOLLOW_DISTANCE
+    end
     self.targetHist = {{
       pos = transform.getPos(self.target),
     }}
@@ -738,7 +742,11 @@ local addFollowGoal = function (self, target, type)
     elseif sexGoal.status == "complete" then
       sexGoal = nil
       self.room = nil
-      self.followDist = FOLLOW_DISTANCE
+      if self.type == "staff" then
+        self.followDist = BELLHOP_DISTANCE
+      else
+        self.followDist = FOLLOW_DISTANCE
+      end
       return "complete"
     end
     return old_process(self,dt)
