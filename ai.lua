@@ -396,7 +396,7 @@ local newMoveToGoal = function (com, moveTo, moveSpeed)
   local old_process = goal.process
   goal.process = function (self, dt)
     if self.component.patience then
-      self.component.patience = self.component.patience - (2 * dt)
+      self.component.patience = self.component.patience - (.5 * dt)
     end
     return old_process(self, dt)
   end
@@ -856,7 +856,7 @@ local addOrderMealGoal = function (self, target)
   
   local old_process = goal.process
   goal.process = function (self, dt)
-    self.component.patience = self.component.patience - (2 * dt)
+    self.component.patience = self.component.patience - dt
     old_process(self, dt)
   end
   
@@ -874,7 +874,8 @@ local addOrderMealGoal = function (self, target)
   end
   
   goal.getDesirability = function (self, t)
-    if self.component.money >= info.profit and
+    if self.component.patience > 0 and
+        self.component.money >= info.profit and
         self.component.needs.hunger > 50 and
         self.component.needs.hunger > self.component.needs.horniness then
       local myPos = transform.getPos(self.component.entity)
@@ -882,7 +883,7 @@ local addOrderMealGoal = function (self, target)
       if time == -1 then
         return -1
       end
-      return self.component.needs.hunger / time
+      return self.component.needs.hunger / (time + 1)
     else
       return -1
     end
@@ -913,7 +914,7 @@ local newWaitForReceptionGoal = function (com, target)
   
   local old_process = goal.process
   goal.process = function (self, dt)
-    self.component.patience = self.component.patience - (10 * dt)
+    self.component.patience = self.component.patience - (5 * dt)
 
     old_process(self, dt)
     
