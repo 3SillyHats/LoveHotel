@@ -1094,13 +1094,13 @@ local addExitGoal = function (self)
       local minCost = 9999999999
       event.notify("room.all", 0, function (id, type)
         local info = room.getInfo(id)
-        if info.profit then
+        if info.profit and info.desirability then
           local available = true
           if room.occupation(id) > 0 or
               (info.dirtyable and room.isDirty(id)) then
             available = false
           end
-          if avaialble and info.profit < minCost then
+          if available and info.profit < minCost then
             minCost = info.profit
           end
         end
