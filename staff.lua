@@ -155,6 +155,13 @@ M.new = function (type)
     payCom.wage = COOK_WAGE
   elseif type == "maintenance" then
     payCom.wage = MAINTENANCE_WAGE
+  
+    addRoomGoal = function (id)
+      local info = room.getInfo(id)
+      if info.breakable then
+        aiComponent:addMaintenanceGoal(id)
+      end
+    end
   end
 
   event.notify("room.all", 0, function (id,type)

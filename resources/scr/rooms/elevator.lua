@@ -4,6 +4,7 @@ return {
   cost = 100,
   width = 1,
   dirtyable = false,
+  breakable = true,
   
   sprites = {
     {

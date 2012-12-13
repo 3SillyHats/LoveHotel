@@ -20,6 +20,9 @@ local infoComponent = function (id, info, pos)
   if info.cleaningSupplies then
     component.stock = info.stock
   end
+  if info.breakable then
+    component.integrity = 3
+  end
   
   local check = function (t)
     if math.ceil(t.floorNum) == pos.floorNum and
@@ -93,7 +96,22 @@ local infoComponent = function (id, info, pos)
       end
     end
   end
+
+  local beginFix = function (e)
+    if component.occupied > 0 then
+      e.callback(false)
+      return
+    end
+    
+    component.occupied = component.occupied + 1
+
+    e.callback(true)
+  end
   
+  local endFix = function (e)
+    component.occupied = 0
+  end
+
   local beginClean = function (e)
     if component.occupied > 0 then
       e.callback(false)
@@ -143,6 +161,34 @@ local infoComponent = function (id, info, pos)
     event.notify("sprite.play", id, "opening")
   end
   
+  local isBroken = function (callback)
+    if info.breakable then
+      callback(component.integrity <= 0)
+    else
+      callback(false)
+    end
+  end
+  
+  local use = function ()
+    if info.breakable then
+      component.integrity = component.integrity - 1
+      if component.integrity <= 0 then
+        event.notify("sprite.play", id, "broken")
+      end
+    end
+  end
+  
+  local fix = function (newIntegrity)
+    component.integrity = newIntegrity
+    if newIntegrity > 0 then
+      if info.stock ~= nil then
+        event.notify("sprite.play", id, "stocked" .. component.stock)
+      elseif info.id == "elevator" then
+        event.notify("sprite.play", id, "closed")
+      end
+    end
+  end
+  
   local function delete ()
     event.unsubscribe("room.check", 0, check)
     event.unsubscribe("room.all", 0, getRooms)
@@ -154,10 +200,15 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("room.setStock", id, setStock)
     event.unsubscribe("room.occupy", id, occupy)
     event.unsubscribe("room.depart", id, depart)
+    event.unsubscribe("room.beginFix", id, beginFix)
+    event.unsubscribe("room.endFix", id, endFix)
     event.unsubscribe("room.beginClean", id, beginClean)
     event.unsubscribe("room.endClean", id, endClean)
     event.unsubscribe("room.beginSupply", id, beginSupply)
     event.unsubscribe("room.endSupply", id, endSupply)
+    event.unsubscribe("room.isBroken", id, isBroken)
+    event.unsubscribe("room.use", id, use)
+    event.unsubscribe("room.fix", id, fix)
     event.unsubscribe("delete", id, delete)
   end
   
@@ -171,10 +222,15 @@ local infoComponent = function (id, info, pos)
   event.subscribe("room.setStock", id, setStock)
   event.subscribe("room.occupy", id, occupy)
   event.subscribe("room.depart", id, depart)
+  event.subscribe("room.beginFix", id, beginFix)
+  event.subscribe("room.endFix", id, endFix)
   event.subscribe("room.beginClean", id, beginClean)
   event.subscribe("room.endClean", id, endClean)
   event.subscribe("room.beginSupply", id, beginSupply)
   event.subscribe("room.endSupply", id, endSupply)
+  event.subscribe("room.isBroken", id, isBroken)
+  event.subscribe("room.use", id, use)
+  event.subscribe("room.fix", id, fix)
   event.subscribe("delete", id, delete)
 
   --Return the room info table.
@@ -304,6 +360,22 @@ end
 
 M.setStock = function (id, stock)
   event.notify("room.setStock", id, stock)
+end
+
+M.isBroken = function (id)
+  local broken
+  event.notify("room.isBroken", id, function (e)
+    broken = e
+  end)
+  return broken
+end
+
+M.use = function (id)
+  event.notify("room.use", id, nil)
+end
+
+M.fix = function (id, newIntegrity)
+  event.notify("room.fix", id, newIntegrity)
 end
 
 --Return the module

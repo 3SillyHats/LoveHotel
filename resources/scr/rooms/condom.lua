@@ -6,6 +6,7 @@ return {
   condomSupplies = true,
   stock = 8,
   restockCost = 20,
+  breakable = true,
 
   sprites = {
     {

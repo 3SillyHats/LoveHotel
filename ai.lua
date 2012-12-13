@@ -845,6 +845,121 @@ local addExitGoal = function (self)
   self.goalEvaluator:addSubgoal(goal)
 end
 
+local newFixGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  
+  local old_activate = goal.activate
+  goal.activate = function(self, dt)
+    if not self.target then
+      self.status = "failed"
+      return 
+    end
+    
+    local pos = transform.getPos(self.component.entity)
+    local atRoom = false
+    event.notify("room.check", 0, {
+      roomNum = pos.roomNum,
+      floorNum = pos.floorNum,
+      callback = function (id)
+        if id == self.target then
+          atRoom = true
+        end
+      end,
+    })
+    if not atRoom then
+      self.status = "failed"
+      return
+    end
+    
+    local fixing = false
+    event.notify("room.beginFix", self.target, {
+      id = self.component.entity,
+      callback = function (res)
+        fixing = res
+      end,
+    })
+    
+    if not fixing then
+      self.status = "failed"
+      return
+    end
+    
+    self.status = "active"
+    self:addSubgoal(newSleepGoal(self.component, FIX_TIME))
+    old_activate(self)
+  end
+  
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    event.notify("room.endFix", self.target, {
+      id = self.component.entity,
+    })
+
+    room.fix(self.target, 3)
+
+    self.target = nil
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  return goal
+end
+
+local addMaintenanceGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  -- goal.name = "maintenance"
+  local info = room.getInfo(goal.target)
+  local targetPos = room.getPos(goal.target)
+  local fixing = nil
+  
+  local old_activate = goal.activate
+  goal.activate = function (self)    
+    if not self.target then
+      self.status = "failed"
+      return
+    end
+    
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    fixing = newFixGoal(self.component, self.target)
+    self:addSubgoal(fixing)
+    old_activate(self)
+  end
+    
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  goal.getDesirability = function (self, t)
+    if fixing and fixing.status == "active" then
+      return 1000
+    end
+    
+    if room.isBroken(self.target) and
+        room.occupation(self.target) == 0 then
+      local myPos = transform.getPos(self.component.entity)
+      local time = path.getCost(myPos, targetPos) + CLEAN_TIME
+      if time == -1 then
+        return -1
+      end
+
+      return 1/time
+    end
+    return -1
+  end
+  
+  local function destroy (t)
+    self.goalEvaluator:removeSubgoal(goal)
+    event.unsubscribe("destroy", goal.target, destroy)
+  end
+  event.subscribe("destroy", goal.target, destroy)
+  
+  self.goalEvaluator:addSubgoal(goal)
+end
+
 local newPerformCleanGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
@@ -1111,6 +1226,11 @@ local newGetCondomGoal = function (self, target)
       return
     end
     
+    if room.isBroken(self.target) then
+      self.status = "failed"
+      return
+    end
+    
     local supplying = false
     event.notify("room.beginSupply", self.target, {
       id = self.component.entity,
@@ -1136,6 +1256,8 @@ local newGetCondomGoal = function (self, target)
       id = self.component.entity,
     })
     self.component.supply = self.component.supply + 3
+    
+    room.use(self.target)
     
     self.target = nil
     old_terminate(self)
@@ -1176,14 +1298,16 @@ local addCondomGoal = function (self, target)
     if condom and condom.status == "active" then
       return 1000
     end
-    local myPos = transform.getPos(self.component.entity)
-    local time = path.getCost(myPos, targetPos)
-    if time == -1 then
-      return -1
-    end
-    local stock = room.getStock(self.target)
-    local occupation = room.occupation(self.target)
-    if stock > 0 and occupation == 0 and self.component.supply == 0 then
+
+    if not room.isBroken(self.target) and
+        room.getStock(self.target) > 0 and
+        room.occupation(self.target) == 0 and
+        self.component.supply == 0 then
+        local myPos = transform.getPos(self.component.entity)
+        local time = path.getCost(myPos, targetPos)
+        if time == -1 then
+          return -1
+        end
       return 1 / time
     else
       return -1
@@ -1226,6 +1350,11 @@ local newGetFoodGoal = function (self, target)
       self.status = "failed"
       return
     end
+
+    if room.isBroken(self.target) then
+      self.status = "failed"
+      return
+    end
     
     local eating = false
     event.notify("room.beginSupply", self.target, {
@@ -1252,6 +1381,7 @@ local newGetFoodGoal = function (self, target)
       id = self.component.entity,
     })
     self.component.needs.hunger = math.max(0, self.component.needs.hunger - 30)
+    room.use(self.target)
     
     self.target = nil
     old_terminate(self)
@@ -1292,13 +1422,16 @@ local addFoodGoal = function (self, target)
     if food and food.status == "active" then
       return 1000
     end
-    local myPos = transform.getPos(self.component.entity)
-    local time = math.abs(myPos.floorNum - targetPos.floorNum) / ELEVATOR_MOVE
-      + math.abs(myPos.roomNum - targetPos.roomNum) / CLIENT_MOVE
-    local stock = room.getStock(self.target)
-    local occupation = room.occupation(self.target)
-    if stock > 0 and occupation == 0 and
+    
+    if not room.isBroken(self.target) and
+        room.getStock(self.target) > 0 and
+        room.occupation(self.target) == 0 and
         self.component.needs.hunger > self.component.needs.horniness then
+      local myPos = transform.getPos(self.component.entity)
+      local time = path.getCost(myPos, targetPos)
+      if time == -1 then
+        return -1
+      end
       return self.component.needs.hunger / time
     else
       return -1
@@ -1513,6 +1646,7 @@ M.new = function (id)
     addFoodGoal = addFoodGoal,
     addBellhopGoal = addBellhopGoal,
     addCheckInGoal = addCheckInGoal,
+    addMaintenanceGoal = addMaintenanceGoal,
   })
   com.goalEvaluator = M.newGoal(com)
   com.goalEvaluator.arbitrate = arbitrate

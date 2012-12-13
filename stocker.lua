@@ -75,7 +75,8 @@ local stocker = function (id, pos, cost, t)
         local info = resource.get("scr/rooms/" .. string.lower(type) .. ".lua")
         local stock = room.getStock(roomId)
 
-        if info.stock and
+        if not room.isBroken(roomId) and
+            info.stock and
             stock < info.stock and
             room.occupation(roomId) == 0 and
             gMoney > info.restockCost then
@@ -89,6 +90,10 @@ local stocker = function (id, pos, cost, t)
           })
 
           local snd = resource.get("snd/select.wav")
+          love.audio.rewind(snd)
+          love.audio.play(snd)
+        else
+          local snd = resource.get("snd/error.wav")
           love.audio.rewind(snd)
           love.audio.play(snd)
         end
