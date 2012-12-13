@@ -20,11 +20,13 @@ buttLoc = {
   floorDown = 11,
   destroy = 12,
  
-  spoon = 16,
-  missionary = 17,
-  tropical = 18,
+  missionary = 16,
+  spoon = 17,
+  moustache = 18,
   balloon = 19,
-  moustache = 20,
+  torture = 20,
+  furrynazi = 21,
+  tropical = 22,
   
   vending = 24,
   dining = 25,
