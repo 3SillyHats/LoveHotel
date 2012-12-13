@@ -75,7 +75,7 @@ local hud = function (id, pos)
   component.addButton = function (self, button)
     table.insert(buttons, button)
     if #buttons == 1 then
-      event.notify("menu.info", 0, buttons[selected].type)
+      event.notify("menu.info", 0, {selected = buttons[selected].type})
     end
   end
   
@@ -85,7 +85,7 @@ local hud = function (id, pos)
   
   component.enable =  function (self)
     component.enabled = true
-    event.notify("menu.info", 0, buttons[selected].type)
+    event.notify("menu.info", 0, {selected = buttons[selected].type})
   end
   
   component.disable = function (self)
@@ -99,14 +99,14 @@ local hud = function (id, pos)
         if key == "left" then
           if selected > 1 then
             selected = selected - 1
-            event.notify("menu.info", 0, buttons[selected].type)
+            event.notify("menu.info", 0, {selected = buttons[selected].type})
             love.audio.rewind(snd)
             love.audio.play(snd)
           end
         elseif key == "right" then
           if selected < #buttons then
             selected = selected + 1
-            event.notify("menu.info", 0, buttons[selected].type)
+            event.notify("menu.info", 0, {selected = buttons[selected].type})
             love.audio.rewind(snd)
             love.audio.play(snd)
           end
