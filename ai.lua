@@ -1236,8 +1236,11 @@ local addExitGoal = function (self)
         local info = room.getInfo(id)
         if info.profit and info.desirability then
           local available = true
+          local myPos = transform.getPos(self.component.entity)
+          local targetPos = transform.getPos(id)
           if room.occupation(id) > 0 or
-              (info.dirtyable and room.isDirty(id)) then
+              (info.dirtyable and room.isDirty(id)) or
+              path.getCost(myPos, targetPos) == -1 then
             available = false
           end
           if available and info.profit < minCost then
