@@ -951,7 +951,11 @@ local addCheckInGoal = function (self, target)
   end
   
   goal.getDesirability = function (self, t)
-    if not self.component.beenServed then
+    if not self.component.beenServed and
+        self.component.patience > 0 and
+        self.component.needs.horniness > 0 and
+        self.component.needs.horniness > self.component.needs.hunger and
+        self.component.supply > 0 then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
       if time ~= -1 then
@@ -1240,11 +1244,10 @@ local addExitGoal = function (self)
   end
   
   goal.getDesirability = function (self, t)
-    if self.component.patience > 0 then
-      return 0
-    else
+    if self.component.patience <= 0 then
       return 1000
     end
+    return 0
   end
   
   self.goalEvaluator:addSubgoal(goal)
