@@ -21,7 +21,8 @@ local infoComponent = function (id, info, pos)
     component.stock = info.stock
   end
   if info.breakable then
-    component.integrity = 3
+    local integrity = info.integrity + math.random(1, info.integrity)
+    component.integrity = integrity
   end
   
   local check = function (t)

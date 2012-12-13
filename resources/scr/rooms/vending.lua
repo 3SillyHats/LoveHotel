@@ -8,6 +8,7 @@ return {
   stock = 8,
   restockCost = 30,
   breakable = true,
+  integrity = 5,
 
   sprites = {
     {

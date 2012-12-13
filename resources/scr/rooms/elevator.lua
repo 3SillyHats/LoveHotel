@@ -5,6 +5,7 @@ return {
   width = 1,
   dirtyable = false,
   breakable = true,
+  integrity = 10,
   
   sprites = {
     {

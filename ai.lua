@@ -1345,7 +1345,9 @@ local newFixGoal = function (self, target)
       id = self.component.entity,
     })
 
-    room.fix(self.target, 3)
+    local info = room.getInfo(self.target)
+    local integrity = info.integrity + math.random(1, info.integrity)
+    room.fix(self.target, integrity)
 
     self.target = nil
     old_terminate(self)
