@@ -518,16 +518,25 @@ menu.addButton(gui, menu.newButton("suites", function ()
   
   --Create the suites menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
-  
+ 
+  --Missionary
+  menu.addButton(submenu, menu.newButton("missionary", function ()
+    buildRoom("missionary", {roomNum = 1, floorNum = gScrollPos}, submenu)
+  end))
+ 
   --Spoon
   menu.addButton(submenu, menu.newButton("spoon", function ()
     buildRoom("spoon", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
   
-  --Missionary
-  menu.addButton(submenu, menu.newButton("missionary", function ()
-    buildRoom("missionary", {roomNum = 1, floorNum = gScrollPos}, submenu)
-  end))
+   if gStars >= 2 then
+    --Chocolate Moustache
+    menu.addButton(submenu, menu.newButton("moustache", function ()
+      buildRoom("moustache", {roomNum = 1, floorNum = gScrollPos}, submenu)
+    end))
+  else
+    addLockButton(submenu)
+  end
 
    if gStars >= 2 then
     --Balloon
@@ -538,7 +547,7 @@ menu.addButton(gui, menu.newButton("suites", function ()
     addLockButton(submenu)
   end
    
-  if gStars >= 3 then
+  if gStars >= 5 then
     --Tropical
     menu.addButton(submenu, menu.newButton("tropical", function ()
       buildRoom("tropical", {roomNum = 1, floorNum = gScrollPos}, submenu)

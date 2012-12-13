@@ -24,6 +24,7 @@ buttLoc = {
   missionary = 17,
   tropical = 18,
   balloon = 19,
+  moustache = 20,
   
   vending = 24,
   dining = 25,

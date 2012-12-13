@@ -1,10 +1,10 @@
 return {
-  id = "tropical",
-  name = "Eco Room",
-  cost = 5000,
-  profit = 1500,
-  desirability = 150,
-  width = 5,
+  id = "moustache",
+  name = "Choc 'tache",
+  cost = 1200,
+  profit = 250,
+  desirability = 25,
+  width = 2,
   dirtyable = true,
   
   sprites = {
@@ -61,18 +61,18 @@ return {
           speed = 1,
         },
         closed = {
-          first = 3,
-          last = 3,
+          first = 4,
+          last = 4,
           speed = 1,
         },
         closing = {
           first = 0,
-          last = 3,
+          last = 4,
           speed = 0.2,
           goto = "closed",
         },
         opening = {
-          first = 3,
+          first = 4,
           last = 0,
           speed = 0.2,
           goto = "opened",
