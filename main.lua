@@ -39,7 +39,7 @@ SPACE_SPAWN = 16
 
 REP_INITIAL = 5
 REP_MAX = 500
-STARS_INITIAL = 1
+STARS_INITIAL = 5
 STARS_MAX = 5
 REP_THRESHOLDS = {
   0,
@@ -523,15 +523,20 @@ menu.addButton(gui, menu.newButton("suites", function ()
     buildRoom("spoon", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
   
-  if gStars >= 2 then
-    --Heart
-    menu.addButton(submenu, menu.newButton("heart", function ()
-      buildRoom("heart", {roomNum = 1, floorNum = gScrollPos}, submenu)
+  --Missionary
+  menu.addButton(submenu, menu.newButton("missionary", function ()
+    buildRoom("missionary", {roomNum = 1, floorNum = gScrollPos}, submenu)
+  end))
+
+   if gStars >= 2 then
+    --Balloon
+    menu.addButton(submenu, menu.newButton("balloon", function ()
+      buildRoom("balloon", {roomNum = 1, floorNum = gScrollPos}, submenu)
     end))
   else
     addLockButton(submenu)
   end
-  
+   
   if gStars >= 3 then
     --Tropical
     menu.addButton(submenu, menu.newButton("tropical", function ()

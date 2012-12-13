@@ -23,6 +23,7 @@ buttLoc = {
   spoon = 16,
   missionary = 17,
   tropical = 18,
+  balloon = 19,
   
   vending = 24,
   dining = 25,
