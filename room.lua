@@ -70,9 +70,6 @@ local infoComponent = function (id, info, pos)
       component.occupied = component.occupied + 1
       if component.occupied == 2 then
         event.notify("sprite.play", id, "closing")
-        if info.desirability then
-          event.notify("sprite.play", id, "hearts")
-        end
       end
       e.callback(true)
     else
@@ -90,10 +87,6 @@ local infoComponent = function (id, info, pos)
     end
     if component.occupied <= 0 then
       component.occupied = 0
-      event.notify("sprite.play", id, "opening")
-      if info.desirability then
-        event.notify("sprite.play", id, "heartless")
-      end
     end
   end
 
@@ -151,8 +144,6 @@ local infoComponent = function (id, info, pos)
     component.occupied = component.occupied + 1
     
     event.notify("sprite.hide", e.id, true)
-    event.notify("sprite.play", id, "closing")
-    event.notify("sprite.play", id, "cleaning")
     e.callback(true)
   end
   
@@ -161,9 +152,6 @@ local infoComponent = function (id, info, pos)
     component.messy = false
     
     event.notify("sprite.hide", e.id, false)
-    event.notify("sprite.play", id, "clean")
-    event.notify("sprite.play", id, "cleanless")
-    event.notify("sprite.play", id, "opening")
   end
   
   local beginSupply = function (e)
@@ -174,21 +162,14 @@ local infoComponent = function (id, info, pos)
     
     component.occupied = component.occupied + 1
     
-    if e.enter then
-      event.notify("sprite.hide", e.id, true)
-      event.notify("sprite.play", id, "closing")
-    end
-    
     e.callback(true)
   end
   
   local endSupply = function (e)
     component.occupied = 0
     component.stock = component.stock - 1
-    
-    event.notify("sprite.hide", e.id, false)
+
     event.notify("sprite.play", id, "stocked" .. component.stock)
-    event.notify("sprite.play", id, "opening")
   end
   
   local isBroken = function (callback)
@@ -204,19 +185,76 @@ local infoComponent = function (id, info, pos)
       component.integrity = component.integrity - 1
       if component.integrity <= 0 then
         event.notify("sprite.play", id, "broken")
+        event.notify("room.broken", id, {
+          type = info.id,
+          id = id,
+          pos = pos,
+        })
+        event.notify("room.broken", 0, {
+          type = info.id,
+          id = id,
+          pos = pos,
+        })
       end
     end
   end
-  
-  local fix = function (newIntegrity)
-    component.integrity = newIntegrity
-    if newIntegrity > 0 then
+  local fix = function (t)
+    component.integrity = t.integrity
+    if t.integrity > 0 then
+      event.notify("room.fixed", id, {
+        type = info.id,
+        id = id,
+        pos = pos,
+      })
+      event.notify("room.fixed", 0, {
+        type = info.id,
+        id = id,
+        pos = pos,
+      })
       if info.stock ~= nil then
         event.notify("sprite.play", id, "stocked" .. component.stock)
       elseif info.id == "elevator" then
         event.notify("sprite.play", id, "closed")
       end
     end
+  end
+  
+  if info.id == "elevator" then
+    local propogate = function (f, e)
+      return function (t)
+        if not t then
+          t = {}
+        end
+        local dir = t.__dir
+        if dir ~= "up" then
+          t.__dir = "down"
+          event.notify("room.check", 0, {
+            roomNum = pos.roomNum,
+            floorNum = pos.floorNum - 1,
+            callback = function (otherId, type)
+              if type == "elevator" then
+                event.notify(e, otherId, t)
+              end
+            end,
+          })
+        end
+        if dir ~= "down" then
+          t.__dir = "up"
+          event.notify("room.check", 0, {
+            roomNum = pos.roomNum,
+            floorNum = pos.floorNum + 1,
+            callback = function (otherId, type)
+              if type == "elevator" then
+                event.notify(e, otherId, t)
+              end
+            end,
+          })
+        end
+        f(t)
+      end
+    end
+    use = propogate(use, "room.use")
+    fix = propogate(fix, "room.fix")
   end
   
   local function delete ()
@@ -413,7 +451,7 @@ M.use = function (id)
 end
 
 M.fix = function (id, newIntegrity)
-  event.notify("room.fix", id, newIntegrity)
+  event.notify("room.fix", id, {integrity = newIntegrity})
 end
 
 --Return the module

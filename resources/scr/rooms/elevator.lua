@@ -21,11 +21,6 @@ return {
     {
       name = "foreground",
       animations = {
-        opened = {
-          first = 0,
-          last = 0,
-          speed = 1,
-        },
         closed = {
           first = 5,
           last = 5,
@@ -41,10 +36,10 @@ return {
           first = 5,
           last = 0,
           speed = 0.2,
-          goto = "opened",
+          goto = "closing",
         },
       },
-      playing = "opening",
+      playing = "closed",
     },
   },
 }

@@ -212,7 +212,7 @@ local elevatorGoto = function(self, pos)
     roomNum = pos.roomNum,
     floorNum = pos.floorNum,
     callback = function (id, roomType)
-      if roomType == "elevator" then
+      if roomType == "elevator" and not room.isBroken(id) then
         passable = true
       end
     end,
@@ -231,13 +231,30 @@ local elevatorProcess = function (self, dt)
   if self.moveTo.roomNum ~= self.pos.roomNum then
     return "failed"
   end
+  if self.wait1 then
+    return "active"
+  end
+  if not self.wait2 then
+    return "complete"
+  end
   if math.abs(self.moveTo.floorNum - self.pos.floorNum) < self.speed*dt then
     local result = elevatorGoto(self, {
       roomNum = self.moveTo.roomNum,
       floorNum = self.pos.floorNum,
     })
     if result then return result end
-    return "complete"
+    local room
+    event.notify("room.check", 0, {
+      roomNum = self.pos.roomNum,
+      floorNum = self.pos.floorNum,
+      callback = function (id, type)
+        if type == "elevator" then
+          room = id
+        end
+      end,
+    })
+    event.subscribe("sprite.onAnimationEnd", room, self.endHandler)
+    event.notify("sprite.play", room, "opening")
   else
     local delta = self.speed*dt
     if self.moveTo.floorNum < self.pos.floorNum then
@@ -259,22 +276,48 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
   goal.pos = {roomNum = moveFrom.roomNum, floorNum = moveFrom.floorNum}
   goal.speed = ELEVATOR_MOVE
   goal.process = elevatorProcess
+  goal.wait1 = true
+  goal.wait2 = true
+
+  goal.startHandler = function (e)
+    goal.wait1 = false
+  end
+  
+  goal.endHandler = function (e)
+    goal.wait2 = false
+  end
+
   local onMove = function (pos)
     goal.pos.roomNum = pos.roomNum
     goal.pos.floorNum = pos.floorNum
   end
   event.subscribe("entity.move", goal.component.entity, onMove)
+  
   local function delete()
     event.unsubscribe("entity.move", goal.component.entity, onMove)
     event.unsubscribe("delete", goal.component.entity, delete)
   end
   event.subscribe("delete", goal.component.entity, delete)
+  
   local old_activate = goal.activate
   goal.activate = function (self)
-    event.notify("sprite.play", goal.component.entity, "idle")
-    event.notify("sprite.hide", goal.component.entity, true)
+    event.notify("sprite.play", self.component.entity, "idle")
+    event.notify("sprite.hide", self.component.entity, true)
+    local room
+    event.notify("room.check", 0, {
+      roomNum = self.pos.roomNum,
+      floorNum = self.pos.floorNum,
+      callback = function (id, type)
+        if type == "elevator" then
+          room = id
+        end
+      end,
+    })
+    event.subscribe("sprite.onAnimationEnd", room, self.startHandler)
+    event.notify("sprite.play", room, "opening")
     old_activate(self)
   end
+  
   local old_terminate = goal.terminate
   goal.terminate = function (self)
     delete()
@@ -282,8 +325,20 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
       roomNum = goal.pos.roomNum,
       floorNum = math.floor(goal.pos.floorNum + .5)
     })
+    local elevator
+    event.notify("room.check", 0, {
+      roomNum = self.pos.roomNum,
+      floorNum = self.pos.floorNum,
+      callback = function (id, type)
+        elevator = id
+      end,
+    })
+    
+    room.use(elevator)
     event.notify("sprite.play", goal.component.entity, "idle")
     event.notify("sprite.hide", goal.component.entity, false)
+    event.unsubscribe("sprite.onAnimationEnd", room, self.startHandler)
+    event.unsubscribe("sprite.onAnimationEnd", room, self.endHandler)
     old_terminate(self)
   end
   
@@ -370,6 +425,42 @@ local newSleepGoal = function (self, t)
   
   return goal
 end
+
+local newWaitForAnimationGoal = function (com, target, animation)
+  local goal = M.newGoal(com)
+  goal.target = target
+  goal.animation = animation
+  goal.done = false
+  
+  local handler = function (e)
+    if e.animation == goal.animation then
+      goal.done = true
+    end
+  end
+  
+  local old_activate = goal.activate 
+  goal.activate = function (self)
+    event.subscribe("sprite.onAnimationEnd", self.target, handler)
+    event.notify("sprite.play", self.target, self.animation)
+    old_activate(self)
+  end
+
+  goal.process = function (self, dt)
+    if self.done then
+      return "complete"
+    else
+      return "active"
+    end
+  end
+  
+  local old_terminate = goal.terminate 
+  goal.terminate = function (self)
+    event.unsubscribe("sprite.onAnimationEnd", self.target, handler)    
+    old_terminate(self)
+  end
+  
+  return goal
+end
   
 local newSexGoal = function (com, target)
   local goal = M.newGoal(com)
@@ -416,11 +507,17 @@ local newSexGoal = function (com, target)
       self.status = "failed"
       return
     end
+    event.notify("sprite.play", self.target, "hearts")
     
     event.notify("enterRoom", self.component.entity, self.target)
     self.inRoom = true
 
     self:addSubgoal(newSleepGoal(self.component, SEX_TIME))
+    self:addSubgoal(newWaitForAnimationGoal(
+      self.component,
+      self.target,
+      "opening"
+    ))
     
     old_activate(self)
   end
@@ -432,6 +529,8 @@ local newSexGoal = function (com, target)
         id = self.component.entity,
       })
       self.inRoom = false
+      
+      event.notify("sprite.play", self.target, "heartless")
       
       -- Messify and unhide the departing person
       event.notify("sprite.play", self.component.entity, "messy")
@@ -1247,10 +1346,11 @@ local addMaintenanceGoal = function (self, target)
     if room.isBroken(self.target) and
         room.occupation(self.target) == 0 then
       local myPos = transform.getPos(self.component.entity)
-      local time = path.getCost(myPos, targetPos) + CLEAN_TIME
+      local time = path.getCost(myPos, targetPos)
       if time == -1 then
         return -1
       end
+      time = time + FIX_TIME
 
       return 1/time
     end
@@ -1305,9 +1405,19 @@ local newPerformCleanGoal = function (self, target)
       self.status = "failed"
       return
     end
+
+    event.notify("sprite.hide", self.component.entity, true)
+    event.notify("sprite.play", self.target, "closing")
+    event.notify("sprite.play", self.target, "cleaning")
     
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, CLEAN_TIME))
+    self:addSubgoal(newWaitForAnimationGoal(
+      self.component,
+      self.target,
+      "opening"
+    ))
+    
     old_activate(self)
   end
   
@@ -1316,6 +1426,9 @@ local newPerformCleanGoal = function (self, target)
     event.notify("room.endClean", self.target, {
       id = self.component.entity,
     })
+    
+    event.notify("sprite.hide", self.component.entity, false)
+    event.notify("sprite.play", self.target, "cleanless")
     
     self.component.supply = self.component.supply - 1
     self.target = nil
@@ -1431,8 +1544,17 @@ local newGetSupplyGoal = function (self, target)
       return
     end
     
+    event.notify("sprite.hide", self.component.entity, true)
+    event.notify("sprite.play", self.target, "closing")
+    
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, SUPPLY_TIME))
+    self:addSubgoal(newWaitForAnimationGoal(
+      self.component,
+      self.target,
+      "opening"
+    ))
+    
     old_activate(self)
   end
   
@@ -1441,6 +1563,8 @@ local newGetSupplyGoal = function (self, target)
     event.notify("room.endSupply", self.target, {
       id = self.component.entity,
     })
+    
+    event.notify("sprite.hide", self.component.entity, false)
     
     self.target = nil
     old_terminate(self)
@@ -2344,15 +2468,14 @@ event.subscribe("floor.new", 0, function (level)
   end
 end)
 
-
-event.subscribe("build", 0, function (t)
+local addElevator = function (t)
   if t.type == "elevator" then
     -- Check for elevator above
     event.notify("room.check", 0, {
       roomNum = t.pos.roomNum,
       floorNum = t.pos.floorNum + 1,
       callback = function (id, type)
-        if type == "elevator" then
+        if type == "elevator" and not room.isBroken(id) then
           local dst = {
             roomNum = t.pos.roomNum,
             floorNum = t.pos.floorNum + 1,
@@ -2368,7 +2491,7 @@ event.subscribe("build", 0, function (t)
       roomNum = t.pos.roomNum,
       floorNum = t.pos.floorNum - 1,
       callback = function (id, type)
-        if type == "elevator" then
+        if type == "elevator" and not room.isBroken(id) then
           local dst = {
             roomNum = t.pos.roomNum,
             floorNum = t.pos.floorNum - 1,
@@ -2379,9 +2502,9 @@ event.subscribe("build", 0, function (t)
       end,
     })
   end
-end)
+end
 
-event.subscribe("destroy", 0, function (t)
+local removeElevator = function (t)
   if t.type == "elevator" then
     local dst = {
       roomNum = t.pos.roomNum,
@@ -2397,6 +2520,11 @@ event.subscribe("destroy", 0, function (t)
     path.removeEdge(t.pos,dst)
     path.removeEdge(dst,t.pos)
   end
-end)
+end
+
+event.subscribe("build", 0, addElevator)
+event.subscribe("room.fixed", 0, addElevator)
+event.subscribe("destroy", 0, removeElevator)
+event.subscribe("room.broken", 0, removeElevator)
 
 return M
