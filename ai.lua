@@ -426,6 +426,30 @@ local newSleepGoal = function (self, t)
   return goal
 end
 
+local newPlayAnimationGoal = function (com, target, animation)
+  local goal = M.newGoal(com)
+  goal.target = target
+  goal.animation = animation
+  
+  local old_activate = goal.activate 
+  goal.activate = function (self)
+    event.notify("sprite.play", self.target, self.animation)
+    old_activate(self)
+    self.status = "complete"
+  end
+
+  goal.process = function (self, dt)
+    return "complete"
+  end
+  
+  local old_terminate = goal.terminate 
+  goal.terminate = function (self)
+    old_terminate(self)
+  end
+  
+  return goal
+end
+
 local newWaitForAnimationGoal = function (com, target, animation)
   local goal = M.newGoal(com)
   goal.target = target
@@ -461,7 +485,7 @@ local newWaitForAnimationGoal = function (com, target, animation)
   
   return goal
 end
-  
+ 
 local newSexGoal = function (com, target)
   local goal = M.newGoal(com)
   goal.target = target
@@ -513,6 +537,16 @@ local newSexGoal = function (com, target)
     self.inRoom = true
 
     self:addSubgoal(newSleepGoal(self.component, SEX_TIME))
+    self:addSubgoal(newPlayAnimationGoal(
+      self.component,
+      self.target,
+      "heartless"
+    ))
+    self:addSubgoal(newPlayAnimationGoal(
+      self.component,
+      self.target,
+      "dirty"
+    ))
     self:addSubgoal(newWaitForAnimationGoal(
       self.component,
       self.target,
@@ -529,8 +563,11 @@ local newSexGoal = function (com, target)
         id = self.component.entity,
       })
       self.inRoom = false
-      
+
+      -- Make sure graphics change even if terminated early
       event.notify("sprite.play", self.target, "heartless")
+      event.notify("sprite.play", self.target, "dirty")
+      event.notify("sprite.play", self.target, "open")
       
       -- Messify and unhide the departing person
       event.notify("sprite.play", self.component.entity, "messy")
@@ -1415,6 +1452,11 @@ local newPerformCleanGoal = function (self, target)
     
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, CLEAN_TIME))
+    self:addSubgoal(newPlayAnimationGoal(
+      self.component,
+      self.target,
+      "clean"
+    ))
     self:addSubgoal(newWaitForAnimationGoal(
       self.component,
       self.target,

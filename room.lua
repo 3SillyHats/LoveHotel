@@ -83,7 +83,6 @@ local infoComponent = function (id, info, pos)
     end
     if info.dirtyable and not component.messy then
       component.messy = true
-      event.notify("sprite.play", id, "dirty")
     end
     if component.occupied <= 0 then
       component.occupied = 0
