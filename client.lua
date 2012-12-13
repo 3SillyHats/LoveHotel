@@ -10,6 +10,8 @@ local path = require("path")
 
 local M = {}
 
+local clients = {}
+
 local categories = {}
 local totalChance = {0, 0, 0, 0, 0}
 local files = love.filesystem.enumerate("resources/scr/people/")
@@ -220,11 +222,21 @@ M.new = function (t)
   event.subscribe("actor.check", 0, check)
 
   local function delete (e)
+    for k,v in ipairs(clients) do
+      if v.id == id then
+        table.remove(clients,k)
+      end
+    end
     event.unsubscribe("actor.check", 0, check)
     event.unsubscribe("delete", id, delete)
   end
 
   event.subscribe("delete", id, delete)
+  
+  table.insert(clients, {
+    id = id,
+    ai = aiComponent,
+  })
   
   return id
 end
@@ -321,5 +333,9 @@ event.subscribe("floor.new", 0, function (level)
     )
   end
 end)
+
+M.getAll = function ()
+  return clients
+end
 
 return M

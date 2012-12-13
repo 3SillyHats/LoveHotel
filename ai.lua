@@ -542,7 +542,7 @@ end
 local addSpaGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
-  -- goal.name = "spa"
+  goal.name = "spa"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local spa = nil
@@ -702,7 +702,7 @@ end
 local addOrderMealGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
-  -- goal.name = "orderMeal"
+  goal.name = "orderMeal"
   
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
@@ -829,7 +829,7 @@ end
 local addCheckInGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
-  -- goal.name = "checkIn"
+  goal.name = "checkIn"
   
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
@@ -872,7 +872,7 @@ end
 local addVisitGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
-  -- goal.name = "visit"
+  goal.name = "visit"
   
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
@@ -928,7 +928,7 @@ local addFollowGoal = function (self, target, type)
   goal.target = target
   goal.type = type
   goal.room = nil
-  -- goal.name = "follow"
+  goal.name = "follow"
 
   if type == "client" then
     goal.move = CLIENT_MOVE
@@ -1076,7 +1076,7 @@ end
 
 local addExitGoal = function (self)
   local goal = M.newGoal(self)
-  -- goal.name = "exit"
+  goal.name = "exit"
   
   local old_activate = goal.activate
   goal.activate = function (self)
@@ -1213,7 +1213,7 @@ end
 local addMaintenanceGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
-  -- goal.name = "maintenance"
+  goal.name = "maintenance"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local fixing = nil
@@ -1327,7 +1327,7 @@ end
 local addCleanGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
-  -- goal.name = "clean"
+  goal.name = "clean"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local cleaning = nil
@@ -1451,7 +1451,7 @@ end
 local addSupplyGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
-  -- goal.name = "supply"
+  goal.name = "supply"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local supply = nil
@@ -1583,7 +1583,7 @@ end
 local addCondomGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
-  -- goal.name = "condom"
+  goal.name = "condom"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local condom = nil
@@ -1714,7 +1714,7 @@ end
 local addSnackGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
-  -- goal.name = "snack"
+  goal.name = "snack"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local food = nil
@@ -1858,7 +1858,7 @@ end
 local addBellhopGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
-  -- goal.name = "bellhop"
+  goal.name = "bellhop"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local reception = nil
@@ -1910,7 +1910,7 @@ end
 local addEnterGoal = function (self)
   local goal = M.newGoal(self)
   goal.pos = transform.getPos(self.entity)
-  -- goal.name = "enter"
+  goal.name = "enter"
   
   local seek = nil
   
@@ -2018,7 +2018,7 @@ end
 local addCookGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
-  -- goal.name = "cook"
+  goal.name = "cook"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local prepareGoal = nil
@@ -2073,7 +2073,7 @@ end
 local addIngredientsGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
-  -- goal.name = "ingredients"
+  goal.name = "ingredients"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local supply = nil
@@ -2187,7 +2187,7 @@ end
 local addWaiterGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
-  -- goal.name = "cook"
+  goal.name = "wait"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local takeOrder = nil
@@ -2235,7 +2235,7 @@ end
 
 local addServeMealGoal = function (self)
   local goal = M.newGoal(self)
-  -- goal.name = "deliverMeal"
+  goal.name = "deliverMeal"
   
   local old_activate = goal.activate
   goal.activate = function (self)

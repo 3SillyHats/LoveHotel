@@ -12,6 +12,7 @@ buttLoc = {
   food = 3,
   staff = 4,
   stock = 5,
+  inspect = 6,
   locked = 7,
 
   stairs = 8,

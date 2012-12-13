@@ -62,6 +62,7 @@ local ai = require("ai")
 local builder = require("builder")
 local demolisher = require("demolisher")
 local stocker = require("stocker")
+local inspector = require("inspector")
 local staff = require("staff")
 local client = require("client")
 local transform = require("transform")
@@ -93,6 +94,10 @@ conf = {
     },
     stock = {
       name="Stock",
+      desc="",
+    },
+    inspect = {
+      name="Inspect",
       desc="",
     },
     locked = {
@@ -385,6 +390,23 @@ local stockRoom = function (baseMenu)
   event.subscribe("stock", stockUtility, onStock)
 end
 
+local inspect = function (baseMenu)
+  menu.disable(baseMenu)
+
+  local inspectUtility = inspector.new(STATE_PLAY)
+    
+  local back
+  back = function (key)
+    if gState == STATE_PLAY and key == "b" then
+      event.unsubscribe("pressed", 0, back)
+      menu.enable(baseMenu)
+      entity.delete(inspectUtility)
+    end
+  end
+
+  event.subscribe("pressed", 0, back)
+end
+
 -- Roof entity
 local roof = entity.new(STATE_PLAY)
 entity.setOrder(roof, -50)
@@ -665,6 +687,11 @@ end))
 --Stock tool
 menu.addButton(gui, menu.newButton("stock", function ()
   stockRoom(gui)
+end))
+
+--Inspect tool
+menu.addButton(gui, menu.newButton("inspect", function ()
+  inspect(gui)
 end))
 
 -- Background music
