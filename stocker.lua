@@ -12,10 +12,8 @@ local room = require("room")
 --Create the module
 local M = {}
 
-local stocker = function (id, pos, cost, t)
+local stocker = function (id, cost, t)
   local component = entity.newComponent({
-    roomNum = pos.roomNum,
-    floorNum = pos.floorNum,
     x = 0,
     y = 0,
     pixelWidth = t.width,
@@ -33,7 +31,7 @@ local stocker = function (id, pos, cost, t)
   local updatePosition = function()
     clear = true
     support = 0
-    event.notify("entity.move", id, {roomNum = component.roomNum, floorNum = component.floorNum})
+    event.notify("entity.move", id, {roomNum = gRoomNum, floorNum = gScrollPos})
   end
 
   component.update = function (dt)
@@ -46,17 +44,17 @@ local stocker = function (id, pos, cost, t)
   local pressed = function (key)
     if gState == STATE_PLAY then
       if key == "left" then
-        if component.roomNum > 1 then
-          component.roomNum = component.roomNum - 1
+        if gRoomNum > 1 then
+          gRoomNum = gRoomNum - 1
           updatePosition()
         end
       elseif key == "right" then
-        if component.roomNum < 7 then
-          component.roomNum = component.roomNum + 1
+        if gRoomNum < 7 then
+          gRoomNum = gRoomNum + 1
           updatePosition()
         end
       elseif key == "a" then
-        local pos = {roomNum = component.roomNum, floorNum = component.floorNum}
+        local pos = {roomNum = gRoomNum, floorNum = gScrollPos}
         local roomId = -1
         local type = ""
         event.notify("room.check", 0, {
@@ -127,15 +125,15 @@ local stocker = function (id, pos, cost, t)
 end
 
 --Constructor
-M.new = function (state, pos)
+M.new = function (state)
   --Create an entity and get the id for the new room
   local id = entity.new(state)
   entity.setOrder(id, 100)
 
   --Add position component
-  entity.addComponent(id, transform.new(id, pos))
+  entity.addComponent(id, transform.new(id, {roomNum = gRoomNum, floorNum = gScrollPos}))
   --Add demolisher component (including outline)
-  entity.addComponent(id, stocker(id, pos, room.cost, {
+  entity.addComponent(id, stocker(id, room.cost, {
     width = 32,
     height = 32,
   }))

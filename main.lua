@@ -137,6 +137,7 @@ conf = {
 gTopFloor = GROUND_FLOOR
 gBottomFloor = GROUND_FLOOR
 gScrollPos = GROUND_FLOOR
+gRoomNum = 1
 event.subscribe("scroll", 0, function (scrollPos)
   gScrollPos = scrollPos
 end)
@@ -296,10 +297,10 @@ local mainMenuY = 32*6.5
 local subMenuY = 32*6
 
 
-local buildRoom = function (type, pos, baseMenu)
+local buildRoom = function (type, baseMenu)
   menu.disable(baseMenu)
 
-  local buildUtility = builder.new(STATE_PLAY, type, pos)
+  local buildUtility = builder.new(STATE_PLAY, type)
     
   local back = function () end
     
@@ -323,10 +324,10 @@ local buildRoom = function (type, pos, baseMenu)
   event.subscribe("build", buildUtility, onBuild)
 end
 
-local demolishRoom = function (pos, baseMenu)
+local demolishRoom = function (baseMenu)
   menu.disable(baseMenu)
 
-  local demolishUtility = demolisher.new(2, pos)
+  local demolishUtility = demolisher.new(2)
     
   local back = function () end
     
@@ -350,10 +351,10 @@ local demolishRoom = function (pos, baseMenu)
   event.subscribe("destroy", demolishUtility, onDestroy)
 end
 
-local stockRoom = function (pos, baseMenu)
+local stockRoom = function (baseMenu)
   menu.disable(baseMenu)
 
-  local stockUtility = stocker.new(STATE_PLAY, pos)
+  local stockUtility = stocker.new(STATE_PLAY)
     
   local back = function () end
     
@@ -490,7 +491,7 @@ menu.addButton(gui, menu.newButton("infrastructure", function ()
   end))
   --Elevator
   menu.addButton(submenu, menu.newButton("elevator", function ()
-    buildRoom("elevator", {roomNum = 1, floorNum = gScrollPos}, submenu)
+    buildRoom("elevator", submenu)
   end)) 
   --Build floor up
   menu.addButton(submenu, menu.newButton("floorUp", function ()
@@ -502,7 +503,7 @@ menu.addButton(gui, menu.newButton("infrastructure", function ()
   end))
   --Destroy tool
   menu.addButton(submenu, menu.newButton("destroy", function ()
-    demolishRoom({roomNum = 1, floorNum = gScrollPos}, submenu)
+    demolishRoom(submenu)
   end))
 
   --The back button deletes the submenu
@@ -521,18 +522,18 @@ menu.addButton(gui, menu.newButton("suites", function ()
  
   --Missionary
   menu.addButton(submenu, menu.newButton("missionary", function ()
-    buildRoom("missionary", {roomNum = 1, floorNum = gScrollPos}, submenu)
+    buildRoom("missionary", submenu)
   end))
  
   --Spoon
   menu.addButton(submenu, menu.newButton("spoon", function ()
-    buildRoom("spoon", {roomNum = 1, floorNum = gScrollPos}, submenu)
+    buildRoom("spoon", submenu)
   end))
   
    if gStars >= 2 then
     --Chocolate Moustache
     menu.addButton(submenu, menu.newButton("moustache", function ()
-      buildRoom("moustache", {roomNum = 1, floorNum = gScrollPos}, submenu)
+      buildRoom("moustache", submenu)
     end))
   else
     addLockButton(submenu)
@@ -541,7 +542,7 @@ menu.addButton(gui, menu.newButton("suites", function ()
    if gStars >= 2 then
     --Balloon
     menu.addButton(submenu, menu.newButton("balloon", function ()
-      buildRoom("balloon", {roomNum = 1, floorNum = gScrollPos}, submenu)
+      buildRoom("balloon", submenu)
     end))
   else
     addLockButton(submenu)
@@ -550,7 +551,7 @@ menu.addButton(gui, menu.newButton("suites", function ()
   if gStars >= 5 then
     --Tropical
     menu.addButton(submenu, menu.newButton("tropical", function ()
-      buildRoom("tropical", {roomNum = 1, floorNum = gScrollPos}, submenu)
+      buildRoom("tropical", submenu)
     end))
   else
     addLockButton(submenu)
@@ -572,19 +573,19 @@ menu.addButton(gui, menu.newButton("food", function ()
   
   --Vending machine
   menu.addButton(submenu, menu.newButton("vending", function ()
-    buildRoom("vending", {roomNum = 1, floorNum = gScrollPos}, submenu)
+    buildRoom("vending", submenu)
   end))
   --Dining room
   menu.addButton(submenu, menu.newButton("dining", function ()
-    buildRoom("dining", {roomNum = 1, floorNum = gScrollPos}, submenu)
+    buildRoom("dining", submenu)
   end))
   --Freezer Room
   menu.addButton(submenu, menu.newButton("freezer", function ()
-    buildRoom("freezer", {roomNum = 1, floorNum = gScrollPos}, submenu)
+    buildRoom("freezer", submenu)
   end))
   --Kitchen
   menu.addButton(submenu, menu.newButton("kitchen", function ()
-    buildRoom("kitchen", {roomNum = 1, floorNum = gScrollPos}, submenu)
+    buildRoom("kitchen", submenu)
   end))
 
 
@@ -602,21 +603,21 @@ menu.addButton(gui, menu.newButton("services", function ()
   --Create the services menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
 
-   --Reception
+  --Reception
   menu.addButton(submenu, menu.newButton("reception", function ()
-    buildRoom("reception", {roomNum = 1, floorNum = gScrollPos}, submenu)
+    buildRoom("reception", submenu)
   end))
- --Utility
+  --Utility
   menu.addButton(submenu, menu.newButton("utility", function ()
-    buildRoom("utility", {roomNum = 1, floorNum = gScrollPos}, submenu)
+    buildRoom("utility", submenu)
   end))
   --Condom machine
   menu.addButton(submenu, menu.newButton("condom", function ()
-    buildRoom("condom", {roomNum = 1, floorNum = gScrollPos}, submenu)
+    buildRoom("condom", submenu)
   end))
   --Spa room
   menu.addButton(submenu, menu.newButton("spa", function ()
-    buildRoom("spa", {roomNum = 1, floorNum = gScrollPos}, submenu)
+    buildRoom("spa", submenu)
   end))
 
    --The back button deletes the submenu
@@ -656,7 +657,7 @@ end))
 
 --Stock tool
 menu.addButton(gui, menu.newButton("stock", function ()
-  stockRoom({roomNum = 1, floorNum = gScrollPos}, gui)
+  stockRoom(gui)
 end))
 
 -- Background music

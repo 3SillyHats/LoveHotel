@@ -12,10 +12,8 @@ local room = require("room")
 --Create the module
 local M = {}
 
-local placer = function (id, type, pos, width, cost, t)
+local placer = function (id, type, width, cost, t)
   local component = entity.newComponent({
-    room = pos.roomNum,
-    floor = pos.floorNum,
     width = width,
     cost = cost,
     x = 0,
@@ -25,14 +23,14 @@ local placer = function (id, type, pos, width, cost, t)
   })
   
   local clear = true
-  local support = 0
   local occupation = 0
   local new = true
 
   local okay = function ()
     return (
       clear and
-      (component.floor <= gTopFloor and component.floor >= gBottomFloor) and
+      (gScrollPos <= gTopFloor and gScrollPos >= gBottomFloor) and
+      (gRoomNum + component.width <= 8 and gRoomNum >= 1) and
       cost <= gMoney
     )
   end
@@ -49,22 +47,14 @@ local placer = function (id, type, pos, width, cost, t)
     
   local updatePosition = function()
     clear = true
-    support = 0
-    event.notify("entity.move", id, {roomNum = component.room, floorNum = component.floor})
+    event.notify("entity.move", id, {roomNum = gRoomNum, floorNum = gScrollPos})
     
     for i = 1,component.width do
       event.notify("room.check", 0, {
-        roomNum = component.room + i - 1,
-        floorNum = component.floor,
+        roomNum = gRoomNum + i - 1,
+        floorNum = gScrollPos,
         callback = function (otherId)
           clear = false
-        end,
-      })
-      event.notify("room.check", 0, {
-        roomNum = component.room + i - 1,
-        floorNum = component.floor - 1,
-        callback = function (otherId)
-          support = support + 1
         end,
       })
     end
@@ -80,23 +70,23 @@ local placer = function (id, type, pos, width, cost, t)
   local pressed = function (key)
     if gState == STATE_PLAY then
       if key == "left" then
-        if component.room > 1 then
-          component.room = component.room - 1
+        if gRoomNum > 1 then
+          gRoomNum = gRoomNum - 1
           updatePosition()
         end
       elseif key == "right" then
-        if component.room+component.width <= 7 then
-          component.room = component.room + 1
+        if gRoomNum+component.width <= 7 then
+          gRoomNum = gRoomNum + 1
           updatePosition()
         end
       elseif key == "a" then
         if okay() then
-          local pos = {roomNum = component.room, floorNum = component.floor}
+          local pos = {roomNum = gRoomNum, floorNum = gScrollPos}
           local roomId = room.new(STATE_PLAY, type, pos)
           gMoney = gMoney - cost
             event.notify("money.change", 0, {
             amount = -cost,
-            pos = {roomNum = component.room, floorNum = component.floor},
+            pos = pos,
           })
           event.notify("build", id, {id=roomId, pos=pos, type=type})
           event.notify("build", 0, {id=roomId, pos=pos, type=type})
@@ -138,7 +128,7 @@ local placer = function (id, type, pos, width, cost, t)
 end
 
 --Constructor
-M.new = function (state, roomType, pos)
+M.new = function (state, roomType)
   --Create an entity and get the id for the new room
   local id = entity.new(state)
   entity.setOrder(id, 100)
@@ -146,6 +136,8 @@ M.new = function (state, roomType, pos)
   local roomWidth = room.width*32
   local roomHeight = 32
   local prefix = "img/rooms/" .. room.id .. "_"
+  
+  gRoomNum = math.min(8 - room.width, gRoomNum)
   
   --Add sprite components
   for _,s in ipairs(room.sprites) do
@@ -159,9 +151,9 @@ M.new = function (state, roomType, pos)
   end
 
   --Add position component
-  entity.addComponent(id, transform.new(id, pos))
+  entity.addComponent(id, transform.new(id, {roomNum = gRoomNum, floorNum = gScrollPos}))
   --Add placer component (including outline)
-  entity.addComponent(id, placer(id, roomType, pos, room.width, room.cost, {
+  entity.addComponent(id, placer(id, roomType, room.width, room.cost, {
     width = room.width*32,
     height = 32,
   }))
