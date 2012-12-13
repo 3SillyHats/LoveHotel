@@ -231,13 +231,30 @@ local elevatorProcess = function (self, dt)
   if self.moveTo.roomNum ~= self.pos.roomNum then
     return "failed"
   end
+  if self.wait1 then
+    return "active"
+  end
+  if not self.wait2 then
+    return "complete"
+  end
   if math.abs(self.moveTo.floorNum - self.pos.floorNum) < self.speed*dt then
     local result = elevatorGoto(self, {
       roomNum = self.moveTo.roomNum,
       floorNum = self.pos.floorNum,
     })
     if result then return result end
-    return "complete"
+    local room
+    event.notify("room.check", 0, {
+      roomNum = self.pos.roomNum,
+      floorNum = self.pos.floorNum,
+      callback = function (id, type)
+        if type == "elevator" then
+          room = id
+        end
+      end,
+    })
+    event.subscribe("sprite.onAnimationEnd", room, self.endHandler)
+    event.notify("sprite.play", room, "opening")
   else
     local delta = self.speed*dt
     if self.moveTo.floorNum < self.pos.floorNum then
@@ -259,22 +276,48 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
   goal.pos = {roomNum = moveFrom.roomNum, floorNum = moveFrom.floorNum}
   goal.speed = ELEVATOR_MOVE
   goal.process = elevatorProcess
+  goal.wait1 = true
+  goal.wait2 = true
+
+  goal.startHandler = function (e)
+    goal.wait1 = false
+  end
+  
+  goal.endHandler = function (e)
+    goal.wait2 = false
+  end
+
   local onMove = function (pos)
     goal.pos.roomNum = pos.roomNum
     goal.pos.floorNum = pos.floorNum
   end
   event.subscribe("entity.move", goal.component.entity, onMove)
+  
   local function delete()
     event.unsubscribe("entity.move", goal.component.entity, onMove)
     event.unsubscribe("delete", goal.component.entity, delete)
   end
   event.subscribe("delete", goal.component.entity, delete)
+  
   local old_activate = goal.activate
   goal.activate = function (self)
-    event.notify("sprite.play", goal.component.entity, "idle")
-    event.notify("sprite.hide", goal.component.entity, true)
+    event.notify("sprite.play", self.component.entity, "idle")
+    event.notify("sprite.hide", self.component.entity, true)
+    local room
+    event.notify("room.check", 0, {
+      roomNum = self.pos.roomNum,
+      floorNum = self.pos.floorNum,
+      callback = function (id, type)
+        if type == "elevator" then
+          room = id
+        end
+      end,
+    })
+    event.subscribe("sprite.onAnimationEnd", room, self.startHandler)
+    event.notify("sprite.play", room, "opening")
     old_activate(self)
   end
+  
   local old_terminate = goal.terminate
   goal.terminate = function (self)
     delete()
@@ -294,6 +337,8 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
     room.use(elevator)
     event.notify("sprite.play", goal.component.entity, "idle")
     event.notify("sprite.hide", goal.component.entity, false)
+    event.unsubscribe("sprite.onAnimationEnd", room, self.startHandler)
+    event.unsubscribe("sprite.onAnimationEnd", room, self.endHandler)
     old_terminate(self)
   end
   
