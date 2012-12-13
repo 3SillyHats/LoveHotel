@@ -40,7 +40,7 @@ SPACE_SPAWN = 16
 
 REP_INITIAL = 5
 REP_MAX = 500
-STARS_INITIAL = 5
+STARS_INITIAL = 1
 STARS_MAX = 5
 REP_THRESHOLDS = {
   0,
@@ -957,7 +957,7 @@ local backdrop = entity.new(STATE_PLAY)
 local bdImg = resource.get("img/backdrop.png")
 local bdQuad = love.graphics.newQuad(
   0, 0,
-  256, 32,
+  256, 64,
   bdImg:getWidth(), bdImg:getHeight()
 )
 entity.setOrder(backdrop, -100)
@@ -966,17 +966,18 @@ bdCom.draw = function (self)
   love.graphics.setColor(255, 255, 255)
   if gScrollPos > 0 then
     -- Aboveground
-    bdQuad:setViewport(0, 0, 256, 32)
+    bdQuad:setViewport(0, 0, 256, 64)
   else
     -- Underground
-    bdQuad:setViewport(0, bdImg:getHeight() - 32, 256, 32)
+    bdQuad:setViewport(0, bdImg:getHeight() - 64, 256, 64)
   end
-  for i = 0, 7 do
-    love.graphics.drawq(bdImg, bdQuad, 0, (32 * i) - 16)
+  local yOffset = 32 * (gScrollPos % 2) - 16
+  for i = 0, 3 do
+    love.graphics.drawq(bdImg, bdQuad, 0, (64 * i) + yOffset)
   end
   love.graphics.draw(
     bdImg,
-    0, 464 + (gScrollPos * 32) - bdImg:getHeight(),
+    0, 496 + (gScrollPos * 32) - bdImg:getHeight(),
     0
   )
 end
