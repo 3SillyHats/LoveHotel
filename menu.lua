@@ -27,7 +27,7 @@ buttLoc = {
   
   vending = 24,
   dining = 25,
-  freezerRoom = 26,
+  freezer = 26,
   kitchen = 27,
 
   reception = 32,

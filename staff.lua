@@ -154,6 +154,9 @@ M.new = function (type)
   elseif type == "cook" then
     payCom.wage = COOK_WAGE
     
+    -- start with no cooking supplies
+    aiComponent.supply = 0
+    
     addRoomGoal = function (id)
       local info = room.getInfo(id)
       if info.id == "dining" then

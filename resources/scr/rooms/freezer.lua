@@ -4,6 +4,7 @@ return {
   cost = 500,
   width = 2,
   cookingSupplies = true,
+  stock = 8,
 
   sprites = {
     {

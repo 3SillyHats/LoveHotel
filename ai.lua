@@ -532,7 +532,7 @@ local newWaitForMealGoal = function (com, target)
   goal.target = target
   
   local mealHandler = function (room)
-    local myPos = transform.getPos(self.component.entity)
+    local myPos = transform.getPos(goal.component.entity)
     event.notify("room.check", 0, {
       roomNum = myPos.roomNum,
       floorNum = myPos.floorNum,
@@ -2079,7 +2079,7 @@ local addServeMealGoal = function (self)
   -- goal.name = "deliverMeal"
   
   local old_activate = goal.activate
-  goal.activate = function (self)    
+  goal.activate = function (self)
     if not self.component.clientRoom or
         entity.get(self.component.clientRoom) == nil then
       self.status = "failed"
@@ -2114,12 +2114,6 @@ local addServeMealGoal = function (self)
     return -1
   end
   
-  local function destroy (t)
-    self.goalEvaluator:removeSubgoal(goal)
-    event.unsubscribe("destroy", goal.target, destroy)
-  end
-  event.subscribe("destroy", goal.target, destroy)
-  
   self.goalEvaluator:addSubgoal(goal)
 end
 
@@ -2144,6 +2138,7 @@ M.new = function (id)
     addIngredientsGoal = addIngredientsGoal,
     addCookGoal = addCookGoal,
     addServeMealGoal = addServeMealGoal,
+    addOrderMealGoal = addOrderMealGoal,
   })
   com.goalEvaluator = M.newGoal(com)
   com.goalEvaluator.arbitrate = arbitrate

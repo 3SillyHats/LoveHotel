@@ -567,15 +567,15 @@ menu.addButton(gui, menu.newButton("food", function ()
   end))
   --Dining room
   menu.addButton(submenu, menu.newButton("dining", function ()
-    print("dining")
+    buildRoom("dining", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
   --Stock Room
-  menu.addButton(submenu, menu.newButton("freezerRoom", function ()
-    print("freezerRoom")
+  menu.addButton(submenu, menu.newButton("freezer", function ()
+    buildRoom("freezer", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
   --Kitchen
   menu.addButton(submenu, menu.newButton("kitchen", function ()
-    print("kitchen")
+    buildRoom("kitchen", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
 
 
