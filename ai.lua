@@ -380,6 +380,42 @@ local newSleepGoal = function (self, t)
   
   return goal
 end
+
+local newWaitForAnimationGoal = function (com, target, animation)
+  local goal = M.newGoal(com)
+  goal.target = target
+  goal.animation = animation
+  goal.done = false
+  
+  local handler = function (e)
+    if e.animation == goal.animation then
+      goal.done = true
+    end
+  end
+  
+  local old_activate = goal.activate 
+  goal.activate = function (self)
+    event.subscribe("sprite.onAnimationEnd", self.target, handler)
+    event.notify("sprite.play", self.target, self.animation)
+    old_activate(self)
+  end
+
+  goal.process = function (self, dt)
+    if self.done then
+      return "complete"
+    else
+      return "active"
+    end
+  end
+  
+  local old_terminate = goal.terminate 
+  goal.terminate = function (self)
+    event.unsubscribe("sprite.onAnimationEnd", self.target, handler)    
+    old_terminate(self)
+  end
+  
+  return goal
+end
   
 local newSexGoal = function (com, target)
   local goal = M.newGoal(com)
@@ -426,11 +462,17 @@ local newSexGoal = function (com, target)
       self.status = "failed"
       return
     end
+    event.notify("sprite.play", self.target, "hearts")
     
     event.notify("enterRoom", self.component.entity, self.target)
     self.inRoom = true
 
     self:addSubgoal(newSleepGoal(self.component, SEX_TIME))
+    self:addSubgoal(newWaitForAnimationGoal(
+      self.component,
+      self.target,
+      "opening"
+    ))
     
     old_activate(self)
   end
@@ -442,6 +484,8 @@ local newSexGoal = function (com, target)
         id = self.component.entity,
       })
       self.inRoom = false
+      
+      event.notify("sprite.play", self.target, "heartless")
       
       -- Messify and unhide the departing person
       event.notify("sprite.play", self.component.entity, "messy")
@@ -1316,9 +1360,19 @@ local newPerformCleanGoal = function (self, target)
       self.status = "failed"
       return
     end
+
+    event.notify("sprite.hide", self.component.entity, true)
+    event.notify("sprite.play", self.target, "closing")
+    event.notify("sprite.play", self.target, "cleaning")
     
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, CLEAN_TIME))
+    self:addSubgoal(newWaitForAnimationGoal(
+      self.component,
+      self.target,
+      "opening"
+    ))
+    
     old_activate(self)
   end
   
@@ -1327,6 +1381,9 @@ local newPerformCleanGoal = function (self, target)
     event.notify("room.endClean", self.target, {
       id = self.component.entity,
     })
+    
+    event.notify("sprite.hide", self.component.entity, false)
+    event.notify("sprite.play", self.target, "cleanless")
     
     self.component.supply = self.component.supply - 1
     self.target = nil
@@ -1442,8 +1499,17 @@ local newGetSupplyGoal = function (self, target)
       return
     end
     
+    event.notify("sprite.hide", self.component.entity, true)
+    event.notify("sprite.play", self.target, "closing")
+    
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, SUPPLY_TIME))
+    self:addSubgoal(newWaitForAnimationGoal(
+      self.component,
+      self.target,
+      "opening"
+    ))
+    
     old_activate(self)
   end
   
@@ -1452,6 +1518,8 @@ local newGetSupplyGoal = function (self, target)
     event.notify("room.endSupply", self.target, {
       id = self.component.entity,
     })
+    
+    event.notify("sprite.hide", self.component.entity, false)
     
     self.target = nil
     old_terminate(self)

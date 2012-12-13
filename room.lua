@@ -70,9 +70,6 @@ local infoComponent = function (id, info, pos)
       component.occupied = component.occupied + 1
       if component.occupied == 2 then
         event.notify("sprite.play", id, "closing")
-        if info.desirability then
-          event.notify("sprite.play", id, "hearts")
-        end
       end
       e.callback(true)
     else
@@ -90,10 +87,6 @@ local infoComponent = function (id, info, pos)
     end
     if component.occupied <= 0 then
       component.occupied = 0
-      event.notify("sprite.play", id, "opening")
-      if info.desirability then
-        event.notify("sprite.play", id, "heartless")
-      end
     end
   end
 
@@ -151,8 +144,6 @@ local infoComponent = function (id, info, pos)
     component.occupied = component.occupied + 1
     
     event.notify("sprite.hide", e.id, true)
-    event.notify("sprite.play", id, "closing")
-    event.notify("sprite.play", id, "cleaning")
     e.callback(true)
   end
   
@@ -161,9 +152,6 @@ local infoComponent = function (id, info, pos)
     component.messy = false
     
     event.notify("sprite.hide", e.id, false)
-    event.notify("sprite.play", id, "clean")
-    event.notify("sprite.play", id, "cleanless")
-    event.notify("sprite.play", id, "opening")
   end
   
   local beginSupply = function (e)
@@ -174,21 +162,14 @@ local infoComponent = function (id, info, pos)
     
     component.occupied = component.occupied + 1
     
-    if e.enter then
-      event.notify("sprite.hide", e.id, true)
-      event.notify("sprite.play", id, "closing")
-    end
-    
     e.callback(true)
   end
   
   local endSupply = function (e)
     component.occupied = 0
     component.stock = component.stock - 1
-    
-    event.notify("sprite.hide", e.id, false)
+
     event.notify("sprite.play", id, "stocked" .. component.stock)
-    event.notify("sprite.play", id, "opening")
   end
   
   local isBroken = function (callback)
