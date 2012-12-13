@@ -338,6 +338,12 @@ local newMoveToGoal = function (com, moveTo, moveSpeed)
     old_activate(self)
   end
   
+  local old_process = goal.process
+  goal.process = function (self, dt)
+    self.component.patience = self.component.patience - (2 * dt)
+    old_process(self, dt)
+  end
+  
   local old_terminate = goal.terminate
   goal.terminate = function (self)
     old_terminate(self)
@@ -511,7 +517,7 @@ local newRelaxGoal = function (self, target)
   end
   
   goal.process = function (self, dt)
-    self.component.needs.horniness = self.component.needs.horniness + (2 * dt)
+    self.component.needs.horniness = self.component.needs.horniness + (5 * dt)
     if self.component.needs.horniness >= 100 then
       self.component.needs.horniness = 100
       return "complete"
@@ -710,6 +716,12 @@ local addOrderMealGoal = function (self, target)
     old_activate(self)
   end
   
+  local old_process = goal.process
+  goal.process = function (self, dt)
+    self.component.patience = self.component.patience - (2 * dt)
+    old_process(self, dt)
+  end
+  
   local old_terminate = goal.terminate
   goal.terminate = function (self)
     if self.status == "complete" and
@@ -761,7 +773,12 @@ local newWaitForReceptionGoal = function (com, target)
     com.beenServed = true
   end
   
+  local old_process = goal.process
   goal.process = function (self, dt)
+    self.component.patience = self.component.patience - (10 * dt)
+
+    old_process(self, dt)
+    
     if self.component.beenServed then
       return "complete"
     end
@@ -1065,6 +1082,8 @@ local addExitGoal = function (self)
   goal.activate = function (self)
     if self.component.needs.horniness <= 0 then
       event.notify("sprite.play", self.component.entity, "thoughtHappy")
+    elseif self.component.patience <= 0 then
+      event.notify("sprite.play", self.component.entity, "thoughtImpatient")
     elseif self.component.needs.hunger > self.component.needs.horniness then
       event.notify("sprite.play", self.component.entity, "thoughtHungry")
     elseif self.component.supply <= 0 then
@@ -1120,7 +1139,11 @@ local addExitGoal = function (self)
   end
   
   goal.getDesirability = function (self, t)
-    return 0
+    if self.component.patience > 0 then
+      return 0
+    else
+      return 1000
+    end
   end
   
   self.goalEvaluator:addSubgoal(goal)

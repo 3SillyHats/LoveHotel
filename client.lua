@@ -202,6 +202,7 @@ M.new = function (t)
   }
   aiComponent.supply = math.random(info.minSupply, info.maxSupply)
   aiComponent.money = math.random(info.minMoney, info.maxMoney)
+  aiComponent.patience = 100
 
   local old_update = aiComponent.update
   aiComponent.update = function (self, dt)
