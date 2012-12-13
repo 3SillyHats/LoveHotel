@@ -100,12 +100,13 @@ local stocker = function (id, cost, t)
             room.occupation(roomId) == 0 and
             gMoney > info.restockCost then
           
-          event.notify("stock", id, {id=roomId, pos=pos, type=type})
+          -- Notify the menu that we are done stocking
+          event.notify("stock", id, nil)
+          
           room.setStock(roomId, 8)
-          moneyChange(-info.restockCost)
-          event.notify("money.change", 0, {
-            amount = -info.restockCost,
-            pos = pos,
+          moneyChange(-info.restockCost, {
+            roomNum = gRoomNum,
+            floorNum = gScrollPos,
           })
 
           local snd = resource.get("snd/select.wav")

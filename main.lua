@@ -93,7 +93,7 @@ conf = {
       desc="",
     },
     stock = {
-      name="Stock",
+      name="Restock",
       desc="",
     },
     inspect = {
