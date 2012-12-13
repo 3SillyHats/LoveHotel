@@ -13,11 +13,16 @@ STATE_PAUSE = 3
 STATE_DECISION = 4
 
 STAFF_MOVE = 1
-STAFF_WAGE = 20
-PAY_PERIOD = 60
 ELEVATOR_MOVE = 1
 CLIENT_MOVE = 1
-FOLLOW_DISTANCE = 0.5
+BELLHOP_DISTANCE = 0.8
+FOLLOW_DISTANCE = 0.4
+
+PAY_PERIOD = 60
+CLEANER_WAGE = 10
+BELLHOP_WAGE = 20
+COOK_WAGE = 50
+MAINTENANCE_WAGE = 100
 
 SEX_TIME = 7
 CLEAN_TIME = 10
@@ -110,19 +115,19 @@ conf = {
     -- Staff
     cleaner = {
       name="Cleaner",
-      desc="$10/min"
+      desc="$" .. CLEANER_WAGE .. "/min"
     },
     bellhop = {
       name="Bellhop",
-      desc="$20/min"
+      desc="$" .. BELLHOP_WAGE .. "/min"
     },
     cook = {
       name="Cook",
-      desc="$40/min"
+      desc="$" .. COOK_WAGE .. "/min"
     },
     maintenance = {
       name="Maintenance",
-      desc="$100/min"
+      desc="$" .. MAINTENANCE_WAGE .. "/min"
     },
   },
 }
@@ -198,12 +203,12 @@ local setupScreen = function (modes)
   end
 
   return {
-    x = math.floor((mode.width - (CANVAS_WIDTH * scale)) / 2),
-    y = math.floor((mode.height - (CANVAS_HEIGHT * scale)) / 2),
-    width = mode.width,
-    height = mode.height,
+    x = 0, --math.floor((mode.width - (CANVAS_WIDTH * scale)) / 2),
+    y = 0, --math.floor((mode.height - (CANVAS_HEIGHT * scale)) / 2),
+    width = CANVAS_WIDTH * scale, --mode.width,
+    height = CANVAS_HEIGHT * scale, --mode.height,
     scale = scale,
-    fullscreen = true,
+    fullscreen = false, --true,
   }
 end
 conf.screen = {
@@ -583,7 +588,7 @@ menu.addButton(gui, menu.newButton("services", function ()
 
    --Reception
   menu.addButton(submenu, menu.newButton("reception", function ()
-    print("reception")
+    buildRoom("reception", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
  --Utility
   menu.addButton(submenu, menu.newButton("utility", function ()

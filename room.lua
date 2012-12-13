@@ -65,10 +65,11 @@ local infoComponent = function (id, info, pos)
   local occupy = function (e)
     if component.occupied < 2 then
       component.occupied = component.occupied + 1
-      event.notify("sprite.hide", e.id, true)
       if component.occupied == 2 then
         event.notify("sprite.play", id, "closing")
-        event.notify("sprite.play", id, "hearts")
+        if info.desirability then
+          event.notify("sprite.play", id, "hearts")
+        end
       end
       e.callback(true)
     else
@@ -84,13 +85,12 @@ local infoComponent = function (id, info, pos)
       component.messy = true
       event.notify("sprite.play", id, "dirty")
     end
-    -- Messify and unhide the departing person
-    event.notify("sprite.play", e.id, "messy")
-    event.notify("sprite.hide", e.id, false)
     if component.occupied <= 0 then
       component.occupied = 0
-      event.notify("sprite.play", id, "heartless")
       event.notify("sprite.play", id, "opening")
+      if info.desirability then
+        event.notify("sprite.play", id, "heartless")
+      end
     end
   end
   

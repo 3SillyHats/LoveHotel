@@ -104,42 +104,67 @@ M.new = function (type)
   entity.addComponent(id, transform.new(
     id, pos, {x = 16, y = 30}
   ))
-  entity.addComponent(id,entity.newComponent{
+  local payCom = entity.newComponent{
     timer = 0,
     update = function (self,dt)
       self.timer = self.timer - dt
       if self.timer <= 0 then
-        gMoney = gMoney - STAFF_WAGE
+        gMoney = gMoney - self.wage
         local pos = nil
         event.notify("entity.pos", id, function (e)
           pos = e
         end)
         event.notify("money.change", 0, {
-          amount = -STAFF_WAGE,
+          amount = -self.wage,
           pos = pos,
         })
         self.timer = self.timer + PAY_PERIOD
       end
     end,
-  })
-  local aiComponent = ai.new(id)
-  aiComponent.supply = 3
+  }
+  entity.addComponent(id, payCom)
   
-  local addRoomGoal = function (id)
-    local info = room.getInfo(id)
-    if info.dirtyable then
-      aiComponent:addCleanGoal(id)
-    elseif info.cleaningSupplies then
-      aiComponent:addSupplyGoal(id)
+  local aiComponent = ai.new(id)
+  local addRoomGoal
+  
+  -- Type-specific initialisation
+  if type == "cleaner" then
+    payCom.wage = CLEANER_WAGE
+    
+    -- start with no cleaning supplies
+    aiComponent.supply = 0
+  
+    addRoomGoal = function (id)
+      local info = room.getInfo(id)
+      if info.dirtyable then
+        aiComponent:addCleanGoal(id)
+      elseif info.cleaningSupplies then
+        aiComponent:addSupplyGoal(id)
+      end
     end
+  elseif type == "bellhop" then
+    payCom.wage = BELLHOP_WAGE
+    
+    addRoomGoal = function (id)
+      local info = room.getInfo(id)
+      if info.reception then
+        aiComponent:addBellhopGoal(id)
+      end
+    end
+  elseif type == "cook" then
+    payCom.wage = COOK_WAGE
+  elseif type == "maintenance" then
+    payCom.wage = MAINTENANCE_WAGE
   end
+
   event.notify("room.all", 0, function (id,type)
     addRoomGoal(id)
   end)
   event.subscribe("build", 0, function (t)
     addRoomGoal(t.id)
   end)
-  aiComponent:addEnterGoal()
+
+  aiComponent:addEnterGoal() -- First goal: enter building
   entity.addComponent(id, aiComponent)
   
   local check = function (t)
