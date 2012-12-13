@@ -97,6 +97,21 @@ local infoComponent = function (id, info, pos)
     end
   end
 
+  local beginCook = function (e)
+    if component.occupied > 0 then
+      e.callback(false)
+      return
+    end
+    
+    component.occupied = component.occupied + 1
+
+    e.callback(true)
+  end
+  
+  local endCook = function (e)
+    component.occupied = 0
+  end
+
   local beginFix = function (e)
     if component.occupied > 0 then
       e.callback(false)
@@ -200,6 +215,8 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("room.setStock", id, setStock)
     event.unsubscribe("room.occupy", id, occupy)
     event.unsubscribe("room.depart", id, depart)
+    event.unsubscribe("room.beginCook", id, beginCook)
+    event.unsubscribe("room.endCook", id, endCook)
     event.unsubscribe("room.beginFix", id, beginFix)
     event.unsubscribe("room.endFix", id, endFix)
     event.unsubscribe("room.beginClean", id, beginClean)
@@ -222,6 +239,8 @@ local infoComponent = function (id, info, pos)
   event.subscribe("room.setStock", id, setStock)
   event.subscribe("room.occupy", id, occupy)
   event.subscribe("room.depart", id, depart)
+  event.subscribe("room.beginCook", id, beginCook)
+  event.subscribe("room.endCook", id, endCook)
   event.subscribe("room.beginFix", id, beginFix)
   event.subscribe("room.endFix", id, endFix)
   event.subscribe("room.beginClean", id, beginClean)

@@ -153,6 +153,19 @@ M.new = function (type)
     end
   elseif type == "cook" then
     payCom.wage = COOK_WAGE
+    
+    addRoomGoal = function (id)
+      local info = room.getInfo(id)
+      if info.id == "dining" then
+        aiComponent:addWaiterGoal(id)
+      elseif info.id == "kitchen" then
+        aiComponent:addCookGoal(id)
+      elseif info.cookingSupplies then
+        aiComponent:addIngredientsGoal(id)
+      end
+    end
+    
+    aiComponent:addServeMealGoal()
   elseif type == "maintenance" then
     payCom.wage = MAINTENANCE_WAGE
   

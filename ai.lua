@@ -366,7 +366,6 @@ end
 local newSexGoal = function (com, target)
   local goal = M.newGoal(com)
   goal.target = target
-  goal.time = t
   goal.profit = room.getInfo(goal.target).profit
   goal.inRoom = false
 
@@ -466,6 +465,165 @@ local newDestroyGoal = function (self)
   return goal
 end
 
+local newWaitForWaiterGoal = function (com, target)
+  local goal = M.newGoal(com)
+  goal.target = target
+
+  local queryHandler = function (e)
+    if com.leader and not com.orderedMeal then
+      e.callback(com.entity)
+    end
+  end
+  
+  local serveHandler = function (e)
+    com.orderedMeal = true
+  end
+  
+  goal.process = function (self, dt)
+    if self.component.orderedMeal then
+      return "complete"
+    end
+    return "active"
+  end
+
+  local old_activate = goal.activate
+  goal.activate = function(self)
+    if not self.target then
+      self.status = "failed"
+      return
+    end
+    
+    local occupied = false
+    event.notify("room.occupy", self.target, {
+      id = self.component.entity,
+      callback = function (success)
+        occupied = success
+      end,
+    })
+    if not occupied then
+      self.status = "failed"
+      return
+    end
+    
+    event.subscribe("staff.queryServe", self.target, queryHandler)
+    event.subscribe("staff.cook.serve", com.entity, serveHandler)
+    
+    old_activate(self)
+  end
+  
+  local old_terminate = goal.terminate
+  goal.terminate = function(self)
+    event.notify("room.depart", self.target, {
+      id = self.component.entity,
+    })
+    
+    event.unsubscribe("staff.queryServe", self.target, queryHandler)
+    event.unsubscribe("staff.cook.serve", com.entity, serveHandler)
+  
+    old_terminate(self)
+    goal.subgoals = {}
+  end
+  
+  return goal
+end
+
+local newWaitForMealGoal = function (com, target)
+  local goal = M.newGoal(com)
+  goal.target = target
+  
+  local mealHandler = function (room)
+    local myPos = transform.getPos(self.component.entity)
+    event.notify("room.check", 0, {
+      roomNum = myPos.roomNum,
+      floorNum = myPos.floorNum,
+      callback = function (id, type)
+        if id == room then
+          com.orderedMeal = false
+        end
+      end,
+    })
+  end
+  
+  goal.process = function (self, dt)
+    if self.component.orderedMeal then
+      return "active"
+    end
+    return "complete"
+  end
+
+  local old_activate = goal.activate
+  goal.activate = function(self)
+    if not self.target then
+      self.status = "failed"
+      return
+    end
+    
+    event.subscribe("staff.cook.serveMeal", self.component.entity, mealHandler)
+    
+    old_activate(self)
+  end
+  
+  local old_terminate = goal.terminate
+  goal.terminate = function(self)
+    event.unsubscribe("staff.cook.serveMeal", self.component.entity, mealHandler)
+  
+    old_terminate(self)
+    goal.subgoals = {}
+  end
+  
+  return goal
+end
+
+local addOrderMealGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  -- goal.name = "orderMeal"
+  
+  local info = room.getInfo(goal.target)
+  local targetPos = room.getPos(goal.target)
+    
+  local old_activate = goal.activate
+  goal.activate = function (self)
+    goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), CLIENT_MOVE))
+    goal:addSubgoal(newWaitForWaiterGoal(self.component, target))
+    goal:addSubgoal(newWaitForMealGoal(self.component, target))
+    
+    old_activate(self)
+  end
+  
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    if self.status == "complete" then
+      self.component.needs.hunger = 0
+    end
+  
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  goal.getDesirability = function (self, t)
+    if self.component.needs.hunger > 50 and
+        self.component.needs.hunger > self.component.needs.horniness then
+      local myPos = transform.getPos(self.component.entity)
+      local time = path.getCost(myPos, targetPos)
+      if time == -1 then
+        return -1
+      end
+      return self.component.needs.hunger / time
+    else
+      return -1
+    end
+  end
+  
+  local function destroy (t)
+    self.goalEvaluator:removeSubgoal(goal)
+    event.unsubscribe("destroy", goal.target, destroy)
+  end
+  event.subscribe("destroy", goal.target, destroy)
+  
+  self.goalEvaluator:addSubgoal(goal)
+end
+
 local newWaitForReceptionGoal = function (com, target)
   local goal = M.newGoal(com)
   goal.target = target
@@ -506,7 +664,7 @@ local newWaitForReceptionGoal = function (com, target)
       return
     end
     
-    event.subscribe("staff.bellhop.queryServe", self.target, queryHandler)
+    event.subscribe("staff.queryServe", self.target, queryHandler)
     event.subscribe("staff.bellhop.serve", com.entity, serveHandler)
     
     old_activate(self)
@@ -518,7 +676,7 @@ local newWaitForReceptionGoal = function (com, target)
       id = self.component.entity,
     })
     
-    event.unsubscribe("staff.bellhop.queryServe", self.target, queryHandler)
+    event.unsubscribe("staff.queryServe", self.target, queryHandler)
     event.unsubscribe("staff.bellhop.serve", com.entity, serveHandler)
   
     old_terminate(self)
@@ -1055,10 +1213,11 @@ local addCleanGoal = function (self, target)
       return -1
     end
     local myPos = transform.getPos(self.component.entity)
-    local time = path.getCost(myPos, targetPos) + CLEAN_TIME
+    local time = path.getCost(myPos, targetPos)
     if time == -1 then
       return -1
     end
+    time = time + CLEAN_TIME
     if room.isDirty(self.target) then
       if room.occupation(self.target) == 0 then
         return info.profit/time
@@ -1134,7 +1293,6 @@ local newGetSupplyGoal = function (self, target)
     event.notify("room.endSupply", self.target, {
       id = self.component.entity,
     })
-    self.component.supply = 1
     
     self.target = nil
     old_terminate(self)
@@ -1167,6 +1325,10 @@ local addSupplyGoal = function (self, target)
     
   local old_terminate = goal.terminate
   goal.terminate = function (self)
+    if self.status == "complete" then
+      self.component.supply = 1
+    end
+  
     old_terminate(self)
     self.subgoals = {}
   end
@@ -1484,7 +1646,6 @@ end
 local newReceptionGoal = function (com, target)
   local goal = M.newGoal(com)
   goal.target = target
-  goal.time = t
 
   local old_activate = goal.activate
   goal.activate = function(self)
@@ -1517,7 +1678,7 @@ local newReceptionGoal = function (com, target)
   local old_terminate = goal.terminate
   goal.terminate = function(self)
     local client
-    event.notify("staff.bellhop.queryServe", target, {
+    event.notify("staff.queryServe", target, {
       callback = function (id)
         client = id
       end,
@@ -1630,6 +1791,338 @@ local addEnterGoal = function (self)
   self.goalEvaluator:addSubgoal(goal)
 end
 
+local newPrepareFoodGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  
+  local old_activate = goal.activate
+  goal.activate = function(self, dt)
+    if not self.target or self.component.supply == 0 then
+      self.status = "failed"
+      return 
+    end
+    
+    local pos = transform.getPos(self.component.entity)
+    local atRoom = false
+    event.notify("room.check", 0, {
+      roomNum = pos.roomNum,
+      floorNum = pos.floorNum,
+      callback = function (id)
+        if id == self.target then
+          atRoom = true
+        end
+      end,
+    })
+    if not atRoom then
+      self.status = "failed"
+      return
+    end
+    
+    local canCook = false
+    event.notify("room.beginCook", self.target, {
+      id = self.component.entity,
+      callback = function (res)
+        canCook = res
+      end,
+    })
+    
+    if not canCook then
+      self.status = "failed"
+      return
+    end
+    
+    self.status = "active"
+    self:addSubgoal(newSleepGoal(self.component, COOK_TIME))
+    old_activate(self)
+  end
+  
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    event.notify("room.endCook", self.target, {
+      id = self.component.entity,
+    })
+    
+    if self.status == "complete" then
+      self.component.supply = self.component.supply - 1
+      self.component.hasMeal = true
+      self.component.cooking = false
+    end
+
+    self.target = nil
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  return goal
+end
+
+local addCookGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  -- goal.name = "cook"
+  local info = room.getInfo(goal.target)
+  local targetPos = room.getPos(goal.target)
+  local prepareGoal = nil
+  
+  local old_activate = goal.activate
+  goal.activate = function (self)    
+    if not self.target then
+      self.status = "failed"
+      return
+    end
+    
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    prepareGoal = newPrepareFoodGoal(self.component, self.target)
+    self:addSubgoal(prepareGoal)
+    old_activate(self)
+  end
+    
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  goal.getDesirability = function (self, t)
+    if prepareGoal and prepareGoal.status == "active" then
+      return 1000
+    end
+
+    if self.component.cooking and
+        self.component.supply > 0 and
+        room.occupation(self.target) == 0 then
+      local myPos = transform.getPos(self.component.entity)
+      local time = path.getCost(myPos, targetPos)
+      if time == -1 then
+        return -1
+      end
+      return 1/(time + COOK_TIME)
+    else
+      return -1
+    end
+  end
+  
+  local function destroy (t)
+    self.goalEvaluator:removeSubgoal(goal)
+    event.unsubscribe("destroy", goal.target, destroy)
+  end
+  event.subscribe("destroy", goal.target, destroy)
+  
+  self.goalEvaluator:addSubgoal(goal)
+end
+
+local addIngredientsGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  -- goal.name = "ingredients"
+  local info = room.getInfo(goal.target)
+  local targetPos = room.getPos(goal.target)
+  local supply = nil
+  
+  local old_activate = goal.activate
+  goal.activate = function (self)
+    if not self.target then
+      self.status = "failed"
+      return
+    end
+    
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    supply = newGetSupplyGoal(self.component, self.target)
+    self:addSubgoal(supply)
+    old_activate(self)
+  end
+    
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    if self.status == "complete" then
+      self.component.supply = 1
+    end
+  
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  goal.getDesirability = function (self, t)
+    if supply and supply.status == "active" then
+      return 1000
+    end
+    if self.component.cooking and
+        room.getStock(self.target) > 0 and
+        room.occupation(self.target) == 0 and
+        self.component.supply == 0 then
+      local myPos = transform.getPos(self.component.entity)
+      local time = path.getCost(myPos, targetPos)
+      if time == -1 then
+        return -1
+      end
+      return 1 / time
+    else
+      return -1
+    end
+  end
+  
+  local destroy
+  destroy = function (t)
+    self.goalEvaluator:removeSubgoal(goal)
+    event.unsubscribe("destroy", goal.target, destroy)
+  end
+  event.subscribe("destroy", goal.target, destroy)
+
+  self.goalEvaluator:addSubgoal(goal)
+end
+
+local newTakeOrderGoal = function (com, target)
+  local goal = M.newGoal(com)
+  goal.target = target
+
+  local old_activate = goal.activate
+  goal.activate = function(self)
+    if not self.target then
+      self.status = "failed"
+      return
+    end
+    
+    local pos = transform.getPos(self.component.entity)
+    local atRoom = false
+    event.notify("room.check", 0, {
+      roomNum = pos.roomNum,
+      floorNum = pos.floorNum,
+      callback = function (id)
+        if id == self.target then
+          atRoom = true
+        end
+      end,
+    })
+    if not atRoom then
+      self.status = "failed"
+      return
+    end
+
+    self:addSubgoal(newWaitForOccupationGoal(self.component, self.target))
+    
+    old_activate(self)
+  end
+  
+  local old_terminate = goal.terminate
+  goal.terminate = function(self)
+    local client
+    event.notify("staff.queryServe", target, {
+      callback = function (id)
+        client = id
+      end,
+    })
+    if client then
+      event.notify("staff.cook.serve", client, {})
+      self.component.client = client
+      self.component.clientRoom = self.target
+      self.component.cooking = true
+    end
+  
+    old_terminate(self)
+    goal.subgoals = {}
+  end
+  
+  return goal
+end
+
+local addWaiterGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  -- goal.name = "cook"
+  local info = room.getInfo(goal.target)
+  local targetPos = room.getPos(goal.target)
+  local takeOrder = nil
+  
+  local old_activate = goal.activate
+  goal.activate = function (self)    
+    if not self.target then
+      self.status = "failed"
+      return
+    end
+    
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    takeOrder = newTakeOrderGoal(self.component, self.target)
+    self:addSubgoal(takeOrder)
+    old_activate(self)
+  end
+    
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  goal.getDesirability = function (self, t)
+    if self.component.cooking or self.component.hasMeal then
+      return -1
+    end
+    local myPos = transform.getPos(self.component.entity)
+    local time = path.getCost(myPos, targetPos)
+    if time == -1 then
+      return -1
+    end
+    
+    return room.occupation(self.target) / time
+  end
+  
+  local function destroy (t)
+    self.goalEvaluator:removeSubgoal(goal)
+    event.unsubscribe("destroy", goal.target, destroy)
+  end
+  event.subscribe("destroy", goal.target, destroy)
+  
+  self.goalEvaluator:addSubgoal(goal)
+end
+
+local addServeMealGoal = function (self)
+  local goal = M.newGoal(self)
+  -- goal.name = "deliverMeal"
+  
+  local old_activate = goal.activate
+  goal.activate = function (self)    
+    if not self.component.clientRoom or
+        entity.get(self.component.clientRoom) == nil then
+      self.status = "failed"
+      return
+    end
+    
+    local targetPos = room.getPos(self.component.clientRoom)
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    old_activate(self)
+  end
+    
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    if self.status == "complete" then
+      if self.component.hasMeal then
+        event.notify("staff.cook.serveMeal",
+          self.component.client, self.component.clientRoom)
+      end
+    end
+    self.component.client = nil
+    self.component.clientRoom = nil
+    self.component.hasMeal = false
+  
+    old_terminate(self)
+    self.subgoals = {}
+  end
+  
+  goal.getDesirability = function (self, t)
+    if self.component.hasMeal then
+      return 1000
+    end
+    return -1
+  end
+  
+  local function destroy (t)
+    self.goalEvaluator:removeSubgoal(goal)
+    event.unsubscribe("destroy", goal.target, destroy)
+  end
+  event.subscribe("destroy", goal.target, destroy)
+  
+  self.goalEvaluator:addSubgoal(goal)
+end
+
 M.new = function (id)
   local com = entity.newComponent({
     entity = id,
@@ -1647,6 +2140,10 @@ M.new = function (id)
     addBellhopGoal = addBellhopGoal,
     addCheckInGoal = addCheckInGoal,
     addMaintenanceGoal = addMaintenanceGoal,
+    addWaiterGoal = addWaiterGoal,
+    addIngredientsGoal = addIngredientsGoal,
+    addCookGoal = addCookGoal,
+    addServeMealGoal = addServeMealGoal,
   })
   com.goalEvaluator = M.newGoal(com)
   com.goalEvaluator.arbitrate = arbitrate

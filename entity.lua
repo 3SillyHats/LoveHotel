@@ -39,6 +39,7 @@ M.get = function (id)
       end
     end
   end
+  return nil
 end
 
 M.delete = function (id)
