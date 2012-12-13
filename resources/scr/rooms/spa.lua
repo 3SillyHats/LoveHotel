@@ -10,9 +10,14 @@ return {
       animations = {
         idle = {
           first = 0,
-          last = 0,
+          last = 1,
           speed = 1,
         },
+        broken = {
+          first = 2,
+          last = 3,
+          speed = 1,
+        }
       },
       playing = "idle",
     },
