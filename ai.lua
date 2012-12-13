@@ -212,7 +212,7 @@ local elevatorGoto = function(self, pos)
     roomNum = pos.roomNum,
     floorNum = pos.floorNum,
     callback = function (id, roomType)
-      if roomType == "elevator" then
+      if roomType == "elevator" and not room.isBroken(id) then
         passable = true
       end
     end,
@@ -282,6 +282,16 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
       roomNum = goal.pos.roomNum,
       floorNum = math.floor(goal.pos.floorNum + .5)
     })
+    local elevator
+    event.notify("room.check", 0, {
+      roomNum = self.pos.roomNum,
+      floorNum = self.pos.floorNum,
+      callback = function (id, type)
+        elevator = id
+      end,
+    })
+    
+    room.use(elevator)
     event.notify("sprite.play", goal.component.entity, "idle")
     event.notify("sprite.hide", goal.component.entity, false)
     old_terminate(self)
@@ -1247,10 +1257,11 @@ local addMaintenanceGoal = function (self, target)
     if room.isBroken(self.target) and
         room.occupation(self.target) == 0 then
       local myPos = transform.getPos(self.component.entity)
-      local time = path.getCost(myPos, targetPos) + CLEAN_TIME
+      local time = path.getCost(myPos, targetPos)
       if time == -1 then
         return -1
       end
+      time = time + FIX_TIME
 
       return 1/time
     end
@@ -2344,15 +2355,14 @@ event.subscribe("floor.new", 0, function (level)
   end
 end)
 
-
-event.subscribe("build", 0, function (t)
+local addElevator = function (t)
   if t.type == "elevator" then
     -- Check for elevator above
     event.notify("room.check", 0, {
       roomNum = t.pos.roomNum,
       floorNum = t.pos.floorNum + 1,
       callback = function (id, type)
-        if type == "elevator" then
+        if type == "elevator" and not room.isBroken(id) then
           local dst = {
             roomNum = t.pos.roomNum,
             floorNum = t.pos.floorNum + 1,
@@ -2368,7 +2378,7 @@ event.subscribe("build", 0, function (t)
       roomNum = t.pos.roomNum,
       floorNum = t.pos.floorNum - 1,
       callback = function (id, type)
-        if type == "elevator" then
+        if type == "elevator" and not room.isBroken(id) then
           local dst = {
             roomNum = t.pos.roomNum,
             floorNum = t.pos.floorNum - 1,
@@ -2379,9 +2389,9 @@ event.subscribe("build", 0, function (t)
       end,
     })
   end
-end)
+end
 
-event.subscribe("destroy", 0, function (t)
+local removeElevator = function (t)
   if t.type == "elevator" then
     local dst = {
       roomNum = t.pos.roomNum,
@@ -2397,6 +2407,11 @@ event.subscribe("destroy", 0, function (t)
     path.removeEdge(t.pos,dst)
     path.removeEdge(dst,t.pos)
   end
-end)
+end
+
+event.subscribe("build", 0, addElevator)
+event.subscribe("room.fixed", 0, addElevator)
+event.subscribe("destroy", 0, removeElevator)
+event.subscribe("room.broken", 0, removeElevator)
 
 return M
