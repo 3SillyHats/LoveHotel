@@ -8,7 +8,7 @@ local M = {}
 
 local decisions = {
   skySpawn = {
-    prompt = "Sky travellers can now reach Love Hotel, and they're horny!",
+    prompt = "Sky travellers can now reach Love Hotel, and they want to join the mile high club",
     options = {
       {
         text = "Okay",
@@ -17,7 +17,7 @@ local decisions = {
     },
   },
   groundSpawn = {
-    prompt = "That cave seems to be letting in other-worldly demons...",
+    prompt = "That cave seems to be letting in other-worldly demons... and they're horny!",
     options = {
       {
         text = "Okay",

@@ -1134,7 +1134,7 @@ local newGetSupplyGoal = function (self, target)
     event.notify("room.endSupply", self.target, {
       id = self.component.entity,
     })
-    self.component.supply = 3
+    self.component.supply = 1
     
     self.target = nil
     old_terminate(self)
