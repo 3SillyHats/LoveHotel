@@ -12,6 +12,26 @@ local room = require("room")
 --Create the module
 local M = {}
 
+local getRoom = function ()
+  local pos = {roomNum = gRoomNum, floorNum = gScrollPos}
+  local roomId = -1
+  local type = ""
+  event.notify("room.check", 0, {
+    roomNum = pos.roomNum,
+    floorNum = pos.floorNum,
+    callback = function (id, t)
+      roomId = id
+      type = t
+    end
+  })
+  
+  if roomId == -1 then
+    return
+  end
+  
+  return roomId, type
+end
+
 local stocker = function (id, cost, t)
   local component = entity.newComponent({
     x = 0,
@@ -32,6 +52,21 @@ local stocker = function (id, cost, t)
     clear = true
     support = 0
     event.notify("entity.move", id, {roomNum = gRoomNum, floorNum = gScrollPos})
+    
+    local roomId, type = getRoom()
+    if roomId ~= nil then
+      local info = resource.get("scr/rooms/" .. string.lower(type) .. ".lua")
+      if info.stock then
+        event.notify("menu.info", 0, {
+          name = "Cost:",
+          desc = "$" .. info.restockCost,
+        })
+      else
+        event.notify("menu.info", 0, {name = "", desc = ""})
+      end
+    else
+      event.notify("menu.info", 0, {name = "", desc = ""})
+    end
   end
 
   component.update = function (dt)
@@ -54,21 +89,7 @@ local stocker = function (id, cost, t)
           updatePosition()
         end
       elseif key == "a" then
-        local pos = {roomNum = gRoomNum, floorNum = gScrollPos}
-        local roomId = -1
-        local type = ""
-        event.notify("room.check", 0, {
-          roomNum = pos.roomNum,
-          floorNum = pos.floorNum,
-          callback = function (id, t)
-            roomId = id
-            type = t
-          end
-        })
-        
-        if roomId == -1 then
-          return
-        end
+        local roomId, type = getRoom()
 
         local info = resource.get("scr/rooms/" .. string.lower(type) .. ".lua")
         local stock = room.getStock(roomId)
