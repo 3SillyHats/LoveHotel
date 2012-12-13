@@ -156,6 +156,11 @@ M.new = function (t)
         last = 5,
         speed = 1,
       },
+      thoughtImpatient = {
+        first = 6,
+        last = 6,
+        speed = 1,
+      },
     },
     playing = "thoughtNone",
   }))
