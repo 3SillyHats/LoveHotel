@@ -177,6 +177,8 @@ M.new = function (t)
       aiComponent:addFoodGoal(id)
     elseif info.id == "dining" then
       aiComponent:addOrderMealGoal(id)
+    elseif info.id == "spa" then
+      aiComponent:addSpaGoal(id)
     end
   end
   

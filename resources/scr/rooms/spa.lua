@@ -1,11 +1,8 @@
 return {
-  id = "freezer",
-  name = "Freezer",
-  cost = 500,
+  id = "spa",
+  name = "Spa Room",
+  cost = 300,
   width = 2,
-  cookingSupplies = true,
-  stock = 8,
-  restockCost = 100,
 
   sprites = {
     {

@@ -578,7 +578,7 @@ menu.addButton(gui, menu.newButton("food", function ()
   menu.addButton(submenu, menu.newButton("dining", function ()
     buildRoom("dining", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
-  --Stock Room
+  --Freezer Room
   menu.addButton(submenu, menu.newButton("freezer", function ()
     buildRoom("freezer", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
@@ -616,7 +616,7 @@ menu.addButton(gui, menu.newButton("services", function ()
   end))
   --Spa room
   menu.addButton(submenu, menu.newButton("spa", function ()
-    print("spa")
+    buildRoom("spa", {roomNum = 1, floorNum = gScrollPos}, submenu)
   end))
 
    --The back button deletes the submenu
