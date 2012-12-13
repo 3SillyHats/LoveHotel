@@ -640,11 +640,11 @@ local addExitGoal = function (self)
   
   local old_activate = goal.activate
   goal.activate = function (self)
-    if self.component.needs.horniness == 0 then
+    if self.component.needs.horniness <= 0 then
       event.notify("sprite.play", self.component.entity, "thoughtHappy")
     elseif self.component.needs.hunger > self.component.needs.horniness then
       event.notify("sprite.play", self.component.entity, "thoughtHungry")
-    elseif self.component.supply == 0 then
+    elseif self.component.supply <= 0 then
       event.notify("sprite.play", self.component.entity, "thoughtCondomless")
     else
       local minCost = 9999999999
