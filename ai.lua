@@ -712,7 +712,10 @@ local addOrderMealGoal = function (self, target)
   
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    if self.status == "complete" then
+    if self.status == "complete" and
+        self.component.money >= info.profit then
+      self.component.money = self.component.money - info.profit
+      moneyChange(info.profit, transform.getPos(self.component.entity))
       self.component.needs.hunger = 0
     end
   
@@ -721,7 +724,8 @@ local addOrderMealGoal = function (self, target)
   end
   
   goal.getDesirability = function (self, t)
-    if self.component.needs.hunger > 50 and
+    if self.component.money >= info.profit and
+        self.component.needs.hunger > 50 and
         self.component.needs.hunger > self.component.needs.horniness then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
@@ -1483,6 +1487,7 @@ end
 local newGetCondomGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  local info = room.getInfo(target)
   
   local old_activate = goal.activate
   goal.activate = function(self, dt)
@@ -1536,9 +1541,13 @@ local newGetCondomGoal = function (self, target)
     event.notify("room.endSupply", self.target, {
       id = self.component.entity,
     })
-    self.component.supply = self.component.supply + 3
     
-    room.use(self.target)
+    if self.component.money >= info.profit then
+      self.component.supply = self.component.supply + 3
+      self.component.money = self.component.money - info.profit
+      moneyChange(info.profit, transform.getPos(self.component.entity))
+      room.use(self.target)
+    end
     
     self.target = nil
     old_terminate(self)
@@ -1581,6 +1590,7 @@ local addCondomGoal = function (self, target)
     end
 
     if not room.isBroken(self.target) and
+        self.component.money >= info.profit and
         room.getStock(self.target) > 0 and
         room.occupation(self.target) == 0 and
         self.component.supply == 0 then
@@ -1605,9 +1615,10 @@ local addCondomGoal = function (self, target)
   self.goalEvaluator:addSubgoal(goal)
 end
 
-local newGetFoodGoal = function (self, target)
+local newGetSnackGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  local info = room.getInfo(goal.target)
   
   local old_activate = goal.activate
   goal.activate = function(self, dt)
@@ -1661,8 +1672,13 @@ local newGetFoodGoal = function (self, target)
     event.notify("room.endSupply", self.target, {
       id = self.component.entity,
     })
-    self.component.needs.hunger = math.max(0, self.component.needs.hunger - 30)
-    room.use(self.target)
+    
+    if self.component.money >= info.profit then
+      self.component.money = self.component.money - info.profit
+      moneyChange(info.profit, transform.getPos(self.component.entity))
+      self.component.needs.hunger = math.max(0, self.component.needs.hunger - 30)
+      room.use(self.target)
+    end
     
     self.target = nil
     old_terminate(self)
@@ -1672,10 +1688,10 @@ local newGetFoodGoal = function (self, target)
   return goal
 end
 
-local addFoodGoal = function (self, target)
+local addSnackGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
-  -- goal.name = "food"
+  -- goal.name = "snack"
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local food = nil
@@ -1688,7 +1704,7 @@ local addFoodGoal = function (self, target)
     end
     
     self:addSubgoal(newMoveToGoal(self.component, targetPos, CLIENT_MOVE))
-    food = newGetFoodGoal(self.component, self.target)
+    food = newGetSnackGoal(self.component, self.target)
     self:addSubgoal(food)
     old_activate(self)
   end
@@ -1705,6 +1721,7 @@ local addFoodGoal = function (self, target)
     end
     
     if not room.isBroken(self.target) and
+        self.component.money >= info.profit and
         room.getStock(self.target) > 0 and
         room.occupation(self.target) == 0 and
         self.component.needs.hunger > self.component.needs.horniness then
@@ -2249,7 +2266,7 @@ M.new = function (id)
     addEnterGoal = addEnterGoal,
     addSupplyGoal = addSupplyGoal,
     addCondomGoal = addCondomGoal,
-    addFoodGoal = addFoodGoal,
+    addSnackGoal = addSnackGoal,
     addBellhopGoal = addBellhopGoal,
     addCheckInGoal = addCheckInGoal,
     addMaintenanceGoal = addMaintenanceGoal,

@@ -3,9 +3,10 @@ return {
   name = "Vending Mach.",
   cost = 200,
   width = 1,
+  profit = 5,
   foodSupplies = true,
   stock = 8,
-  restockCost = 50,
+  restockCost = 30,
   breakable = true,
 
   sprites = {

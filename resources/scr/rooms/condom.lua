@@ -3,6 +3,7 @@ return {
   name = "Condom Mach.",
   cost = 100,
   width = 1,
+  profit = 3,
   condomSupplies = true,
   stock = 8,
   restockCost = 20,
@@ -58,8 +59,8 @@ return {
           speed = 1,
         },
         broken = {
-          first = 8,
-          last = 9,
+          first = 9,
+          last = 10,
           speed = 1,
         }
       },

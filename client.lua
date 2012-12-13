@@ -174,7 +174,7 @@ M.new = function (t)
     elseif info.condomSupplies then
       aiComponent:addCondomGoal(id)
     elseif info.foodSupplies then
-      aiComponent:addFoodGoal(id)
+      aiComponent:addSnackGoal(id)
     elseif info.id == "dining" then
       aiComponent:addOrderMealGoal(id)
     elseif info.id == "spa" then

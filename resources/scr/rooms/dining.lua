@@ -3,6 +3,7 @@ return {
   name = "Dining Room",
   cost = 2000,
   width = 3,
+  profit = 100,
 
   sprites = {
     {

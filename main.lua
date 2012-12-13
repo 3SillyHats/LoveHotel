@@ -150,8 +150,15 @@ gMoney = 200000
 gReputation = REP_INITIAL
 gStars = STARS_INITIAL
 
-moneyChange = function (c)
+moneyChange = function (c, pos)
   gMoney = math.max(0, gMoney + c)
+  
+  if pos then
+    event.notify("money.change", 0, {
+      amount = c,
+      pos = pos,
+    })
+  end
 end
 
 reputationChange = function (c)
