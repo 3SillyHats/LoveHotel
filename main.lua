@@ -485,10 +485,10 @@ menu.addButton(gui, menu.newButton("infrastructure", function ()
   --Create the infrastructure menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
   
-  --Stairs
+  --[[Stairs
   menu.addButton(submenu, menu.newButton("stairs", function ()
     print("Stairs")
-  end))
+  end))---]]
   --Elevator
   menu.addButton(submenu, menu.newButton("elevator", function ()
     buildRoom("elevator", submenu)
@@ -804,37 +804,40 @@ local buttQuad = love.graphics.newQuad(
 local hudBar = entity.new(STATE_PLAY)
 entity.setOrder(hudBar, 90)
 local hudCom = entity.newComponent()
-hudCom.selected = "infrastructure"
+hudCom.name = "Structure"
+hudCom.desc = ""
 hudCom.draw = function (self)
   love.graphics.drawq(
     resource.get("img/hud.png"), hudQuad,
     0, CANVAS_HEIGHT - 32,
     0
   )
-  if hudCom.selected then
-    local info = conf.menu[hudCom.selected]
-    if info then
-      -- draw info
-      love.graphics.setColor(255, 255, 255)
-      love.graphics.setFont(gFont)
-      love.graphics.printf(
-        info.name,
-        115, CANVAS_HEIGHT - 26,
-        76,
-        "left"
-      )
-      love.graphics.printf(
-        info.desc,
-        115, CANVAS_HEIGHT - 15,
-        76,
-        "left"
-      )
-    end
-  end
+  -- draw info
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.setFont(gFont)
+  love.graphics.printf(
+    self.name,
+    115, CANVAS_HEIGHT - 26,
+    76,
+    "left"
+  )
+  love.graphics.printf(
+    self.desc,
+    115, CANVAS_HEIGHT - 15,
+    76,
+    "left"
+  )
 end
 entity.addComponent(hudBar, hudCom)
 event.subscribe("menu.info", 0, function (e)
-  hudCom.selected = e
+  if e.selected then
+    local info = conf.menu[e.selected]
+    hudCom.name = info.name
+    hudCom.desc = info.desc
+  else
+    hudCom.name = e.name
+    hudCom.desc = e.desc
+  end
 end)
 
 -- Create the gMoney display
@@ -952,22 +955,25 @@ entity.addComponent(repDisplay, repCom)
 -- Create the backdrop
 local backdrop = entity.new(STATE_PLAY)
 local bdImg = resource.get("img/backdrop.png")
+local bdQuad = love.graphics.newQuad(
+  0, 0,
+  256, 32,
+  bdImg:getWidth(), bdImg:getHeight()
+)
 entity.setOrder(backdrop, -100)
 local bdCom = entity.newComponent()
 bdCom.draw = function (self)
+  love.graphics.setColor(255, 255, 255)
   if gScrollPos > 0 then
     -- Aboveground
-    love.graphics.setColor(188, 184, 252)
+    bdQuad:setViewport(0, 0, 256, 32)
   else
     -- Underground
-    love.graphics.setColor(80, 48, 0)
+    bdQuad:setViewport(0, bdImg:getHeight() - 32, 256, 32)
   end
-  love.graphics.rectangle(
-    "fill",
-    0, 0,
-    CANVAS_WIDTH, CANVAS_HEIGHT
-  )
-  love.graphics.setColor(255, 255, 255)
+  for i = 0, 7 do
+    love.graphics.drawq(bdImg, bdQuad, 0, (32 * i) - 16)
+  end
   love.graphics.draw(
     bdImg,
     0, 464 + (gScrollPos * 32) - bdImg:getHeight(),
