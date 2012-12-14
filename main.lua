@@ -54,8 +54,6 @@ REP_THRESHOLDS = {
   3000,
 }
 
-local profiler = require("profiler")
-
 local event = require("event")
 local entity = require("entity")
 local input = require("input")
@@ -1200,8 +1198,6 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
   elseif key == "return" and (gState == STATE_PAUSE or gState == STATE_DECISION) and not input.isMapped("return") then
     returnDown = true
     event.notify("pressed", 0, "a")
-  elseif key == "f12" then
-    profiler.start()
   else
     input.keyPressed(key)
   end
@@ -1221,8 +1217,4 @@ end
 
 love.joystickreleased = function (joystick, button)
   input.joystickReleased(joystick, button)
-end
-
-love.onquit = function ()
-  profiler.stop()
 end
