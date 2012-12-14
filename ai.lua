@@ -1776,7 +1776,7 @@ local newGetCondomGoal = function (self, target)
     })
     
     if self.component.money >= info.profit then
-      self.component.supply = self.component.supply + 3
+      self.component.supply = self.component.supply + 1
       self.component.money = self.component.money - info.profit
       moneyChange(info.profit, transform.getPos(self.component.entity))
       room.use(self.target)

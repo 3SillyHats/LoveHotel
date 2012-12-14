@@ -9,8 +9,8 @@ return {
   maxSupply = 3,
   minMoney = 2500,
   maxMoney = 3000,
-  goodRep = 20,
-  badRep = 50,
+  goodRep = 15,
+  badRep = 45,
  
   spawnChance = {
     0,
