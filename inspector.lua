@@ -44,17 +44,49 @@ M.new = function (state)
   demolishUtility = entity.newComponent({
     entity = id,
     selected = 1,
+    inspectClients = false,
     update = function (self, dt)
-      local clients = staff.getAll()
-      if #clients > 0 then
-        self.selected = math.max(1, math.min(#clients, self.selected))
-        local pos = transform.getPos(clients[self.selected].id)
+      local clients = client.getAll()
+      local staff = staff.getAll()
+      if #clients > 0 or #staff > 0 then
+        local max
+        if inspectClients then
+          max = #clients
+        else
+          max = #staff
+        end
+        while self.selected < 1 or self.selected > max do
+          if self.selected < 1 then
+            inspectClients = not inspectClients
+            if inspectClients then
+              max = #clients
+            else
+              max = #staff
+            end
+            self.selected = max
+          elseif self.selected > max then
+            inspectClients = not inspectClients
+            if inspectClients then
+              max = #clients
+            else
+              max = #staff
+            end
+            self.selected = 1
+          end
+        end
+        local target = nil
+        if inspectClients then
+          target = clients[self.selected]
+        else
+          target = staff[self.selected]
+        end
+        local pos = transform.getPos(target.id)
         event.notify("entity.move", self.entity, pos)
         local name = "none"
         local desc = "none"
-        if clients[self.selected].ai.currentGoal then
-          name = clients[self.selected].ai.currentGoal.name
-          local g = clients[self.selected].ai.currentGoal
+        if target.ai.currentGoal then
+          name = target.ai.currentGoal.name
+          local g = target.ai.currentGoal
           if #g.subgoals > 0 then
             while #g.subgoals > 0 do
               g = g.subgoals[1]
