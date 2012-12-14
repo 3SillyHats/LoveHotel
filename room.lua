@@ -180,10 +180,25 @@ local infoComponent = function (id, info, pos)
     end
   end
   
-  local use = function ()
-    if info.breakable then
-      component.integrity = component.integrity - 1
-      if component.integrity <= 0 then
+  local setIntegrity = function (integrity)
+    if integrity ~= component.integrity then
+      if component.integrity <= 0 and integrity > 0 then
+        event.notify("room.fixed", id, {
+          type = info.id,
+          id = id,
+          pos = pos,
+        })
+        event.notify("room.fixed", 0, {
+          type = info.id,
+          id = id,
+          pos = pos,
+        })
+        if info.stock ~= nil then
+          event.notify("sprite.play", id, "stocked" .. component.stock)
+        elseif info.id == "elevator" then
+          event.notify("sprite.play", id, "closed")
+        end
+      elseif component.integrity > 0 and integrity <= 0 then
         event.notify("sprite.play", id, "broken")
         event.notify("room.broken", id, {
           type = info.id,
@@ -196,65 +211,45 @@ local infoComponent = function (id, info, pos)
           pos = pos,
         })
       end
-    end
-  end
-  local fix = function (t)
-    component.integrity = t.integrity
-    if t.integrity > 0 then
-      event.notify("room.fixed", id, {
+      component.integrity = integrity
+      event.notify("room.integrityChange", 0, {
         type = info.id,
         id = id,
         pos = pos,
+        integrity = component.integrity,
       })
-      event.notify("room.fixed", 0, {
+      event.notify("room.integrityChange", id, {
         type = info.id,
         id = id,
         pos = pos,
+        integrity = component.integrity,
       })
-      if info.stock ~= nil then
-        event.notify("sprite.play", id, "stocked" .. component.stock)
-      elseif info.id == "elevator" then
-        event.notify("sprite.play", id, "closed")
-      end
     end
   end
   
+  local use = function ()
+    if info.breakable then
+      setIntegrity(component.integrity - 1)
+    end
+  end
+  
+  local fix = function (t)
+    if info.breakable then
+      setIntegrity(t.integrity)
+    end
+  end
+  
+  local propogate
   if info.id == "elevator" then
-    local propogate = function (f, e)
-      return function (t)
-        if not t then
-          t = {}
-        end
-        local dir = t.__dir
-        if dir ~= "up" then
-          t.__dir = "down"
-          event.notify("room.check", 0, {
-            roomNum = pos.roomNum,
-            floorNum = pos.floorNum - 1,
-            callback = function (otherId, type)
-              if type == "elevator" then
-                event.notify(e, otherId, t)
-              end
-            end,
-          })
-        end
-        if dir ~= "down" then
-          t.__dir = "up"
-          event.notify("room.check", 0, {
-            roomNum = pos.roomNum,
-            floorNum = pos.floorNum + 1,
-            callback = function (otherId, type)
-              if type == "elevator" then
-                event.notify(e, otherId, t)
-              end
-            end,
-          })
-        end
-        f(t)
+    propogate = function (e)
+      if e.pos.roomNum == pos.roomNum and
+          (e.pos.floorNum == pos.floorNum - 1 or e.pos.floorNum == pos.floorNum + 1) and
+          e.integrity ~= component.integrity and
+          e.type == "elevator" then
+        setIntegrity(e.integrity)
       end
     end
-    use = propogate(use, "room.use")
-    fix = propogate(fix, "room.fix")
+    event.subscribe("room.integrityChange", 0, propogate)
   end
   
   local function delete ()
@@ -281,6 +276,7 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("room.isBroken", id, isBroken)
     event.unsubscribe("room.use", id, use)
     event.unsubscribe("room.fix", id, fix)
+    event.unsubscribe("room.integrityChange", 0, propogate)
     event.unsubscribe("delete", id, delete)
   end
   
