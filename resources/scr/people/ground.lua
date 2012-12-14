@@ -1,14 +1,14 @@
 return {
   name = "ground",
  
-  minHorniness = 200,
-  maxHorniness = 300,
-  minHunger = 20,
-  maxHunger = 40,
-  minSupply = 3,
-  maxSupply = 5,
-  minMoney = 300,
-  maxMoney = 1000,
+  minHorniness = 120,
+  maxHorniness = 200,
+  minHunger = 0,
+  maxHunger = 0,
+  minSupply = 4,
+  maxSupply = 6,
+  minMoney = 7000,
+  maxMoney = 9000,
   badRep = 5,
   goodRep = 15,
  

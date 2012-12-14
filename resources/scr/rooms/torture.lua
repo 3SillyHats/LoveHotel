@@ -1,8 +1,8 @@
 return {
   id = "torture",
   name = "Torture Room",
-  cost = 2500,
-  profit = 1500,
+  cost = 6000,
+  profit = 2700,
   desirability = 50,
   width = 4,
   dirtyable = true,

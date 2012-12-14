@@ -1,8 +1,8 @@
 return {
   id = "moustache",
   name = "Choc 'tache",
-  cost = 800,
-  profit = 400,
+  cost = 1700,
+  profit = 550,
   desirability = 20,
   width = 2,
   dirtyable = true,

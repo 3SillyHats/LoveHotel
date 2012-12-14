@@ -1,14 +1,14 @@
 return {
   name = "working",
  
-  minHorniness = 100,
+  minHorniness = 80,
   maxHorniness = 100,
   minHunger = 10,
   maxHunger = 30,
   minSupply = 0,
   maxSupply = 1,
-  minMoney = 2000,
-  maxMoney = 2500,
+  minMoney = 1500,
+  maxMoney = 1800,
   goodRep = 5,
   badRep = 15,
  

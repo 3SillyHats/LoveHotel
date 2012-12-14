@@ -27,7 +27,7 @@ buttLoc = {
   balloon = 19,
   torture = 20,
   furrynazi = 21,
-  tropical = 22,
+  eco = 22,
   
   vending = 24,
   dining = 25,

@@ -1,9 +1,9 @@
 return {
-  id = "balloon",
-  name = "Balloons",
-  cost = 2100,
-  profit = 850,
-  desirability = 30,
+  id = "furrynazi",
+  name = "Furry Nazi HQ",
+  cost = 3000,
+  profit = 1200,
+  desirability = 100,
   width = 3,
   dirtyable = true,
   

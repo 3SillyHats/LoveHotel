@@ -1,14 +1,14 @@
 return {
   name = "space",
  
-  minHorniness = 100,
-  maxHorniness = 120,
+  minHorniness = 80,
+  maxHorniness = 100,
   minHunger = 20,
-  maxHunger = 50,
-  minSupply = 1,
-  maxSupply = 2,
-  minMoney = 1500,
-  maxMoney = 10000,
+  maxHunger = 40,
+  minSupply = 2,
+  maxSupply = 4,
+  minMoney = 30000,
+  maxMoney = 50000,
   goodRep = 5,
   badRep = 15,
  
