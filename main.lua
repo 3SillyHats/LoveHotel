@@ -459,14 +459,14 @@ end
 newFloor(GROUND_FLOOR)
 
 local floorUp = function()
-  local cost =  500 * (gTopFloor + 1)
+  local cost =  250 * (gTopFloor + 2)
   if gMoney >= cost then
     gMoney = gMoney - cost
     event.notify("money.change", 0, {
       amount = -cost,
     })
     gTopFloor = gTopFloor + 1
-    conf.menu["floorUp"].desc = "$" .. (500 * (gTopFloor + 1))
+    conf.menu["floorUp"].desc = "$" .. (250 * (gTopFloor + 3))
     local newFloor = newFloor(gTopFloor)
   else
     local snd = resource.get("snd/error.wav")
@@ -476,14 +476,14 @@ local floorUp = function()
 end
 
 local floorDown = function()
-  local cost =  1000 * (1 - gBottomFloor)
+  local cost =  500 * (2 - gBottomFloor)
   if gMoney >= cost then
     gMoney = gMoney - cost
     event.notify("money.change", 0, {
       amount = -cost,
     })
     gBottomFloor = gBottomFloor - 1
-    conf.menu["floorDown"].desc = "$" .. (1000 * (1 - gBottomFloor))
+    conf.menu["floorDown"].desc = "$" .. (500 * (2 - gBottomFloor))
     local newFloor = newFloor(gBottomFloor)
   else
     local snd = resource.get("snd/error.wav")
@@ -611,15 +611,6 @@ menu.addButton(gui, menu.newButton("food", function ()
   
   --Create the food menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
-  
-  if gStars >= 2 then
-    --Vending machine
-    menu.addButton(submenu, menu.newButton("vending", function ()
-      buildRoom("vending", submenu)
-    end))
-  else
-    addLockButton(submenu)
-  end
   
   if gStars >= 2 then
     --Vending machine
