@@ -709,13 +709,9 @@ menu.addButton(gui, menu.newButton("staff", function ()
   menu.addButton(submenu, menu.newButton("cleaner", function ()
     staff.new("cleaner")
   end))
-  if gStars >= 2 then
-    menu.addButton(submenu, menu.newButton("maintenance", function ()
-      staff.new("maintenance")
-    end))
-  else
-    addLockButton(submenu)
-  end
+  menu.addButton(submenu, menu.newButton("maintenance", function ()
+    staff.new("maintenance")
+  end))
   if gStars >= 4 then
     menu.addButton(submenu, menu.newButton("cook", function ()
       staff.new("cook")
