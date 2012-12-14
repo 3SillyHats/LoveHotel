@@ -579,7 +579,16 @@ menu.addButton(gui, menu.newButton("suites", function ()
   else
     addLockButton(submenu)
   end
-   
+
+    if gStars >= 3 then
+    --Torture
+    menu.addButton(submenu, menu.newButton("torture", function ()
+      buildRoom("torture", submenu)
+    end))
+  else
+    addLockButton(submenu)
+  end
+
   if gStars >= 5 then
     --Tropical
     menu.addButton(submenu, menu.newButton("tropical", function ()
