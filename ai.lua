@@ -221,18 +221,15 @@ local elevatorGoto = function(self, pos)
   if passable then
     event.notify("entity.move", self.component.entity, pos)
   else
-    print("impassable")
     return "failed"
   end
 end
 
 local elevatorProcess = function (self, dt)
   if not self.moveTo or not self.pos then
-    print("missing endpoint")
     return "failed"
   end
   if self.moveTo.roomNum ~= self.pos.roomNum then
-    print("not in line")
     return "failed"
   end
   if self.wait1 then
@@ -371,13 +368,13 @@ local newMoveToGoal = function (com, moveTo, moveSpeed)
     if not p then
       self.status = "failed"
     else
-      local last = nil
+      local last = self.pos
       local old = nil
       for _,pos in ipairs(p) do
         if old then
-          if last.floorNum == old.floorNum and last.roomNum ~= old.roomNum and old.floorNum ~= pos.floorNum then
-            self:addSubgoal(newSeekGoal(self.component, last, old, moveSpeed))
-            last = old
+          if last.roomNum ~= old.roomNum and old.floorNum ~= pos.floorNum then
+            self:addSubgoal(newSeekGoal(self.component, last, {roomNum = old.roomNum, floorNum = last.floorNum}, moveSpeed))
+            last = {roomNum = old.roomNum, floorNum = last.floorNum}
           end
           if last.roomNum == old.roomNum and last.floorNum ~= old.floorNum and old.roomNum ~= pos.roomNum then
             self:addSubgoal(newElevatorGoal(self.component, last, old))
@@ -388,11 +385,12 @@ local newMoveToGoal = function (com, moveTo, moveSpeed)
         if not last then last = old end
       end
       if last then
-        if last.floorNum == old.floorNum and last.roomNum ~= old.roomNum then
-          self:addSubgoal(newSeekGoal(self.component, last, old, moveSpeed))
+        if last.roomNum ~= old.roomNum then
+          self:addSubgoal(newSeekGoal(self.component, last, {roomNum = old.roomNum, floorNum = last.floorNum}, moveSpeed))
+          last = {roomNum = old.roomNum, floorNum = last.floorNum}
         end
-        if last.roomNum == old.roomNum and last.floorNum ~= old.floorNum then
-          self:addSubgoal(newElevatorGoal(self.component, last, old))
+        if last.floorNum ~= old.floorNum then
+          self:addSubgoal(newSeekGoal(self.component, last, {roomNum = last.roomNum, floorNum = old.floorNum}, moveSpeed))
         end
       end
     end
@@ -2108,7 +2106,7 @@ local addBellhopGoal = function (self, target)
       return -1
     end
     
-    return room.occupation(self.target) / time
+    return (1 + room.occupation(self.target)) / time
   end
   
   local function destroy (t)
@@ -2436,7 +2434,7 @@ local addWaiterGoal = function (self, target)
       return -1
     end
     
-    return room.occupation(self.target) / time
+    return (1 + room.occupation(self.target)) / time
   end
   
   local function destroy (t)
@@ -2493,6 +2491,7 @@ end
 
 local addWanderGoal = function (com)
   local goal = M.newGoal(com)
+  goal.name = "wander"
   
   local old_activate = goal.activate 
   goal.activate = function (self)
