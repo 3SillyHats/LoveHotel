@@ -181,6 +181,7 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
   goal.pos = {roomNum = moveFrom.roomNum, floorNum = moveFrom.floorNum}
   goal.speed = moveSpeed
   goal.process = seekProcess
+  goal.name = "seek"
   local onMove = function (pos)
     goal.pos.roomNum = pos.roomNum
     goal.pos.floorNum = pos.floorNum
@@ -220,15 +221,18 @@ local elevatorGoto = function(self, pos)
   if passable then
     event.notify("entity.move", self.component.entity, pos)
   else
+    print("impassable")
     return "failed"
   end
 end
 
 local elevatorProcess = function (self, dt)
   if not self.moveTo or not self.pos then
+    print("missing endpoint")
     return "failed"
   end
   if self.moveTo.roomNum ~= self.pos.roomNum then
+    print("not in line")
     return "failed"
   end
   if self.wait1 then
@@ -276,6 +280,7 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
   goal.pos = {roomNum = moveFrom.roomNum, floorNum = moveFrom.floorNum}
   goal.speed = ELEVATOR_MOVE
   goal.process = elevatorProcess
+  goal.name = "elevator"
   goal.wait1 = true
   goal.wait2 = true
 
@@ -350,6 +355,7 @@ local newMoveToGoal = function (com, moveTo, moveSpeed)
   goal.moveTo = {roomNum = moveTo.roomNum, floorNum = moveTo.floorNum}
   goal.pos = {}
   goal.speed = moveSpeed
+  goal.name = "moveTo"
   
   local old_activate = goal.activate
   goal.activate = function (self)
@@ -413,6 +419,7 @@ end
 local newSleepGoal = function (self, t)
   local goal = M.newGoal(self)
   goal.time = t
+  goal.name = "sleep"
   
   goal.process = function(self, dt)
     goal.time = goal.time - dt
@@ -430,6 +437,7 @@ local newPlayAnimationGoal = function (com, target, animation)
   local goal = M.newGoal(com)
   goal.target = target
   goal.animation = animation
+  goal.name = "playAnimation"
   
   local old_activate = goal.activate 
   goal.activate = function (self)
@@ -455,6 +463,7 @@ local newWaitForAnimationGoal = function (com, target, animation)
   goal.target = target
   goal.animation = animation
   goal.done = false
+  goal.name = "waitForAnimation"
   
   local handler = function (e)
     if e.animation == goal.animation then
@@ -491,6 +500,7 @@ local newSexGoal = function (com, target)
   goal.target = target
   goal.profit = room.getInfo(goal.target).profit
   goal.inRoom = false
+  goal.name = "sex"
 
   local old_activate = goal.activate
   goal.activate = function(self)
@@ -600,6 +610,7 @@ end
 
 local newDestroyGoal = function (self)
   local goal = M.newGoal(self)
+  goal.name = "destroy"
   
   goal.process = function(self, dt)
     entity.delete(self.component.entity)
@@ -612,6 +623,7 @@ end
 local newRelaxGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  goal.name = "relax"
   
   local old_activate = goal.activate
   goal.activate = function(self, dt)
@@ -731,6 +743,7 @@ end
 local newWaitForWaiterGoal = function (com, target)
   local goal = M.newGoal(com)
   goal.target = target
+  goal.name = "waitForWaiter"
 
   local queryHandler = function (e)
     if com.leader and not com.orderedMeal then
@@ -793,6 +806,7 @@ end
 local newWaitForMealGoal = function (com, target)
   local goal = M.newGoal(com)
   goal.target = target
+  goal.name = "waitForMeal"
   
   local mealHandler = function (room)
     local myPos = transform.getPos(goal.component.entity)
@@ -901,6 +915,7 @@ end
 local newWaitForReceptionGoal = function (com, target)
   local goal = M.newGoal(com)
   goal.target = target
+  goal.name = "waitForReception"
 
   local queryHandler = function (e)
     if com.leader and not com.beenServed then
@@ -1311,6 +1326,7 @@ end
 local newFixGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  goal.name = "fix"
   
   local old_activate = goal.activate
   goal.activate = function(self, dt)
@@ -1429,6 +1445,7 @@ end
 local newPerformCleanGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  goal.name = "performClean"
   
   local old_activate = goal.activate
   goal.activate = function(self, dt)
@@ -1571,6 +1588,7 @@ end
 local newGetSupplyGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  goal.name = "getSupply"
   
   local old_activate = goal.activate
   goal.activate = function(self, dt)
@@ -1702,6 +1720,7 @@ local newGetCondomGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
   local info = room.getInfo(target)
+  goal.name = "getCondom"
   
   local old_activate = goal.activate
   goal.activate = function(self, dt)
@@ -1833,6 +1852,7 @@ local newGetSnackGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
   local info = room.getInfo(goal.target)
+  goal.name = "getSnack"
   
   local old_activate = goal.activate
   goal.activate = function(self, dt)
@@ -1963,6 +1983,7 @@ end
 local newWaitForOccupationGoal = function (com, target)
   local goal = M.newGoal(com)
   goal.target = target
+  goal.name = "waitForOccupation"
 
   local old_activate = goal.activate
   goal.activate = function(self)
@@ -1996,6 +2017,7 @@ end
 local newReceptionGoal = function (com, target)
   local goal = M.newGoal(com)
   goal.target = target
+  goal.name = "reception"
 
   local old_activate = goal.activate
   goal.activate = function(self)
@@ -2144,6 +2166,7 @@ end
 local newPrepareFoodGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
+  goal.name = "prepareFood"
   
   local old_activate = goal.activate
   goal.activate = function(self, dt)
@@ -2324,6 +2347,7 @@ end
 local newTakeOrderGoal = function (com, target)
   local goal = M.newGoal(com)
   goal.target = target
+  goal.name = "takeOrder"
 
   local old_activate = goal.activate
   goal.activate = function(self)

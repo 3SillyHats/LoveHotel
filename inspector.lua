@@ -50,17 +50,22 @@ M.new = function (state)
         self.selected = math.max(1, math.min(#clients, self.selected))
         local pos = transform.getPos(clients[self.selected].id)
         event.notify("entity.move", self.entity, pos)
+        local name = "none"
+        local desc = "none"
         if clients[self.selected].ai.currentGoal then
-          event.notify("menu.info", 0, {
-            name = "Info",
-            desc = clients[self.selected].ai.currentGoal.name,
-          })
-        else
-          event.notify("menu.info", 0, {
-            name = "Info",
-            desc = "none",
-          })
+          name = clients[self.selected].ai.currentGoal.name
+          local g = clients[self.selected].ai.currentGoal
+          if #g.subgoals > 0 then
+            while #g.subgoals > 0 do
+              g = g.subgoals[1]
+            end
+            desc = g.name
+          end
         end
+        event.notify("menu.info", 0, {
+          name = name,
+          desc = desc,
+        })
       end
     end,
   })
