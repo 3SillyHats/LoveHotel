@@ -40,10 +40,10 @@ SKY_SPAWN = 8
 GROUND_SPAWN = -8
 SPACE_SPAWN = 16
 
-MONEY_INITIAL = 2000
+MONEY_INITIAL = 200000
 REP_INITIAL = 5
 REP_MAX = 3000
-STARS_INITIAL = 1
+STARS_INITIAL = 5
 STARS_MAX = 5
 REP_THRESHOLDS = {
   0,
@@ -581,9 +581,9 @@ menu.addButton(gui, menu.newButton("suites", function ()
   end
 
   if gStars >= 3 then
-    --Furry Nazi
-    menu.addButton(submenu, menu.newButton("furrynazi", function ()
-      buildRoom("furrynazi", submenu)
+    --Nazi Furry
+    menu.addButton(submenu, menu.newButton("nazifurry", function ()
+      buildRoom("nazifurry", submenu)
     end))
     
   else

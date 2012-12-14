@@ -1,6 +1,6 @@
 return {
-  id = "furrynazi",
-  name = "Furry Nazi HQ",
+  id = "nazifurry",
+  name = "Nazi Furry",
   cost = 3000,
   profit = 1200,
   desirability = 100,
