@@ -244,18 +244,22 @@ local elevatorProcess = function (self, dt)
       floorNum = self.pos.floorNum,
     })
     if result then return result end
-    local room
+    local roomId
     event.notify("room.check", 0, {
       roomNum = self.pos.roomNum,
       floorNum = self.pos.floorNum,
       callback = function (id, type)
         if type == "elevator" then
-          room = id
+          roomId = id
         end
       end,
     })
-    event.subscribe("sprite.onAnimationEnd", room, self.endHandler)
-    event.notify("sprite.play", room, "opening")
+    if room.isBroken(roomId) then
+      return "complete"
+    else
+      event.subscribe("sprite.onAnimationEnd", roomId, self.endHandler)
+      event.notify("sprite.play", roomId, "opening")
+    end
   else
     local delta = self.speed*dt
     if self.moveTo.floorNum < self.pos.floorNum then
@@ -305,18 +309,23 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
   goal.activate = function (self)
     event.notify("sprite.play", self.component.entity, "idle")
     event.notify("sprite.hide", self.component.entity, true)
-    local room
+    local roomId
     event.notify("room.check", 0, {
       roomNum = self.pos.roomNum,
       floorNum = self.pos.floorNum,
       callback = function (id, type)
         if type == "elevator" then
-          room = id
+          roomId = id
         end
       end,
     })
-    event.subscribe("sprite.onAnimationEnd", room, self.startHandler)
-    event.notify("sprite.play", room, "opening")
+    if not roomId or room.isBroken(roomId) then
+      self.status = "failed"
+      return
+    else
+      event.subscribe("sprite.onAnimationEnd", roomId, self.startHandler)
+      event.notify("sprite.play", roomId, "opening")
+    end
     old_activate(self)
   end
   
