@@ -857,7 +857,7 @@ local addOrderMealGoal = function (self, target)
   local old_process = goal.process
   goal.process = function (self, dt)
     self.component.patience = self.component.patience - dt
-    old_process(self, dt)
+    return old_process(self, dt)
   end
   
   local old_terminate = goal.terminate
