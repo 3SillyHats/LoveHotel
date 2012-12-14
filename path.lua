@@ -13,6 +13,11 @@ local serialize = function (t)
       .. math.floor((t.floorNum+.5))
 end
 
+local heuristic = function(src, dst)
+  return (math.abs(dst.roomNum - src.roomNum) / CLIENT_MOVE) +
+      (math.abs(dst.floorNum - src.floorNum) / ELEVATOR_MOVE)
+end
+
 M.addEdge = function (src, dst, cost)
   local s_src = serialize(src)
   local s_dst = serialize(dst)
@@ -50,7 +55,7 @@ M.removeEdge = function (src, dst)
   M.last = nil
 end
 
-M.get = function (src, dst, heuristic)
+M.get = function (src, dst)
   local s_src = serialize(src)
   local s_dst = serialize(dst)
   
@@ -95,18 +100,16 @@ M.get = function (src, dst, heuristic)
       for edst,edata in pairs(M.edges[node]) do
         local ecost = edata.cost
         local newCost = costs[node] + ecost
-        if heuristic then
-          newCost = newCost + heuristic(edst, s_dst)
-        end
+        local adjustedCost = newCost + heuristic(edata.dst, dst)
         if sf[edst] == nil then
           costs[edst] = newCost
-          table.insert(pq, {newCost,edst,edata.dst})
+          table.insert(pq, {adjustedCost,edst,edata.dst})
           sf[edst] = {node, node_pos}
         elseif newCost < costs[edst] then
           costs[edst] = newCost
           for k,v in ipairs(pq) do
             if v[2] == edst then
-              pq[k][1] = newCost
+              pq[k][1] = adjustedCost
               break
             end
           end

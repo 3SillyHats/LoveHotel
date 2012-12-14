@@ -40,10 +40,10 @@ SKY_SPAWN = 8
 GROUND_SPAWN = -8
 SPACE_SPAWN = 16
 
-MONEY_INITIAL = 2000
-REP_INITIAL = 5
+MONEY_INITIAL = 200000
+REP_INITIAL = 500
 REP_MAX = 3000
-STARS_INITIAL = 1
+STARS_INITIAL = 3
 STARS_MAX = 5
 REP_THRESHOLDS = {
   0,
@@ -53,6 +53,8 @@ REP_THRESHOLDS = {
   1350,
   3000,
 }
+
+local profiler = require("profiler")
 
 local event = require("event")
 local entity = require("entity")
@@ -1198,6 +1200,8 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
   elseif key == "return" and (gState == STATE_PAUSE or gState == STATE_DECISION) and not input.isMapped("return") then
     returnDown = true
     event.notify("pressed", 0, "a")
+  elseif key == "f12" then
+    profiler.start()
   else
     input.keyPressed(key)
   end
@@ -1219,3 +1223,6 @@ love.joystickreleased = function (joystick, button)
   input.joystickReleased(joystick, button)
 end
 
+love.onquit = function ()
+  profiler.stop()
+end

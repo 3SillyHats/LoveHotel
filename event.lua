@@ -16,16 +16,6 @@ local unsubscribeQueue = {}
 M.notify = function (event, id, data)
   if notifyDepth == 0 then
     for _,t in ipairs(subscribeQueue) do
-      -- n = n + 1
-      -- if not nid[t[2]] then
-      --   nid[t[2]] = 0
-      -- end
-      -- nid[t[2]] = nid[t[2]] + 1
-      -- if not nevent[t[1]] then
-      --   nevent[t[1]] = 0
-      -- end
-      -- nevent[t[1]] = nevent[t[1]] + 1
-      -- print(n, nid[t[2]], nevent[t[1]], "subscribe", t[1], t[2])
       table.insert(manager.events[t[1]][t[2]], t[3])
     end
     for _,t in ipairs(unsubscribeQueue) do
@@ -37,10 +27,6 @@ M.notify = function (event, id, data)
           end
         end
         if del ~= -1 then
-          -- n = n - 1
-          -- nid[t[2]] = nid[t[2]] - 1
-          -- nevent[t[1]] = nevent[t[1]] - 1
-          -- print(n, nid[t[2]], nevent[t[1]], "unsubscribe", t[1], t[2])
           table.remove(manager.events[t[1]][t[2]],del)
         end
       end
