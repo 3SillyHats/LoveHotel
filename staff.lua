@@ -190,6 +190,7 @@ M.new = function (type)
   end)
 
   aiComponent:addEnterGoal() -- First goal: enter building
+  aiComponent:addWanderGoal()
   entity.addComponent(id, aiComponent)
   
   local check = function (t)

@@ -2491,6 +2491,27 @@ local addServeMealGoal = function (self)
   self.goalEvaluator:addSubgoal(goal)
 end
 
+local addWanderGoal = function (com)
+  local goal = M.newGoal(com)
+  
+  local old_activate = goal.activate 
+  goal.activate = function (self)
+    local myPos = transform.getPos(self.component.entity)
+    local targetPos = {
+      floorNum = myPos.floorNum,
+      roomNum = (6 * math.random()) + 1,
+    }
+    self:addSubgoal(newSeekGoal(com, myPos, targetPos, STAFF_MOVE))
+    self:addSubgoal(newSleepGoal(com, (4*math.random())+1))
+  end
+  
+  goal.getDesirability = function (self, t)
+    return 0
+  end
+  
+  com.goalEvaluator:addSubgoal(goal)
+end
+
 M.new = function (id)
   local com = entity.newComponent({
     entity = id,
@@ -2514,6 +2535,7 @@ M.new = function (id)
     addServeMealGoal = addServeMealGoal,
     addOrderMealGoal = addOrderMealGoal,
     addSpaGoal = addSpaGoal,
+    addWanderGoal = addWanderGoal,
   })
   com.goalEvaluator = M.newGoal(com)
   com.goalEvaluator.arbitrate = arbitrate
