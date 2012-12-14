@@ -584,7 +584,7 @@ local newSexGoal = function (com, target)
           floorNum = roomPos.floorNum,
         },
       })
-      self.component.needs.horniness = max(0, self.component.needs.horniness - SEX_HORNINESS)
+      self.component.needs.horniness = math.max(0, self.component.needs.horniness - SEX_HORNINESS)
       self.component.money = self.component.money - self.profit
       self.component.supply = self.component.supply - 1
     end
