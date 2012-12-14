@@ -914,11 +914,25 @@ local newWaitForReceptionGoal = function (com, target)
   
   local old_process = goal.process
   goal.process = function (self, dt)
+    local available = false
+    event.notify("room.all", 0, function (id, type)
+      local info = room.getInfo(id)
+      local myPos = transform.getPos(self.component.entity)
+      local targetPos = transform.getPos(self.target)
+      if info.desirability and
+          room.occupation(id) == 0 and
+          (not info.dirtyable or
+          (info.dirtyable and not room.isDirty(id))) and
+          path.getCost(myPos, targetPos) ~= -1 then
+        available = true
+      end
+    end)
+  
     self.component.patience = self.component.patience - (5 * dt)
 
     old_process(self, dt)
     
-    if self.component.beenServed then
+    if available and self.component.beenServed then
       return "complete"
     end
     return "active"
