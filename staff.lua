@@ -9,6 +9,8 @@ local transform = require("transform")
 
 local M = {}
 
+local staff = {}
+
 M.new = function (type)
   local id = entity.new(STATE_PLAY)
   entity.setOrder(id, 50)
@@ -200,13 +202,27 @@ M.new = function (type)
   event.subscribe("actor.check", 0, check)
   
   local function delete (e)
+    for k,v in ipairs(staff) do
+      if v.id == id then
+        table.remove(staff,k)
+      end
+    end
     event.unsubscribe("actor.check", 0, check)
     event.unsubscribe("delete", id, delete)
   end
   
   event.subscribe("delete", id, delete)
   
+  table.insert(staff, {
+    id = id,
+    ai = aiComponent,
+  })
+  
   return id
+end
+
+M.getAll = function ()
+  return staff
 end
 
 return M

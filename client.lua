@@ -229,7 +229,7 @@ M.new = function (t)
   local function delete (e)
     for k,v in ipairs(clients) do
       if v.id == id then
-        table.remove(clients,k)
+        table.remove(clients, k)
       end
     end
     event.unsubscribe("actor.check", 0, check)

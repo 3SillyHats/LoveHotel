@@ -8,6 +8,7 @@ local event = require("event")
 local sprite = require("sprite")
 local transform = require("transform")
 local client = require("client")
+local staff = require("staff")
 
 --Create the module
 local M = {}
@@ -44,7 +45,7 @@ M.new = function (state)
     entity = id,
     selected = 1,
     update = function (self, dt)
-      local clients = client.getAll()
+      local clients = staff.getAll()
       if #clients > 0 then
         self.selected = math.max(1, math.min(#clients, self.selected))
         local pos = transform.getPos(clients[self.selected].id)
@@ -53,6 +54,11 @@ M.new = function (state)
           event.notify("menu.info", 0, {
             name = "Info",
             desc = clients[self.selected].ai.currentGoal.name,
+          })
+        else
+          event.notify("menu.info", 0, {
+            name = "Info",
+            desc = "none",
           })
         end
       end
