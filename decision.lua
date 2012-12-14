@@ -62,14 +62,14 @@ local decisions = {
     "your new hotel renovations.",
     options = {
       {
-        text = "Buy a permit",
+        text = "Buy a permit ($2000)",
         func = function ()
           moneyChange(-2000)
-          return("You payed $2000 for a permit.")
+          return("You payed $2000 for a permit to appease our new city official overlords.")
         end,
       },
       {
-        text = "Bribe the officials",
+        text = "Bribe the officials ($500)",
         func = function ()
           moneyChange(-500)
           if math.random() < 0.5 then
