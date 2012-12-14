@@ -210,6 +210,8 @@ M.new = function (t)
   aiComponent.supply = math.random(info.minSupply, info.maxSupply)
   aiComponent.money = math.random(info.minMoney, info.maxMoney)
   aiComponent.patience = 100
+  aiComponent.goodRep = info.goodRep
+  aiComponent.badRep = info.badRep 
 
   local old_update = aiComponent.update
   aiComponent.update = function (self, dt)
@@ -266,7 +268,8 @@ end
 
 M.newSpawner = function (type, pos)
   local spawner = entity.new(STATE_PLAY)
-  local itime = math.random(SPAWN_MIN, SPAWN_MAX)
+  local itime = math.random(SPAWN_MIN, SPAWN_MAX) + SPAWN_MIN
+  
   local com = entity.newComponent({
     timer = itime,
     target = nil,
@@ -279,8 +282,12 @@ M.newSpawner = function (type, pos)
           category = type
         end
         
-        local spawnMin = SPAWN_MIN * (3 / (2 + gStars))
-        local spawnMax = SPAWN_MAX * (3 / (2 + gStars))
+        local spawnFactor = 3 * gStars
+        if type then
+          spawnFactor = 3
+        end
+        local spawnMin = SPAWN_MIN - spawnFactor
+        local spawnMax = SPAWN_MAX - spawnFactor
         self.timer = math.random(spawnMin, spawnMax)
         self.target = M.new({
           category = category,

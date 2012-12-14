@@ -2,13 +2,15 @@ return {
   name = "poor",
  
   minHorniness = 100,
-  maxHorniness = 120,
-  minHunger = 20,
-  maxHunger = 50,
-  minSupply = 1,
-  maxSupply = 2,
-  minMoney = 100,
-  maxMoney = 150,
+  maxHorniness = 100,
+  minHunger = 0,
+  maxHunger = 10,
+  minSupply = 2,
+  maxSupply = 3,
+  minMoney = 450,
+  maxMoney = 650,
+  goodRep = 5,
+  badRep = 15,
  
   spawnChance = {
     1,

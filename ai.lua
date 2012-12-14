@@ -584,7 +584,7 @@ local newSexGoal = function (com, target)
           floorNum = roomPos.floorNum,
         },
       })
-      self.component.needs.horniness = self.component.needs.horniness - 50
+      self.component.needs.horniness = max(0, self.component.needs.horniness - SEX_HORNINESS)
       self.component.money = self.component.money - self.profit
       self.component.supply = self.component.supply - 1
     end
@@ -1290,9 +1290,9 @@ local addExitGoal = function (self)
     event.notify("sprite.play", self.component.entity, "thoughtNone")
     if self.component.leader and self.status == "complete" then
       if self.component.needs.horniness > 99 then
-        reputationChange(-2.5)
+        reputationChange(-self.component.badRep)
       else
-        reputationChange(.5)
+        reputationChange(self.component.goodRep)
       end
     end
     self.subgoals = {}

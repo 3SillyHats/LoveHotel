@@ -1,7 +1,7 @@
 return {
   id = "utility",
   name = "Utility Room",
-  cost = 150,
+  cost = 100,
   profit = 20,
   desirability = 2,
   width = 1,

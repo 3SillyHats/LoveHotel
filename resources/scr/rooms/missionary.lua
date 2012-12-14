@@ -1,9 +1,9 @@
 return {
   id = "missionary",
   name = "Missionary",
-  cost = 1200,
-  profit = 250,
-  desirability = 25,
+  cost = 250,
+  profit = 150,
+  desirability = 10,
   width = 2,
   dirtyable = true,
   

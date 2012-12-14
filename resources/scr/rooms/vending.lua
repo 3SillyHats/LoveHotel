@@ -1,12 +1,12 @@
 return {
   id = "vending",
   name = "Vending Mach.",
-  cost = 200,
+  cost = 600,
   width = 1,
-  profit = 5,
+  profit = 10,
   foodSupplies = true,
   stock = 8,
-  restockCost = 30,
+  restockCost = 40,
   breakable = true,
   integrity = 5,
 

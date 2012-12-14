@@ -1,9 +1,9 @@
 return {
   id = "condom",
   name = "Condom Mach.",
-  cost = 100,
+  cost = 400,
   width = 1,
-  profit = 3,
+  profit = 5,
   condomSupplies = true,
   stock = 8,
   restockCost = 20,

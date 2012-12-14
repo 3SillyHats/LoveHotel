@@ -19,10 +19,12 @@ BELLHOP_DISTANCE = 0.8
 FOLLOW_DISTANCE = 0.4
 
 PAY_PERIOD = 60
-CLEANER_WAGE = 10
-BELLHOP_WAGE = 20
-COOK_WAGE = 50
-MAINTENANCE_WAGE = 100
+BELLHOP_WAGE = 10
+CLEANER_WAGE = 30
+MAINTENANCE_WAGE = 50
+COOK_WAGE = 100
+
+SEX_HORNINESS = 20
 
 SEX_TIME = 7
 CLEAN_TIME = 10
@@ -32,23 +34,24 @@ EAT_TIME = 3
 FIX_TIME = 5
 COOK_TIME = 10
 
-SPAWN_MIN = 20
-SPAWN_MAX = 30
+SPAWN_MIN = 18
+SPAWN_MAX = 28
 SKY_SPAWN = 8
 GROUND_SPAWN = -8
 SPACE_SPAWN = 16
 
+MONEY_INITIAL = 2000
 REP_INITIAL = 5
-REP_MAX = 500
+REP_MAX = 3000
 STARS_INITIAL = 1
 STARS_MAX = 5
 REP_THRESHOLDS = {
   0,
-  20,
-  40,
-  80,
-  160,
-  500,
+  30,
+  120,
+  480,
+  1350,
+  3000,
 }
 
 local event = require("event")
@@ -151,7 +154,7 @@ event.subscribe("state.enter", 0, function (state)
   gState = state
 end)
 gGameSpeed = 1
-gMoney = 200000
+gMoney = MONEY_INITIAL
 gReputation = REP_INITIAL
 gStars = STARS_INITIAL
 
@@ -600,23 +603,42 @@ menu.addButton(gui, menu.newButton("food", function ()
   --Create the food menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
   
-  --Vending machine
-  menu.addButton(submenu, menu.newButton("vending", function ()
-    buildRoom("vending", submenu)
-  end))
-  --Dining room
-  menu.addButton(submenu, menu.newButton("dining", function ()
-    buildRoom("dining", submenu)
-  end))
-  --Freezer Room
-  menu.addButton(submenu, menu.newButton("freezer", function ()
-    buildRoom("freezer", submenu)
-  end))
-  --Kitchen
-  menu.addButton(submenu, menu.newButton("kitchen", function ()
-    buildRoom("kitchen", submenu)
-  end))
+  if gStars >= 2 then
+    --Vending machine
+    menu.addButton(submenu, menu.newButton("vending", function ()
+      buildRoom("vending", submenu)
+    end))
+  else
+    addLockButton(submenu)
+  end
+  
+  if gStars >= 2 then
+    --Vending machine
+    menu.addButton(submenu, menu.newButton("vending", function ()
+      buildRoom("vending", submenu)
+    end))
+  else
+    addLockButton(submenu)
+  end
 
+  if gStars >= 4 then
+    --Dining room
+    menu.addButton(submenu, menu.newButton("dining", function ()
+      buildRoom("dining", submenu)
+    end))
+    --Kitchen
+    menu.addButton(submenu, menu.newButton("kitchen", function ()
+      buildRoom("kitchen", submenu)
+    end))
+    --Freezer Room
+    menu.addButton(submenu, menu.newButton("freezer", function ()
+      buildRoom("freezer", submenu)
+    end))
+  else
+    addLockButton(submenu)
+    addLockButton(submenu)
+    addLockButton(submenu)
+  end
 
   --The back button deletes the submenu
   menu.setBack(submenu, function ()
@@ -632,22 +654,30 @@ menu.addButton(gui, menu.newButton("services", function ()
   --Create the services menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
 
-  --Reception
-  menu.addButton(submenu, menu.newButton("reception", function ()
-    buildRoom("reception", submenu)
-  end))
   --Utility
   menu.addButton(submenu, menu.newButton("utility", function ()
     buildRoom("utility", submenu)
   end))
-  --Condom machine
-  menu.addButton(submenu, menu.newButton("condom", function ()
-    buildRoom("condom", submenu)
+  --Reception
+  menu.addButton(submenu, menu.newButton("reception", function ()
+    buildRoom("reception", submenu)
   end))
-  --Spa room
-  menu.addButton(submenu, menu.newButton("spa", function ()
-    buildRoom("spa", submenu)
-  end))
+  if gStars >= 2 then
+    --Condom machine
+    menu.addButton(submenu, menu.newButton("condom", function ()
+      buildRoom("condom", submenu)
+    end))
+  else
+    addLockButton(submenu)
+  end
+  if gStars >= 3 then
+    --Spa room
+    menu.addButton(submenu, menu.newButton("spa", function ()
+      buildRoom("spa", submenu)
+    end))
+  else
+    addLockButton(submenu)
+  end
 
    --The back button deletes the submenu
   menu.setBack(submenu, function ()
@@ -664,18 +694,26 @@ menu.addButton(gui, menu.newButton("staff", function ()
   local submenu = menu.new(STATE_PLAY, subMenuY)
   
   --Hire staff
-  menu.addButton(submenu, menu.newButton("cleaner", function ()
-    staff.new("cleaner")
-  end))
   menu.addButton(submenu, menu.newButton("bellhop", function ()
     staff.new("bellhop")
   end))
-  menu.addButton(submenu, menu.newButton("cook", function ()
-    staff.new("cook")
+  menu.addButton(submenu, menu.newButton("cleaner", function ()
+    staff.new("cleaner")
   end))
-  menu.addButton(submenu, menu.newButton("maintenance", function ()
-    staff.new("maintenance")
-  end))
+  if gStars >= 2 then
+    menu.addButton(submenu, menu.newButton("maintenance", function ()
+      staff.new("maintenance")
+    end))
+  else
+    addLockButton(submenu)
+  end
+  if gStars >= 4 then
+    menu.addButton(submenu, menu.newButton("cook", function ()
+      staff.new("cook")
+    end))
+  else
+    addLockButton(submenu)
+  end
 
   --The back button deletes the submenu
   menu.setBack(submenu, function ()
