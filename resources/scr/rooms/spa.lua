@@ -16,7 +16,7 @@ return {
         broken = {
           first = 2,
           last = 3,
-          speed = 1,
+          speed = 0.5,
         }
       },
       playing = "idle",

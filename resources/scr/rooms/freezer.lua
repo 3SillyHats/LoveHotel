@@ -58,8 +58,8 @@ return {
         },
         broken = {
           first = 9,
-          last = 10,
-          speed = 1,
+          last = 13,
+          speed = 0.2,
         }
       },
       playing = "stocked8",

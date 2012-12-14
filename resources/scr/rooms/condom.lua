@@ -56,13 +56,13 @@ return {
         },
         stocked0 = {
           first = 8,
-          last = 8,
+          last = 9,
           speed = 1,
         },
         broken = {
-          first = 9,
-          last = 10,
-          speed = 1,
+          first = 10,
+          last = 11,
+          speed = 0.5,
         }
       },
       playing = "stocked8",

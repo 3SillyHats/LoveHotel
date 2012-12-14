@@ -39,8 +39,14 @@ return {
           speed = 0.2,
           goto = "closing",
         },
+        broken = {
+          first = 6,
+          last = 7,
+          speed = 0.5,
+        },
+
       },
-      playing = "closed",
+      playing = "closing",
     },
   },
 }
