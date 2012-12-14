@@ -42,12 +42,12 @@ local decisions = {
       {
         text = "Screw the ghosts, take the treasure.",
         func = function ()
-          moneyChange(10000)
+          moneyChange(2000)
           if math.random() < 0.5 then
-            reputationChange(-20)
-            return("Ghosts!")
+            reputationChange(-45)
+            return("Ghosts! Clients are scared - I hope the $2000 was worth it...")
           end
-          return("No ghosts...")
+          return("No ghosts... And you gained $2000!")
         end,
       },
       {
@@ -72,8 +72,11 @@ local decisions = {
         text = "Bribe the officials",
         func = function ()
           moneyChange(-500)
-          reputationChange(-10)
-          return("You payed a $500 bribe, but word got out and you lost reputation.")
+          if math.random() < 0.5 then
+            reputationChange(-30)
+            return("You payed a $500 bribe, but word got out and you lost reputation.")
+          end
+          return("You payed a $500 bribe, and I think you got away with it.")
         end,
       },
     },
@@ -173,14 +176,12 @@ event.subscribe("floor.new", 0, function (level)
     return
   end
 
-  if level > 2 and level < 6 then
+  if level == 7 then
     if math.random() < 0.5 then
       M.prompt("zoningPermit")
     end
-  elseif level < -2 and level > -6 then
-    if math.random() < 0.5 then
-      M.prompt("burialGround")
-    end
+  elseif level == -3 then
+    M.prompt("burialGround")
   end
 end)
 
