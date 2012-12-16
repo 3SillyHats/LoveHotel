@@ -91,6 +91,10 @@ local stocker = function (id, cost, t)
       elseif key == "a" then
         local roomId, type = getRoom()
 
+        if roomId == nil then
+          return
+        end
+
         local info = resource.get("scr/rooms/" .. string.lower(type) .. ".lua")
         local stock = room.getStock(roomId)
 
