@@ -93,6 +93,10 @@ M.new = function (state)
             end
             desc = g.name
           end
+          if target.ai.currentGoal.message then
+            desc = target.ai.currentGoal.message
+            target.ai.currentGoal.message = nil
+          end
         end
         event.notify("menu.info", 0, {
           name = name,

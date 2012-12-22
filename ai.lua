@@ -108,7 +108,8 @@ local update = function (self, dt)
     self.currentGoal.status = result
     if result == "complete" or result == "failed" then
       self.currentGoal:terminate()
-      self.currentGoal = nil
+      self.currentGoal = self.goalEvaluator.arbitrate(self, desirabilityFactors)
+      if self.currentGoal then self.currentGoal:activate() end
     end
   end
 end
@@ -511,11 +512,16 @@ local newSexGoal = function (com, target)
 
   local old_activate = goal.activate
   goal.activate = function(self)
-    if not self.target or
-        self.component.supply == 0 or
-        self.component.money < self.profit then
+    if not self.target then
       self.status = "failed"
       return
+    end
+    if self.component.leader then
+      if self.component.supply == 0 or
+          self.component.money < self.profit then
+        self.status = "failed"
+        return
+      end
     end
     
     local pos = transform.getPos(self.component.entity)
@@ -1210,13 +1216,18 @@ local addFollowGoal = function (self, target, type)
             self:addSubgoal(sexGoal)
             sexGoal:activate()
           elseif self.type == "staff" then
+            self.message = "staff complete"
             return "complete"
           end
         end
         myPos = transform.getPos(self.component.entity)
       end
+      self.message = "active"
       return "active"
-    elseif sexGoal.status == "complete" then
+    end
+    
+    local status = old_process(self,dt)
+    if status == "complete" then
       sexGoal = nil
       self.room = nil
       if self.type == "staff" then
@@ -1224,9 +1235,11 @@ local addFollowGoal = function (self, target, type)
       else
         self.followDist = FOLLOW_DISTANCE
       end
+      self.message = "sex complete"
       return "complete"
     end
-    return old_process(self,dt)
+    self.message = "subgoal "..status
+    return status
   end
   
   local old_terminate = goal.terminate
@@ -1245,7 +1258,7 @@ local addFollowGoal = function (self, target, type)
   
   goal.getDesirability = function (self, t)
     if entity.get(self.target) then
-      return 1
+      return 1001
     end
     return -1
   end
