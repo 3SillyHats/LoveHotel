@@ -1,6 +1,6 @@
 return {
   name = "ground",
- 
+
   minHorniness = 120,
   maxHorniness = 200,
   minHunger = 0,
@@ -9,8 +9,8 @@ return {
   maxSupply = 6,
   minMoney = 7000,
   maxMoney = 9000,
-  badRep = 5,
-  goodRep = 15,
+  goodRep = 5,
+  badRep = 15,
 
   desirability = {
     utility = 2,
@@ -19,7 +19,8 @@ return {
     moustache = 15,
     balloon = 20,
     nazifurry = 25,
-    eco = 30,
+    torture = 30,
+    eco = 35,
   },
 
   spawnChance = {

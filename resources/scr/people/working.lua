@@ -1,6 +1,6 @@
 return {
   name = "working",
- 
+
   minHorniness = 80,
   maxHorniness = 100,
   minHunger = 10,
@@ -19,7 +19,8 @@ return {
     moustache = 15,
     balloon = 20,
     nazifurry = 25,
-    eco = 30,
+    torture = 30,
+    eco = 35,
   },
 
   spawnChance = {
