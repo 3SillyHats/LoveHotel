@@ -212,6 +212,8 @@ local infoComponent = function (id, info, pos)
           event.notify("sprite.play", id, "stocked" .. component.stock)
         elseif info.id == "elevator" then
           event.notify("sprite.play", id, "closed")
+        elseif info.id == "spa" then
+          event.notify("sprite.play", id, "idle")
         end
       elseif component.integrity > 0 and integrity <= 0 then
         event.notify("sprite.play", id, "broken")
