@@ -1,5 +1,7 @@
 -- ai.lua
 
+local ARBITRATE_TICK = 1
+
 local event = require("event")
 local entity = require("entity")
 local transform = require("transform")
@@ -97,12 +99,21 @@ local update = function (self, dt)
     money = self.money,
     supply = self.supply,
   }
-  local newGoal = self.goalEvaluator.arbitrate(self, desirabilityFactors)
-  if newGoal ~= self.currentGoal then
-    if self.currentGoal then self.currentGoal:terminate() end
-    if newGoal then newGoal:activate() end
-    self.currentGoal = newGoal
+  
+  self.timer = self.timer + dt
+  
+  -- Arbitrate strategy-level goals only every ARBITRATE_TICK seconds
+  if self.timer >= ARBITRATE_TICK then
+    self.timer = self.timer - ARBITRATE_TICK
+    local newGoal = self.goalEvaluator.arbitrate(self, desirabilityFactors)
+    if newGoal ~= self.currentGoal then
+      if self.currentGoal then self.currentGoal:terminate() end
+      if newGoal then newGoal:activate() end
+      self.currentGoal = newGoal
+    end
   end
+  
+  -- Process current goal
   if self.currentGoal then
     local result = self.currentGoal:process(dt)
     self.currentGoal.status = result
@@ -939,30 +950,32 @@ local newWaitForReceptionGoal = function (com, target)
   local serveHandler = function (e)
     com.beenServed = true
   end
-  
-  local old_process = goal.process
+
   goal.process = function (self, dt)
-    local available = false
-    event.notify("room.all", 0, function (id, type)
-      local info = room.getInfo(id)
-      local myPos = transform.getPos(self.component.entity)
-      local targetPos = transform.getPos(self.target)
-      if info.desirability and
-          room.occupation(id) == 0 and
-          (not info.dirtyable or
-          (info.dirtyable and not room.isDirty(id))) and
-          path.getCost(myPos, targetPos) ~= -1 then
-        available = true
+    if self.component.beenServed then
+      local roomAvailable = false
+      event.notify("room.all", 0, function (id, type)
+        local info = room.getInfo(id)
+        local myPos = transform.getPos(self.component.entity)
+        local targetPos = transform.getPos(self.target)
+        if info.desirability and
+            room.occupation(id) == 0 and
+            (not info.dirtyable or
+            (info.dirtyable and not room.isDirty(id))) and
+            path.getCost(myPos, targetPos) ~= -1 then
+          roomAvailable = true
+        end
+      end)
+      
+      if roomAvailable then
+        return "complete"
       end
-    end)
-  
+      
+      return "failed"
+    end
+    
     self.component.patience = self.component.patience - (5 * dt)
 
-    old_process(self, dt)
-    
-    if available and self.component.beenServed then
-      return "complete"
-    end
     return "active"
   end
 
@@ -2539,6 +2552,7 @@ M.new = function (id)
   local com = entity.newComponent({
     entity = id,
     currentGoal = nil,
+    timer = 0,
     
     update = update,
     addCleanGoal = addCleanGoal,
