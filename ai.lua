@@ -1752,10 +1752,11 @@ local addCleanGoal = function (self, target)
   self.goalEvaluator:addSubgoal(goal)
 end
 
-local newGetSupplyGoal = function (self, target)
+local newGetSupplyGoal = function (self, target, hidden)
   local goal = M.newGoal(self)
   goal.target = target
   goal.name = "getSupply"
+  hidden = hidden or false
 
   local old_activate = goal.activate
   goal.activate = function(self, dt)
@@ -1794,16 +1795,25 @@ local newGetSupplyGoal = function (self, target)
       return
     end
 
-    event.notify("sprite.hide", self.component.entity, true)
-    event.notify("sprite.play", self.target, "closing")
-
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, SUPPLY_TIME))
-    self:addSubgoal(newWaitForAnimationGoal(
-      self.component,
-      self.target,
-      "opening"
-    ))
+
+    if hidden then
+      event.notify("sprite.hide", self.component.entity, true)
+      event.notify("sprite.play", self.target, "closing")
+      self:addSubgoal(newWaitForAnimationGoal(
+        self.component,
+        self.target,
+        "opening"
+      ))
+    else
+      event.notify("sprite.play", self.target, "opening")
+      self:addSubgoal(newWaitForAnimationGoal(
+        self.component,
+        self.target,
+        "closing"
+      ))
+    end
 
     old_activate(self)
   end
@@ -1840,7 +1850,7 @@ local addSupplyGoal = function (self, target)
     end
 
     self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
-    supply = newGetSupplyGoal(self.component, self.target)
+    supply = newGetSupplyGoal(self.component, self.target, true)
     self:addSubgoal(supply)
     old_activate(self)
   end
@@ -2467,7 +2477,7 @@ local addIngredientsGoal = function (self, target)
     end
 
     self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
-    supply = newGetSupplyGoal(self.component, self.target)
+    supply = newGetSupplyGoal(self.component, self.target, false)
     self:addSubgoal(supply)
     old_activate(self)
   end
@@ -2495,7 +2505,7 @@ local addIngredientsGoal = function (self, target)
       if time == -1 then
         return -1
       end
-      return 1 / time
+      return 1 / (1 + time)
     else
       return -1
     end
