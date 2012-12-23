@@ -24,7 +24,7 @@ local infoComponent = function (id, info, pos)
     local integrity = info.integrity + math.random(1, info.integrity)
     component.integrity = integrity
   end
-  
+
   local check = function (t)
     if math.ceil(t.floorNum) == pos.floorNum and
         t.roomNum >= pos.roomNum - 0.5 and
@@ -32,40 +32,40 @@ local infoComponent = function (id, info, pos)
       t.callback(id, info.type)
     end
   end
-  
+
   local getRooms = function (callback)
     callback(id, info.type)
   end
-  
+
   local unoccupied = function (callback)
     if info.type ~= "elevator" and component.occupied == 0 and not component.messy then
       callback(id, info.type)
     end
   end
-  
+
   local dirtyRooms = function (callback)
     if component.occupied == 0 and component.messy then
       callback(id, info.type)
     end
   end
-  
+
   local isDirty = function (callback)
     callback(component.messy)
   end
-  
+
   local checkOccupied = function (callback)
     callback(component.occupied)
   end
-  
+
   local getStock = function (callback)
     callback(component.stock)
   end
-  
+
   local setStock = function (stock)
     component.stock = stock
     event.notify("sprite.play", id, "stocked" .. stock)
   end
-  
+
   local occupy = function (e)
     if component.occupied < 2 then
       component.occupied = component.occupied + 1
@@ -77,7 +77,7 @@ local infoComponent = function (id, info, pos)
       e.callback(false)
     end
   end
-  
+
   local depart = function (e)
     if component.occupied > 0 then
       component.occupied = component.occupied - 1
@@ -95,12 +95,12 @@ local infoComponent = function (id, info, pos)
       e.callback(false)
       return
     end
-    
+
     component.occupied = component.occupied + 1
 
     e.callback(true)
   end
-  
+
   local endRelax = function (e)
     component.occupied = 0
   end
@@ -110,12 +110,12 @@ local infoComponent = function (id, info, pos)
       e.callback(false)
       return
     end
-    
+
     component.occupied = component.occupied + 1
 
     e.callback(true)
   end
-  
+
   local endCook = function (e)
     component.occupied = 0
   end
@@ -125,12 +125,12 @@ local infoComponent = function (id, info, pos)
       e.callback(false)
       return
     end
-    
+
     component.occupied = component.occupied + 1
 
     e.callback(true)
   end
-  
+
   local endFix = function (e)
     component.occupied = 0
   end
@@ -140,38 +140,38 @@ local infoComponent = function (id, info, pos)
       e.callback(false)
       return
     end
-    
+
     component.occupied = component.occupied + 1
-    
+
     event.notify("sprite.hide", e.id, true)
     e.callback(true)
   end
-  
+
   local endClean = function (e)
     component.occupied = 0
     component.messy = false
-    
+
     event.notify("sprite.hide", e.id, false)
   end
-  
+
   local beginSupply = function (e)
     if component.occupied > 0 or component.stock == 0 then
       e.callback(false)
       return
     end
-    
+
     component.occupied = component.occupied + 1
-    
+
     e.callback(true)
   end
-  
+
   local endSupply = function (e)
     component.occupied = 0
     component.stock = component.stock - 1
 
     event.notify("sprite.play", id, "stocked" .. component.stock)
   end
-  
+
   local isBroken = function (callback)
     if info.breakable then
       callback(component.integrity <= 0)
@@ -179,7 +179,7 @@ local infoComponent = function (id, info, pos)
       callback(false)
     end
   end
-  
+
   local setIntegrity = function (integrity)
     if integrity ~= component.integrity then
       if component.integrity <= 0 and integrity > 0 then
@@ -226,19 +226,19 @@ local infoComponent = function (id, info, pos)
       })
     end
   end
-  
+
   local use = function ()
     if info.breakable then
       setIntegrity(component.integrity - 1)
     end
   end
-  
+
   local fix = function (t)
     if info.breakable then
       setIntegrity(t.integrity)
     end
   end
-  
+
   local propogate
   if info.id == "elevator" then
     propogate = function (e)
@@ -251,7 +251,7 @@ local infoComponent = function (id, info, pos)
     end
     event.subscribe("room.integrityChange", 0, propogate)
   end
-  
+
   local function delete ()
     event.unsubscribe("room.check", 0, check)
     event.unsubscribe("room.all", 0, getRooms)
@@ -279,7 +279,7 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("room.integrityChange", 0, propogate)
     event.unsubscribe("delete", id, delete)
   end
-  
+
   event.subscribe("room.check", 0, check)
   event.subscribe("room.all", 0, getRooms)
   event.subscribe("room.unoccupied", 0, unoccupied)
@@ -321,7 +321,7 @@ M.new = function (state, roomType, pos)
   local roomWidth = room.width*32
   local roomHeight = 32
   local prefix = "img/rooms/" .. room.id .. "_"
-  
+
   --Add sprite components
   for _,s in pairs(room.sprites) do
     entity.addComponent(roomId, sprite.new(roomId, {
@@ -332,52 +332,56 @@ M.new = function (state, roomType, pos)
       playing = s.playing,
     }))
   end
-  
+
   --Add cleaning sign sprite components
-  entity.addComponent(roomId, sprite.new(roomId, {
-    image = resource.get("img/rooms/cleaning.png"),
-    width = 32,
-    height = 32,
-    originX = -(roomWidth/2),
-    animations = {
-      cleaning = {
-        first = 1,
-        last = 1,
-        speed = 1,
+  if room.dirtyable then
+    entity.addComponent(roomId, sprite.new(roomId, {
+      image = resource.get("img/rooms/cleaning.png"),
+      width = 32,
+      height = 32,
+      originX = -(roomWidth/2),
+      animations = {
+        cleaning = {
+          first = 1,
+          last = 1,
+          speed = 1,
+        },
+        cleanless = {
+          first = 0,
+          last = 0,
+          speed = 1,
+        },
       },
-      cleanless = {
-        first = 0,
-        last = 0,
-        speed = 1,
-      },
-    },
-    playing = "heartless",
-  }))
-  
+      playing = "cleanless",
+    }))
+  end
+
   --Add love heart sprite components
-  entity.addComponent(roomId, sprite.new(roomId, {
-    image = resource.get("img/rooms/love_hearts.png"),
-    width = 32,
-    height = 32,
-    originX = 16 - (roomWidth/2),
-    animations = {
-      hearts = {
-        first = 1,
-        last = 8,
-        speed = 0.1,
+  if room.visitable then
+    entity.addComponent(roomId, sprite.new(roomId, {
+      image = resource.get("img/rooms/love_hearts.png"),
+      width = 32,
+      height = 32,
+      originX = 16 - (roomWidth/2),
+      animations = {
+        hearts = {
+          first = 1,
+          last = 8,
+          speed = 0.1,
+        },
+        heartless = {
+          first = 0,
+          last = 0,
+          speed = 1,
+        },
       },
-      heartless = {
-        first = 0,
-        last = 0,
-        speed = 1,
-      },
-    },
-    playing = "heartless",
-  }))
+      playing = "heartless",
+    }))
+  end
 
   --Add position component
   entity.addComponent(roomId, transform.new(roomId, pos, {x = 0, y = 0}))
-  
+
   --Add info component
   entity.addComponent(roomId, infoComponent(roomId, room, pos))
 
@@ -401,7 +405,7 @@ M.getPos = function (id)
   pos = transform.getPos(id)
   width = M.getInfo(id).width
   return {
-    roomNum = pos.roomNum + width/2 - 0.5, 
+    roomNum = pos.roomNum + width/2 - 0.5,
     floorNum = pos.floorNum,
   }
 end
