@@ -407,10 +407,13 @@ M.getPos = function (id)
 end
 
 M.isDirty = function (id)
+  local info = M.getInfo(id)
   local dirty = false
-  event.notify("room.isDirty", id, function (e)
-    dirty = dirty or e
-  end)
+  if info.dirtyable then
+    event.notify("room.isDirty", id, function (e)
+      dirty = dirty or e
+    end)
+  end
   return dirty
 end
 

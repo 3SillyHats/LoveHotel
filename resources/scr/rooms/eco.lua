@@ -3,9 +3,9 @@ return {
   name = "Eco Room",
   cost = 10000,
   profit = 5000,
-  desirability = 100,
   width = 5,
   dirtyable = true,
+  visitable = true,
   
   sprites = {
     {

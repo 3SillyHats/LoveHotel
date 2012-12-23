@@ -3,9 +3,9 @@ return {
   name = "Balloons",
   cost = 2100,
   profit = 850,
-  desirability = 30,
   width = 3,
   dirtyable = true,
+  visitable = true,
   
   sprites = {
     {

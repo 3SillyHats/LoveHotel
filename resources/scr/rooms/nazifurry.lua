@@ -3,9 +3,9 @@ return {
   name = "Nazi Furry",
   cost = 3000,
   profit = 1200,
-  desirability = 100,
   width = 3,
   dirtyable = true,
+  visitable = true,
   
   sprites = {
     {

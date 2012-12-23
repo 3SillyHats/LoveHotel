@@ -3,9 +3,9 @@ return {
   name = "Spooning",
   cost = 500,
   profit = 150,
-  desirability = 15,
   width = 2,
   dirtyable = true,
+  visitable = true,
   
   sprites = {
     {

@@ -3,9 +3,9 @@ return {
   name = "Torture Room",
   cost = 6000,
   profit = 2700,
-  desirability = 50,
   width = 4,
   dirtyable = true,
+  visitable = true,
   
   sprites = {
     {

@@ -3,9 +3,9 @@ return {
   name = "Missionary",
   cost = 250,
   profit = 80,
-  desirability = 10,
   width = 2,
   dirtyable = true,
+  visitable = true,
   
   sprites = {
     {

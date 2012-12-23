@@ -7,6 +7,7 @@ local entity = require("entity")
 local transform = require("transform")
 local room = require("room")
 local path = require("path")
+local resource = require("resource")
 
 local M = {}
 
@@ -955,13 +956,12 @@ local newWaitForReceptionGoal = function (com, target)
     if self.component.beenServed then
       local roomAvailable = false
       event.notify("room.all", 0, function (id, type)
-        local info = room.getInfo(id)
+        local roomInfo = room.getInfo(id)
         local myPos = transform.getPos(self.component.entity)
         local targetPos = transform.getPos(self.target)
-        if info.desirability and
+        if roomInfo.visitable and
+            not room.isDirty(id) and
             room.occupation(id) == 0 and
-            (not info.dirtyable or
-            (info.dirtyable and not room.isDirty(id))) and
             path.getCost(myPos, targetPos) ~= -1 then
           roomAvailable = true
         end
@@ -970,7 +970,7 @@ local newWaitForReceptionGoal = function (com, target)
       if roomAvailable then
         return "complete"
       end
-      
+
       return "failed"
     end
     
@@ -1072,7 +1072,7 @@ local addVisitGoal = function (self, target)
   goal.target = target
   goal.name = "visit"
   
-  local info = room.getInfo(goal.target)
+  local roomInfo = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local sexGoal = nil
     
@@ -1100,14 +1100,15 @@ local addVisitGoal = function (self, target)
     if t.needs.horniness > t.needs.hunger and
         not room.isDirty(self.target) and
         room.occupation(self.target) == 0 and
-        self.component.money >= info.profit and
+        self.component.money >= roomInfo.profit and
         self.component.supply > 0 then
+      local myInfo = resource.get("scr/people/" .. self.component.category .. ".lua")
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
       if time == -1 then
         return -1
       end
-      return 1/(1+time) + info.desirability
+      return 1/(1+time) + myInfo.desirability[roomInfo.id]
     end
     return -1
   end
@@ -1298,7 +1299,7 @@ local addExitGoal = function (self)
         local minCost = 9999999999
         event.notify("room.all", 0, function (id, type)
           local info = room.getInfo(id)
-          if info.profit and info.desirability then
+          if info.visitable then
             local available = true
             local myPos = transform.getPos(self.component.entity)
             local targetPos = transform.getPos(id)
@@ -1339,10 +1340,11 @@ local addExitGoal = function (self)
     old_terminate(self)
     event.notify("sprite.play", self.component.entity, "thoughtNone")
     if self.component.leader and self.status == "complete" then
-      if self.component.needs.horniness > 99 then
-        reputationChange(-self.component.badRep)
+      local info = resource.get("scr/people/" .. self.component.category .. ".lua")
+      if self.component.needs.horniness < 100 then
+        reputationChange(info.goodRep)
       else
-        reputationChange(self.component.goodRep)
+        reputationChange(-info.badRep)
       end
     end
     self.subgoals = {}

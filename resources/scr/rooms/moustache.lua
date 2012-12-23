@@ -3,9 +3,9 @@ return {
   name = "Choc 'tache",
   cost = 1700,
   profit = 550,
-  desirability = 20,
   width = 2,
   dirtyable = true,
+  visitable = true,
   
   sprites = {
     {

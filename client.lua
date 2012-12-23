@@ -174,7 +174,7 @@ M.new = function (t)
   
   local addRoomGoal = function (id)
     local info = room.getInfo(id)
-    if info.desirability then
+    if info.visitable then
       aiComponent:addVisitGoal(id)
     elseif info.reception then
       aiComponent:addCheckInGoal(id)
@@ -210,8 +210,6 @@ M.new = function (t)
   aiComponent.supply = math.random(info.minSupply, info.maxSupply)
   aiComponent.money = math.random(info.minMoney, info.maxMoney)
   aiComponent.patience = 100
-  aiComponent.goodRep = info.goodRep
-  aiComponent.badRep = info.badRep 
 
   local old_update = aiComponent.update
   aiComponent.update = function (self, dt)
