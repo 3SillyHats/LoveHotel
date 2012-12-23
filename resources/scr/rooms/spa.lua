@@ -3,6 +3,8 @@ return {
   name = "Spa Room",
   cost = 300,
   width = 2,
+  breakable = true,
+  integrity = 8,
 
   sprites = {
     {

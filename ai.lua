@@ -709,6 +709,7 @@ local newRelaxGoal = function (self, target)
     event.notify("room.endRelax", self.target, {
       id = self.component.entity,
     })
+    room.use(self.target)
 
     old_terminate(self)
     self.subgoals = {}
@@ -1823,8 +1824,8 @@ local newGetSupplyGoal = function (self, target, hidden)
     event.notify("room.endSupply", self.target, {
       id = self.component.entity,
     })
-
     event.notify("sprite.hide", self.component.entity, false)
+    room.use(self.target)
 
     self.target = nil
     old_terminate(self)
