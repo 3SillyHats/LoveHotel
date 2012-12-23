@@ -35,7 +35,7 @@ M.new = function (type)
   nudeimg = string.sub(nudeimg,10)  -- remove "resources/"
   hairimg = string.sub(hairimg,10)
   local haircolour = math.random(0,3)
-  
+
   --add skin
   entity.addComponent(id, sprite.new(
     id, {
@@ -101,7 +101,7 @@ M.new = function (type)
       playing = "idle",
     }
   ))
-  
+
   local pos = {roomNum = -.5, floorNum = GROUND_FLOOR}
   entity.addComponent(id, transform.new(
     id, pos, {x = 16, y = 30}
@@ -125,17 +125,17 @@ M.new = function (type)
     end,
   }
   entity.addComponent(id, payCom)
-  
+
   local aiComponent = ai.new(id)
   local addRoomGoal
-  
+
   -- Type-specific initialisation
   if type == "cleaner" then
     payCom.wage = CLEANER_WAGE
-    
+
     -- start with no cleaning supplies
     aiComponent.supply = 0
-  
+
     addRoomGoal = function (id)
       local info = room.getInfo(id)
       if info.dirtyable then
@@ -146,7 +146,7 @@ M.new = function (type)
     end
   elseif type == "bellhop" then
     payCom.wage = BELLHOP_WAGE
-    
+
     addRoomGoal = function (id)
       local info = room.getInfo(id)
       if info.reception then
@@ -155,10 +155,10 @@ M.new = function (type)
     end
   elseif type == "cook" then
     payCom.wage = COOK_WAGE
-    
+
     -- start with no cooking supplies
     aiComponent.supply = 0
-    
+
     addRoomGoal = function (id)
       local info = room.getInfo(id)
       if info.id == "dining" then
@@ -169,15 +169,24 @@ M.new = function (type)
         aiComponent:addIngredientsGoal(id)
       end
     end
-    
+
     aiComponent:addServeMealGoal()
   elseif type == "maintenance" then
     payCom.wage = MAINTENANCE_WAGE
-  
+
     addRoomGoal = function (id)
       local info = room.getInfo(id)
       if info.breakable then
         aiComponent:addMaintenanceGoal(id)
+      end
+    end
+  elseif type == "stocker" then
+    payCom.wage = STOCKER_WAGE
+
+    addRoomGoal = function (id)
+      local info = room.getInfo(id)
+      if info.stock then
+        aiComponent:addStockGoal(id)
       end
     end
   end
@@ -192,16 +201,16 @@ M.new = function (type)
   aiComponent:addEnterGoal() -- First goal: enter building
   aiComponent:addWanderGoal()
   entity.addComponent(id, aiComponent)
-  
+
   local check = function (t)
     local epos = transform.getPos(id)
     if t.floorNum == epos.floorNum and t.roomNum < epos.roomNum + 0.5 and t.roomNum + t.width > epos.roomNum + 0.5 then
       t.callback(id)
     end
   end
-  
+
   event.subscribe("actor.check", 0, check)
-  
+
   local function delete (e)
     for k,v in ipairs(staff) do
       if v.id == id then
@@ -211,14 +220,14 @@ M.new = function (type)
     event.unsubscribe("actor.check", 0, check)
     event.unsubscribe("delete", id, delete)
   end
-  
+
   event.subscribe("delete", id, delete)
-  
+
   table.insert(staff, {
     id = id,
     ai = aiComponent,
   })
-  
+
   return id
 end
 

@@ -23,6 +23,7 @@ BELLHOP_WAGE = 10
 CLEANER_WAGE = 30
 MAINTENANCE_WAGE = 50
 COOK_WAGE = 100
+STOCKER_WAGE = 50
 
 SEX_HORNINESS = 20
 
@@ -33,6 +34,7 @@ CONDOM_TIME = 2
 EAT_TIME = 3
 FIX_TIME = 5
 COOK_TIME = 10
+RESTOCK_TIME = 3
 
 SPAWN_MIN = 18
 SPAWN_MAX = 28
@@ -107,7 +109,7 @@ conf = {
       name="Locked",
       desc="Needs stars"
     },
-    
+
     -- Structure
     floorUp =  {
       name="Build Up",
@@ -121,23 +123,27 @@ conf = {
       name="Destroy",
       desc=""
     },
-    
+
     -- Staff
     cleaner = {
       name="Cleaner",
-      desc="$" .. CLEANER_WAGE .. "/min"
+      desc="$" .. CLEANER_WAGE .. "/min",
     },
     bellhop = {
       name="Bellhop",
-      desc="$" .. BELLHOP_WAGE .. "/min"
+      desc="$" .. BELLHOP_WAGE .. "/min",
     },
     cook = {
       name="Cook",
-      desc="$" .. COOK_WAGE .. "/min"
+      desc="$" .. COOK_WAGE .. "/min",
     },
     maintenance = {
       name="Maintenance",
-      desc="$" .. MAINTENANCE_WAGE .. "/min"
+      desc="$" .. MAINTENANCE_WAGE .. "/min",
+    },
+    stocker = {
+      name="Stocker",
+      desc="$" .. STOCKER_WAGE .. "/min",
     },
   },
 }
@@ -160,7 +166,7 @@ gStars = STARS_INITIAL
 
 moneyChange = function (c, pos)
   gMoney = math.max(0, gMoney + c)
-  
+
   if pos then
     event.notify("money.change", 0, {
       amount = c,
@@ -316,9 +322,9 @@ local buildRoom = function (type, baseMenu)
   menu.disable(baseMenu)
 
   local buildUtility = builder.new(STATE_PLAY, type)
-    
+
   local back = function () end
-    
+
   local function onBuild ()
     event.unsubscribe("pressed", 0, back)
     event.unsubscribe("build", buildUtility, onBuild)
@@ -343,9 +349,9 @@ local demolishRoom = function (baseMenu)
   menu.disable(baseMenu)
 
   local demolishUtility = demolisher.new(2)
-    
+
   local back = function () end
-    
+
   local function onDestroy ()
     event.unsubscribe("pressed", 0, back)
     event.unsubscribe("destroy", demolishUtility, onDestroy)
@@ -370,9 +376,9 @@ local stockRoom = function (baseMenu)
   menu.disable(baseMenu)
 
   local stockUtility = stocker.new(STATE_PLAY)
-    
+
   local back = function () end
-    
+
   local function onStock ()
     event.unsubscribe("pressed", 0, back)
     event.unsubscribe("stock", stockUtility, onStock)
@@ -397,7 +403,7 @@ local inspect = function (baseMenu)
   menu.disable(baseMenu)
 
   local inspectUtility = inspector.new(STATE_PLAY)
-    
+
   local back
   back = function (key)
     if gState == STATE_PLAY and key == "b" then
@@ -513,10 +519,10 @@ end)
 --Infrastructure button
 menu.addButton(gui, menu.newButton("infrastructure", function ()
   menu.disable(gui)
-  
+
   --Create the infrastructure menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
-  
+
   --[[Stairs
   menu.addButton(submenu, menu.newButton("stairs", function ()
     print("Stairs")
@@ -524,7 +530,7 @@ menu.addButton(gui, menu.newButton("infrastructure", function ()
   --Elevator
   menu.addButton(submenu, menu.newButton("elevator", function ()
     buildRoom("elevator", submenu)
-  end)) 
+  end))
   --Build floor up
   menu.addButton(submenu, menu.newButton("floorUp", function ()
     floorUp()
@@ -548,20 +554,20 @@ end))
 --Suites button
 menu.addButton(gui, menu.newButton("suites", function ()
   menu.disable(gui)
-  
+
   --Create the suites menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
- 
+
   --Missionary
   menu.addButton(submenu, menu.newButton("missionary", function ()
     buildRoom("missionary", submenu)
   end))
- 
+
   --Spoon
   menu.addButton(submenu, menu.newButton("spoon", function ()
     buildRoom("spoon", submenu)
   end))
-  
+
    if gStars >= 2 then
     --Chocolate Moustache
     menu.addButton(submenu, menu.newButton("moustache", function ()
@@ -585,7 +591,7 @@ menu.addButton(gui, menu.newButton("suites", function ()
     menu.addButton(submenu, menu.newButton("nazifurry", function ()
       buildRoom("nazifurry", submenu)
     end))
-    
+
   else
     addLockButton(submenu)
   end
@@ -618,10 +624,10 @@ end))
 --Food button
 menu.addButton(gui, menu.newButton("food", function ()
   menu.disable(gui)
-  
+
   --Create the food menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
-  
+
   if gStars >= 2 then
     --Vending machine
     menu.addButton(submenu, menu.newButton("vending", function ()
@@ -660,7 +666,7 @@ end))
 --Services button
 menu.addButton(gui, menu.newButton("services", function ()
   menu.disable(gui)
-  
+
   --Create the services menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
 
@@ -699,10 +705,10 @@ end))
 --Staff button
 menu.addButton(gui, menu.newButton("staff", function ()
   menu.disable(gui)
-  
+
   --Create the manage menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
-  
+
   --Hire staff
   menu.addButton(submenu, menu.newButton("bellhop", function ()
     staff.new("bellhop")
@@ -713,6 +719,13 @@ menu.addButton(gui, menu.newButton("staff", function ()
   menu.addButton(submenu, menu.newButton("maintenance", function ()
     staff.new("maintenance")
   end))
+  if gStars >= 3 then
+    menu.addButton(submenu, menu.newButton("stocker", function ()
+      staff.new("stocker")
+    end))
+  else
+    addLockButton(submenu)
+  end
   if gStars >= 4 then
     menu.addButton(submenu, menu.newButton("cook", function ()
       staff.new("cook")
@@ -786,7 +799,7 @@ local trainText = entity.new(STATE_TRAIN)
 trainTextCom = entity.newComponent({
   draw = function (self)
     local desc = [[Controller Setup
-    
+
     For each input pointed to, choose a key or gamepad button and press it.]]
     love.graphics.setColor(0, 0, 0)
     love.graphics.printf(
@@ -945,7 +958,7 @@ local moneyChange = 0
 event.subscribe("money.change", 0, function (e)
   moneyCom.change = moneyCom.change + e.amount
   moneyCom.changeTimer = 3
-  
+
   -- Create in-world gMoney popup
   if e.pos then
     local id = entity.new(STATE_PLAY)
@@ -974,7 +987,7 @@ event.subscribe("money.change", 0, function (e)
       love.graphics.setFont(gFont)
       local colors = { {0, 0, 0} }
       local str = ""
-      if self.amount > 0 then 
+      if self.amount > 0 then
         colors[2] = {0, 184, 0}
         str = "+"..self.amount
       elseif self.amount < 0 then
@@ -1087,12 +1100,12 @@ local pauseCom = entity.newComponent({
     },
   },
   selected = 1,
-  
+
   draw = function (self)
     -- Draw title
     local img = resource.get("img/title.png")
     love.graphics.draw(img, 0, 0)
-  
+
     -- Draw menu
     love.graphics.setFont(gFont)
     for i,option in ipairs(self.options) do
@@ -1142,10 +1155,10 @@ love.draw = function ()
   love.graphics.setColor(255, 255, 255)
 
   entity.draw()
-  
+
   -- Draw to screen with scaling
   love.graphics.setCanvas()
-  
+
   -- Draw the screen frame
   love.graphics.setColor(255,255,255)
   love.graphics.drawq(
@@ -1157,13 +1170,13 @@ love.draw = function ()
   -- Fill the screen area black for pixel effect
   love.graphics.setColor(0, 0, 0)
   love.graphics.rectangle(
-    "fill", 
+    "fill",
     conf.screen.modes[conf.screen.i].x,
     conf.screen.modes[conf.screen.i].y,
     CANVAS_WIDTH * conf.screen.modes[conf.screen.i].scale,
     CANVAS_HEIGHT * conf.screen.modes[conf.screen.i].scale
   )
-  
+
   if pixelEffect then
     love.graphics.setPixelEffect(pixelEffect)
   end

@@ -20,7 +20,7 @@ buttLoc = {
   floorUp = 10,
   floorDown = 11,
   destroy = 12,
- 
+
   missionary = 16,
   spoon = 17,
   moustache = 18,
@@ -28,7 +28,7 @@ buttLoc = {
   torture = 20,
   nazifurry = 21,
   eco = 22,
-  
+
   vending = 24,
   dining = 25,
   freezer = 26,
@@ -38,11 +38,12 @@ buttLoc = {
   utility = 33,
   condom = 34,
   spa = 35,
-   
+
   cleaner = 40,
   bellhop = 41,
   cook = 42,
   maintenance = 43,
+  stocker = 44,
 }
 
 local defaultAction = function ()
@@ -51,7 +52,7 @@ end
 
 local hud = function (id, pos)
   local component = entity.newComponent()
-  
+
   --Selected keeps track of the selected button
   local selected = 1
   local buttons = {}
@@ -69,30 +70,30 @@ local hud = function (id, pos)
       end
     end
   end
-  
+
   component.enabled = true
   component.back = defaultAction
-  
+
   component.addButton = function (self, button)
     table.insert(buttons, button)
     if #buttons == 1 then
       event.notify("menu.info", 0, {selected = buttons[selected].type})
     end
   end
-  
+
   component.setBack = function (self, callback)
     component.back = callback
   end
-  
+
   component.enable =  function (self)
     component.enabled = true
     event.notify("menu.info", 0, {selected = buttons[selected].type})
   end
-  
+
   component.disable = function (self)
     component.enabled = false
   end
-  
+
   local pressed = function (key)
     if gState == STATE_PLAY then
       local snd = resource.get("snd/select.wav")
@@ -125,15 +126,15 @@ local hud = function (id, pos)
       end
     end
   end
-  
+
   local function delete ()
     event.unsubscribe("pressed", 0, pressed)
     event.unsubscribe("delete", id, delete)
   end
-  
+
   event.subscribe("pressed", 0, pressed)
   event.subscribe("delete", id, delete)
-  
+
   return component
 end
 
@@ -145,11 +146,11 @@ local huds = {}
 M.new = function (state, pos)
   local id = entity.new(state)
   entity.setOrder(id, 100)
-  
+
   huds[id] = hud(id, pos)
-  
+
   entity.addComponent(id, huds[id])
-  
+
   return id
 end
 

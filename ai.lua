@@ -1487,6 +1487,128 @@ local addMaintenanceGoal = function (self, target)
   self.goalEvaluator:addSubgoal(goal)
 end
 
+local newRestockGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  goal.name = "restock"
+
+  local old_activate = goal.activate
+  goal.activate = function(self, dt)
+    if not self.target then
+      self.status = "failed"
+      return
+    end
+
+    local pos = transform.getPos(self.component.entity)
+    local atRoom = false
+    event.notify("room.check", 0, {
+      roomNum = pos.roomNum,
+      floorNum = pos.floorNum,
+      callback = function (id)
+        if id == self.target then
+          atRoom = true
+        end
+      end,
+    })
+    if not atRoom then
+      self.status = "failed"
+      return
+    end
+
+    local restocking = false
+    event.notify("room.beginRestock", self.target, {
+      id = self.component.entity,
+      callback = function (res)
+        restocking = res
+      end,
+    })
+
+    if not restocking then
+      self.status = "failed"
+      return
+    end
+
+    self.status = "active"
+    self:addSubgoal(newSleepGoal(self.component, RESTOCK_TIME))
+    old_activate(self)
+  end
+
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    event.notify("room.endRestock", self.target, {
+      id = self.component.entity,
+    })
+
+    local myPos = transform.getPos(self.component.entity)
+    local info = room.getInfo(self.target)
+    room.setStock(self.target, 8)
+    moneyChange(-info.restockCost, {
+      roomNum = myPos.roomNum,
+      floorNum = myPos.floorNum,
+    })
+
+    self.target = nil
+    old_terminate(self)
+    self.subgoals = {}
+  end
+
+  return goal
+end
+
+local addStockGoal = function (self, target)
+  local goal = M.newGoal(self)
+  goal.target = target
+  goal.name = "stock"
+  local info = room.getInfo(goal.target)
+  local targetPos = room.getPos(goal.target)
+  local restocking = nil
+
+  local old_activate = goal.activate
+  goal.activate = function (self)
+    if not self.target then
+      self.status = "failed"
+      return
+    end
+
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    restocking = newRestockGoal(self.component, self.target)
+    self:addSubgoal(restocking)
+    old_activate(self)
+  end
+
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    old_terminate(self)
+    self.subgoals = {}
+  end
+
+  goal.getDesirability = function (self, t)
+    if restocking and restocking.status == "active" then
+      return 1000
+    end
+
+    if room.getStock(self.target) == 0 and
+        room.occupation(self.target) == 0 then
+      local myPos = transform.getPos(self.component.entity)
+      local time = path.getCost(myPos, targetPos)
+      if time == -1 then
+        return -1
+      end
+
+      return 1 / (time + RESTOCK_TIME)
+    end
+    return -1
+  end
+
+  local function destroy (t)
+    self.goalEvaluator:removeSubgoal(goal)
+    event.unsubscribe("destroy", goal.target, destroy)
+  end
+  event.subscribe("destroy", goal.target, destroy)
+
+  self.goalEvaluator:addSubgoal(goal)
+end
+
 local newPerformCleanGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
@@ -2576,6 +2698,7 @@ M.new = function (id)
     addBellhopGoal = addBellhopGoal,
     addCheckInGoal = addCheckInGoal,
     addMaintenanceGoal = addMaintenanceGoal,
+    addStockGoal = addStockGoal,
     addWaiterGoal = addWaiterGoal,
     addIngredientsGoal = addIngredientsGoal,
     addCookGoal = addCookGoal,
