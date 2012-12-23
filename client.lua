@@ -66,7 +66,7 @@ M.new = function (t)
   local isMale = math.random() < 0.5  --randomize male or female
   local hairColour = math.random(1, 4)
   local hatChance = 1
-  
+
   local prefix
   if isMale then
     prefix = "resources/img/people/man/"
@@ -81,7 +81,7 @@ M.new = function (t)
     width = 24, height = 24,
     originX = 8, originY = 24,
   }
-  
+
   for _,part in ipairs(bodyParts) do
     -- Everything but nude and hair parts are category-specific
     local dir
@@ -93,14 +93,14 @@ M.new = function (t)
     local images = love.filesystem.enumerate(dir)
 
     -- Skip part if no images exist, and only give a chance of a hat
-    if #images > 0 and 
+    if #images > 0 and
         (part ~= "hat" or math.random() < hatChance) then
       -- Pick a random image for this body part
       local fname = dir .. "/" .. images[math.random(1, #images)]
-      
+
       -- Remove 'resources/' from the start of the filename for resource.get()
       fname = string.sub(fname, 10)
-      
+
       -- Prepare the sprite data based on body part type
       spriteData.image = resource.get(fname)
       if part == "nude" or part == "bottom" then
@@ -113,57 +113,59 @@ M.new = function (t)
        spriteData.animations = nil
        spriteData.playing = nil
       end
-      
+
       -- Add the body part image as a sprite to the client
       entity.addComponent(id, sprite.new(id, spriteData))
     end
   end
-  
-  -- Add thought bubble sprite component
-  entity.addComponent(id, sprite.new(id, {
-    image = resource.get("img/people/bubbles.png"),
-    width = 16,
-    height = 8,
-    originY = 24,
-    animations = {
-      thoughtNone = {
-        first = 0,
-        last = 0,
-        speed = 1,
+
+  -- Add thought bubble sprite component if leader
+  if t.leader then
+    entity.addComponent(id, sprite.new(id, {
+      image = resource.get("img/people/bubbles.png"),
+      width = 16,
+      height = 8,
+      originY = 24,
+      animations = {
+        thoughtNone = {
+          first = 0,
+          last = 0,
+          speed = 1,
+        },
+        thoughtHappy = {
+          first = 1,
+          last = 1,
+          speed = 1,
+        },
+        thoughtBroke = {
+          first = 2,
+          last = 2,
+          speed = 1,
+        },
+        thoughtHungry = {
+          first = 3,
+          last = 3,
+          speed = 1,
+        },
+        thoughtCondomless = {
+          first = 4,
+          last = 4,
+          speed = 1,
+        },
+        thoughtRoomless = {
+          first = 5,
+          last = 5,
+          speed = 1,
+        },
+        thoughtImpatient = {
+          first = 6,
+          last = 6,
+          speed = 1,
+        },
       },
-      thoughtHappy = {
-        first = 1,
-        last = 1,
-        speed = 1,
-      },
-      thoughtBroke = {
-        first = 2,
-        last = 2,
-        speed = 1,
-      },
-      thoughtHungry = {
-        first = 3,
-        last = 3,
-        speed = 1,
-      },
-      thoughtCondomless = {
-        first = 4,
-        last = 4,
-        speed = 1,
-      },
-      thoughtRoomless = {
-        first = 5,
-        last = 5,
-        speed = 1,
-      },
-      thoughtImpatient = {
-        first = 6,
-        last = 6,
-        speed = 1,
-      },
-    },
-    playing = "thoughtNone",
-  }))
+      playing = "thoughtNone",
+    }))
+  end
 
   entity.addComponent(id, transform.new(
     id, t.pos, {x = 16, y = 30}
@@ -171,7 +173,7 @@ M.new = function (t)
   local aiComponent = ai.new(id)
   aiComponent.leader = t.leader
   aiComponent.category = t.category
-  
+
   local addRoomGoal = function (id)
     local info = room.getInfo(id)
     if info.visitable then
@@ -188,7 +190,7 @@ M.new = function (t)
       aiComponent:addSpaGoal(id)
     end
   end
-  
+
   if t and t.target then
     aiComponent:addFollowGoal(t.target, "client")
   else
@@ -201,7 +203,7 @@ M.new = function (t)
   end
   entity.addComponent(id, aiComponent)
   aiComponent:addExitGoal()
-  
+
   local info = resource.get("scr/people/" .. t.category .. ".lua")
   aiComponent.needs = {
     horniness = math.random(info.minHorniness, info.maxHorniness),
@@ -216,14 +218,14 @@ M.new = function (t)
     aiComponent.needs.hunger = aiComponent.needs.hunger + dt
     old_update(self, dt)
   end
-  
+
   local check = function (t)
     local epos = transform.getPos(id)
     if t.floorNum == epos.floorNum and t.roomNum < epos.roomNum + 0.5 and t.roomNum + t.width > epos.roomNum + 0.5 then
       t.callback(id)
     end
   end
-  
+
   event.subscribe("actor.check", 0, check)
 
   local function delete (e)
@@ -237,12 +239,12 @@ M.new = function (t)
   end
 
   event.subscribe("delete", id, delete)
-  
+
   table.insert(clients, {
     id = id,
     ai = aiComponent,
   })
-  
+
   return id
 end
 
@@ -260,14 +262,14 @@ local getRandomCategory = function ()
       c = c - info.spawnChance[gStars]
     end
   end
-  
+
   return category
 end
 
 M.newSpawner = function (type, pos)
   local spawner = entity.new(STATE_PLAY)
   local itime = math.random(SPAWN_MIN, SPAWN_MAX) + SPAWN_MIN
-  
+
   local com = entity.newComponent({
     timer = itime,
     target = nil,
@@ -279,7 +281,7 @@ M.newSpawner = function (type, pos)
         else
           category = type
         end
-        
+
         local spawnFactor = 3 * gStars
         if type then
           spawnFactor = 3
@@ -319,7 +321,7 @@ event.subscribe("floor.new", 0, function (level)
     M.newSpawner("space", {roomNum = -.5, floorNum = SPACE_SPAWN})
     newFloor = true
   end
-  
+
   if newFloor then
     path.addEdge(
       {roomNum = -.5, floorNum = level},
