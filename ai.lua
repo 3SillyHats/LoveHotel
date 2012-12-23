@@ -2152,7 +2152,7 @@ local addBellhopGoal = function (self, target)
       return -1
     end
 
-    return (1 + room.occupation(self.target)) / time
+    return room.occupation(self.target) + (1 / (1 + time))
   end
 
   local function destroy (t)
