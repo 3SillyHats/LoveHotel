@@ -1344,7 +1344,6 @@ local addExitGoal = function (self)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    old_terminate(self)
     event.notify("sprite.play", self.component.entity, "thoughtNone")
     if self.component.leader and self.status == "complete" then
       local info = resource.get("scr/people/" .. self.component.category .. ".lua")
@@ -1354,6 +1353,8 @@ local addExitGoal = function (self)
         reputationChange(-info.badRep)
       end
     end
+
+    old_terminate(self)
     self.subgoals = {}
   end
 
