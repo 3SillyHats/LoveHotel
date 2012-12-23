@@ -1221,6 +1221,11 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
   elseif key == "return" and (gState == STATE_PAUSE or gState == STATE_DECISION) and not input.isMapped("return") then
     returnDown = true
     event.notify("pressed", 0, "a")
+  elseif key == "`" then
+    -- XXX: DEBUG cheat key
+    gMoney = 200000
+    gReputation = REP_MAX
+    gStars = 5
   else
     input.keyPressed(key)
   end
