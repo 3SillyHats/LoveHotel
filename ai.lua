@@ -1272,36 +1272,38 @@ local addExitGoal = function (self)
   
   local old_activate = goal.activate
   goal.activate = function (self)
-    if self.component.needs.horniness <= 0 then
-      event.notify("sprite.play", self.component.entity, "thoughtHappy")
-    elseif self.component.patience <= 0 then
-      event.notify("sprite.play", self.component.entity, "thoughtImpatient")
-    elseif self.component.needs.hunger > self.component.needs.horniness then
-      event.notify("sprite.play", self.component.entity, "thoughtHungry")
-    elseif self.component.supply <= 0 then
-      event.notify("sprite.play", self.component.entity, "thoughtCondomless")
-    else
-      local minCost = 9999999999
-      event.notify("room.all", 0, function (id, type)
-        local info = room.getInfo(id)
-        if info.profit and info.desirability then
-          local available = true
-          local myPos = transform.getPos(self.component.entity)
-          local targetPos = transform.getPos(id)
-          if room.occupation(id) > 0 or
-              (info.dirtyable and room.isDirty(id)) or
-              path.getCost(myPos, targetPos) == -1 then
-            available = false
+    if self.component.leader then
+      if self.component.needs.horniness <= 0 then
+        event.notify("sprite.play", self.component.entity, "thoughtHappy")
+      elseif self.component.patience <= 0 then
+        event.notify("sprite.play", self.component.entity, "thoughtImpatient")
+      elseif self.component.needs.hunger > self.component.needs.horniness then
+        event.notify("sprite.play", self.component.entity, "thoughtHungry")
+      elseif self.component.supply <= 0 then
+        event.notify("sprite.play", self.component.entity, "thoughtCondomless")
+      else
+        local minCost = 9999999999
+        event.notify("room.all", 0, function (id, type)
+          local info = room.getInfo(id)
+          if info.profit and info.desirability then
+            local available = true
+            local myPos = transform.getPos(self.component.entity)
+            local targetPos = transform.getPos(id)
+            if room.occupation(id) > 0 or
+                (info.dirtyable and room.isDirty(id)) or
+                path.getCost(myPos, targetPos) == -1 then
+              available = false
+            end
+            if available and info.profit < minCost then
+              minCost = info.profit
+            end
           end
-          if available and info.profit < minCost then
-            minCost = info.profit
-          end
+        end)
+        if minCost == 9999999999 then
+          event.notify("sprite.play", self.component.entity, "thoughtRoomless")
+        elseif minCost > self.component.money then
+          event.notify("sprite.play", self.component.entity, "thoughtBroke")
         end
-      end)
-      if minCost == 9999999999 then
-        event.notify("sprite.play", self.component.entity, "thoughtRoomless")
-      elseif minCost > self.component.money then
-        event.notify("sprite.play", self.component.entity, "thoughtBroke")
       end
     end
   
