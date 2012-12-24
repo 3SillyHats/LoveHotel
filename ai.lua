@@ -1105,11 +1105,13 @@ local addVisitGoal = function (self, target)
     if sexGoal and sexGoal.status == "active" then
       return 1000
     end
-    if t.needs.horniness > t.needs.hunger and
-        not room.isDirty(self.target) and
-        room.occupation(self.target) == 0 and
+    local cheapInfo = resource.get("scr/rooms/missionary.lua")
+    if self.component.money >= cheapInfo.profit and
         self.component.money >= roomInfo.profit and
-        self.component.supply > 0 then
+        self.component.supply > 0 and
+        t.needs.horniness > t.needs.hunger and
+        not room.isDirty(self.target) and
+        room.occupation(self.target) == 0 then
       local myInfo = resource.get("scr/people/" .. self.component.category .. ".lua")
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
