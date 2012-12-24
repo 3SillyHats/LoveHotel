@@ -898,7 +898,7 @@ local buttQuad = love.graphics.newQuad(
 local hudBar = entity.new(STATE_PLAY)
 entity.setOrder(hudBar, 90)
 local hudCom = entity.newComponent()
-hudCom.name = "Structure"
+hudCom.name = ""
 hudCom.desc = ""
 hudCom.draw = function (self)
   love.graphics.drawq(
@@ -1086,6 +1086,7 @@ entity.addComponent(backdrop, bdCom)
 floorUp()
 staff.new("bellhop")
 staff.new("cleaner")
+event.notify("menu.info", 0, {selected = "infrastructure"})
 local id, pos
 
 pos = {roomNum = 1, floorNum = 0}
