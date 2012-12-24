@@ -42,7 +42,12 @@ SKY_SPAWN = 8
 GROUND_SPAWN = -8
 SPACE_SPAWN = 16
 
-MONEY_INITIAL = 2000
+UP_FLOOR_BASE = 250
+UP_FLOOR_INC = 100
+DOWN_FLOOR_BASE = 500
+DOWN_FLOOR_INC = 200
+
+MONEY_INITIAL = 20000
 REP_INITIAL = 5
 REP_MAX = 3000
 STARS_INITIAL = 1
@@ -113,11 +118,11 @@ conf = {
     -- Structure
     floorUp =  {
       name="Build Up",
-      desc="$500"
+      desc="$" .. UP_FLOOR_BASE,
     },
     floorDown =  {
       name="Build Down",
-      desc="$1000"
+      desc="$" .. DOWN_FLOOR_BASE,
     },
     destroy =  {
       name="Destroy",
@@ -465,14 +470,15 @@ end
 newFloor(GROUND_FLOOR)
 
 local floorUp = function()
-  local cost =  250 * (gTopFloor + 2)
+  local cost = UP_FLOOR_BASE + (gTopFloor * UP_FLOOR_INC)
   if gMoney >= cost then
     gMoney = gMoney - cost
     event.notify("money.change", 0, {
       amount = -cost,
     })
     gTopFloor = gTopFloor + 1
-    conf.menu["floorUp"].desc = "$" .. (250 * (gTopFloor + 3))
+    conf.menu["floorUp"].desc = "$" .. tostring(UP_FLOOR_BASE + (gTopFloor * UP_FLOOR_INC))
+    event.notify("menu.info", 0, {selected = "floorUp"})
     local newFloor = newFloor(gTopFloor)
   else
     local snd = resource.get("snd/error.wav")
@@ -482,14 +488,15 @@ local floorUp = function()
 end
 
 local floorDown = function()
-  local cost =  500 * (2 - gBottomFloor)
+  local cost = UP_FLOOR_BASE + (gBottomFloor * UP_FLOOR_INC)
   if gMoney >= cost then
     gMoney = gMoney - cost
     event.notify("money.change", 0, {
       amount = -cost,
     })
     gBottomFloor = gBottomFloor - 1
-    conf.menu["floorDown"].desc = "$" .. (500 * (2 - gBottomFloor))
+    conf.menu["floorDown"].desc = "$" .. tostring(DOWN_FLOOR_BASE + (gBottomFloor * DOWN_FLOOR_INC))
+    event.notify("menu.info", 0, {selected = "floorDown"})
     local newFloor = newFloor(gBottomFloor)
   else
     local snd = resource.get("snd/error.wav")
@@ -934,10 +941,15 @@ local moneyCom = entity.newComponent()
 moneyCom.change = 0
 moneyCom.changeTimer = 0
 moneyCom.draw = function (self)
+  local money = tostring(gMoney)
+  if money:len() > 3 then
+    money = money:sub(1, -4) .. "," .. money:sub(-3, -1)
+  end
+  
   love.graphics.setFont(gFont)
   love.graphics.setColor(255, 255, 255)
   love.graphics.printf(
-    "$" .. gMoney,
+    "$" .. money,
     196, CANVAS_HEIGHT - 28,
     56,
     "right"
