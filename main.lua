@@ -47,7 +47,7 @@ UP_FLOOR_INC = 100
 DOWN_FLOOR_BASE = 500
 DOWN_FLOOR_INC = 200
 
-MONEY_INITIAL = 20000
+MONEY_INITIAL = UP_FLOOR_BASE + 2000
 REP_INITIAL = 5
 REP_MAX = 3000
 STARS_INITIAL = 1
@@ -1081,6 +1081,32 @@ bdCom.draw = function (self)
   )
 end
 entity.addComponent(backdrop, bdCom)
+
+-- Create default rooms and staff
+floorUp()
+staff.new("bellhop")
+staff.new("cleaner")
+local id, pos
+
+pos = {roomNum = 1, floorNum = 0}
+id = room.new(STATE_PLAY, "elevator", pos)
+event.notify("build", 0, {id=id, pos=pos, type="elevator"})
+
+pos = {roomNum = 2, floorNum = 0}
+id = room.new(STATE_PLAY, "reception", pos)
+event.notify("build", 0, {id=id, pos=pos, type="reception"})
+
+pos = {roomNum = 1, floorNum = 1}
+id = room.new(STATE_PLAY, "elevator", pos)
+event.notify("build", 0, {id=id, pos=pos, type="elevator"})
+
+pos = {roomNum = 2, floorNum = 1}
+id = room.new(STATE_PLAY, "utility", pos)
+event.notify("build", 0, {id=id, pos=pos, type="utility"})
+
+pos = {roomNum = 3, floorNum = 1}
+id = room.new(STATE_PLAY, "missionary", pos)
+event.notify("build", 0, {id=id, pos=pos, type="missionary"})
 
 -- GAME PAUSE MENU
 local pauseMenu = entity.new(STATE_PAUSE)

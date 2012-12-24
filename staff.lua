@@ -107,7 +107,7 @@ M.new = function (type)
     id, pos, {x = 16, y = 30}
   ))
   local payCom = entity.newComponent{
-    timer = 0,
+    timer = PAY_PERIOD,
     update = function (self,dt)
       self.timer = self.timer - dt
       if self.timer <= 0 then
