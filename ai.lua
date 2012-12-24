@@ -11,6 +11,21 @@ local resource = require("resource")
 
 local M = {}
 
+-- Normalisation helper functions for desirability calculation
+-- Map needs to the range 0 <= x <= 1
+local normHorniness = function (x)
+  x = x or 0
+  return x / 100
+end
+local normHunger = function (x)
+  x = x or 0
+  return x / 100
+end
+local normPatience = function (x)
+  x = x or 0
+  return x / 100
+end
+
 local activate = function (self)
   if #self.subgoals > 0 then
     self.subgoals[1]:activate()
@@ -77,15 +92,15 @@ local removeSubgoal = function (self, subgoal)
   end
 end
 
-local getDesirability = function (self, t)
+local getDesirability = function (self, df)
   return 0
 end
 
-local arbitrate = function (self, t)
+local arbitrate = function (self, df)
   local best = 0
   local mostDesirable = nil
   for _,goal in ipairs(self.goalEvaluator.subgoals) do
-    local d = goal:getDesirability(t)
+    local d = goal:getDesirability(df)
     if d >= best then
       best = d
       mostDesirable = goal
@@ -96,10 +111,18 @@ end
 
 local update = function (self, dt)
   local desirabilityFactors = {
-    needs = self.needs,
+    patience = normPatience(self.patience),
     money = self.money,
-    supply = self.supply,
   }
+  if self.needs then
+    desirabilityFactors.needs = {
+      horniness = normHorniness(self.needs.horniness),
+      hunger = normHunger(self.needs.hunger),
+    }
+  end
+  if self.supply then
+    desirabilityFactors.supply = self.supply / 3
+  end
 
   self.timer = self.timer + dt
 
@@ -746,21 +769,18 @@ local addSpaGoal = function (self, target)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
-    if t.needs.horniness < 100 then
-      if self.relax then
-        return 100 - t.needs.horniness
-      elseif room.occupation(self.target) == 0 and
-          not room.isBroken(self.target) then
-        local myPos = transform.getPos(self.component.entity)
-        local time = path.getCost(myPos, targetPos)
-        if time == -1 then
-          return -1
-        end
-        return (100 - t.needs.horniness) / (1 + time)
+  goal.getDesirability = function (self, df)
+    if self.relax then
+      return 1
+    elseif room.occupation(self.target) == 0 and
+        not room.isBroken(self.target) then
+      local myPos = transform.getPos(self.component.entity)
+      local time = path.getCost(myPos, targetPos)
+      if time == -1 then
+        return -1
       end
+      return (1 - df.needs.horniness) * (1 / (1 + time))
     end
-    return -1
   end
 
   local destroy
@@ -920,20 +940,16 @@ local addOrderMealGoal = function (self, target)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
-    if self.component.patience > 0 and
-        self.component.money >= info.profit and
-        self.component.needs.hunger > 50 and
-        self.component.needs.hunger > self.component.needs.horniness then
+  goal.getDesirability = function (self, df)
+    if df.money >= info.profit then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
       if time == -1 then
         return -1
       end
-      return self.component.needs.hunger / (time + 1)
-    else
-      return -1
+      return df.needs.hunger * (1 / (1 + time))
     end
+    return -1
   end
 
   local function destroy (t)
@@ -1051,16 +1067,13 @@ local addCheckInGoal = function (self, target)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
+  goal.getDesirability = function (self, df)
     if not self.component.beenServed and
-        self.component.patience > 0 and
-        self.component.needs.horniness > 0 and
-        self.component.needs.horniness > self.component.needs.hunger and
         self.component.supply > 0 then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
       if time ~= -1 then
-        return 1/(1+time)
+        return df.needs.horniness * (1 / (1 + time))
       end
     end
     return -1
@@ -1098,25 +1111,21 @@ local addVisitGoal = function (self, target)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
-    if not self.component.beenServed then
-      return -1
-    end
+  goal.getDesirability = function (self, df)
     if sexGoal and sexGoal.status == "active" then
-      return 1000
+      return 1
     end
-    if t.needs.horniness > t.needs.hunger and
-        not room.isDirty(self.target) and
-        room.occupation(self.target) == 0 and
+    if self.component.beenServed and
         self.component.money >= roomInfo.profit and
-        self.component.supply > 0 then
+        self.component.supply > 0 and
+        not room.isDirty(self.target) and
+        room.occupation(self.target) == 0 then
       local myInfo = resource.get("scr/people/" .. self.component.category .. ".lua")
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time == -1 then
-        return -1
+      if time ~= -1 then
+        return  myInfo.desirability[roomInfo.id] * (1 / (1 + time))
       end
-      return 1/(1+time) + myInfo.desirability[roomInfo.id]
     end
     return -1
   end
@@ -1278,9 +1287,9 @@ local addFollowGoal = function (self, target, type)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
+  goal.getDesirability = function (self, df)
     if entity.get(self.target) then
-      return 1001
+      return 1
     end
     return -1
   end
@@ -1359,9 +1368,12 @@ local addExitGoal = function (self)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
-    if self.component.patience <= 0 then
-      return 1000
+  goal.getDesirability = function (self, df)
+    if self.component.leader and
+         self.component.patience <= 0 or
+         self.component.needs.horniness <= 0 or
+         self.component.needs.hunger >= 100 then
+      return 1
     end
     return 0
   end
@@ -1460,21 +1472,18 @@ local addMaintenanceGoal = function (self, target)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
+  goal.getDesirability = function (self, df)
     if fixing and fixing.status == "active" then
-      return 1000
+      return 1
     end
 
     if room.isBroken(self.target) and
         room.occupation(self.target) == 0 then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time == -1 then
-        return -1
+      if time ~= -1 then
+        return (1 / (FIX_TIME + time))
       end
-      time = time + FIX_TIME
-
-      return 1/time
     end
     return -1
   end
@@ -1583,20 +1592,18 @@ local addStockGoal = function (self, target)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
+  goal.getDesirability = function (self, df)
     if restocking and restocking.status == "active" then
-      return 1000
+      return 1
     end
 
     if room.getStock(self.target) == 0 and
         room.occupation(self.target) == 0 then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time == -1 then
-        return -1
+      if time ~= -1 then
+        return 1 / (RESTOCK_TIME + time)
       end
-
-      return 1 / (time + RESTOCK_TIME)
     end
     return -1
   end
@@ -1716,32 +1723,21 @@ local addCleanGoal = function (self, target)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
+  goal.getDesirability = function (self, df)
     if cleaning and cleaning.status == "active" then
-      return 1000
+      return 1
     end
-    if self.component.supply == 0 then
-      return -1
-    end
-    local myPos = transform.getPos(self.component.entity)
-    local time = path.getCost(myPos, targetPos)
-    if time == -1 then
-      return -1
-    end
-    time = time + CLEAN_TIME
-    if room.isDirty(self.target) then
-      if room.occupation(self.target) == 0 then
-        return info.profit/time
-      else
-        return -1
-      end
-    else
-      if room.occupation(self.target) > 0 and info.dirtyable then
-        return info.profit/math.max(time, SEX_TIME+CLEAN_TIME)
-      else
-        return -1
+
+    if self.component.supply > 0 and
+        room.isDirty(self.target)  and
+        room.occupation(self.target) == 0 then
+      local myPos = transform.getPos(self.component.entity)
+      local time = path.getCost(myPos, targetPos)
+      if time ~= -1 then
+        return info.profit * (1 / (CLEAN_TIME + time))
       end
     end
+    return -1
   end
 
   local function destroy (t)
@@ -1866,22 +1862,22 @@ local addSupplyGoal = function (self, target)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
+  goal.getDesirability = function (self, df)
     if supply and supply.status == "active" then
-      return 1000
-    end
-    local myPos = transform.getPos(self.component.entity)
-    local time = path.getCost(myPos, targetPos)
-    if time == -1 then
-      return -1
+      return 1
     end
     local stock = room.getStock(self.target)
     local occupation = room.occupation(self.target)
-    if stock > 0 and occupation == 0 and self.component.supply == 0 then
-      return 1 / time
-    else
-      return -1
+    if self.component.supply == 0 and
+        room.getStock(self.target) > 0 and
+        room.occupation(self.target) == 0 then
+      local myPos = transform.getPos(self.component.entity)
+      local time = path.getCost(myPos, targetPos)
+      if time ~= -1 then
+        return 1 / (SUPPLY_TIME + time)
+      end
     end
+    return -1
   end
 
   local destroy
@@ -1954,7 +1950,7 @@ local newGetCondomGoal = function (self, target)
     })
 
     if self.component.money >= info.profit then
-      self.component.supply = self.component.supply + 1
+      self.component.supply = 3
       self.component.money = self.component.money - info.profit
       moneyChange(info.profit, transform.getPos(self.component.entity))
       room.use(self.target)
@@ -1995,25 +1991,22 @@ local addCondomGoal = function (self, target)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
+  goal.getDesirability = function (self, df)
     if condom and condom.status == "active" then
-      return 1000
+      return 1
     end
 
-    if not room.isBroken(self.target) and
-        self.component.money >= info.profit and
+    if df.money >= info.profit and
         room.getStock(self.target) > 0 and
-        room.occupation(self.target) == 0 and
-        self.component.supply == 0 then
-        local myPos = transform.getPos(self.component.entity)
-        local time = path.getCost(myPos, targetPos)
-        if time == -1 then
-          return -1
-        end
-      return 1 / time
-    else
-      return -1
+        not room.isBroken(self.target) and
+        room.occupation(self.target) == 0 then
+      local myPos = transform.getPos(self.component.entity)
+      local time = path.getCost(myPos, targetPos)
+      if time ~= -1 then
+        return (1 - df.supply) * (1 / (CONDOM_TIME + time))
+      end
     end
+    return -1
   end
 
   local destroy
@@ -2127,9 +2120,9 @@ local addSnackGoal = function (self, target)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
+  goal.getDesirability = function (self, df)
     if food and food.status == "active" then
-      return 1000
+      return 1
     end
 
     if not room.isBroken(self.target) and
@@ -2139,13 +2132,11 @@ local addSnackGoal = function (self, target)
         self.component.needs.hunger > self.component.needs.horniness then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time == -1 then
-        return -1
+      if time ~= -1 then
+        return df.needs.hunger * (1 / (EAT_TIME + time))
       end
-      return self.component.needs.hunger / time
-    else
-      return -1
     end
+    return -1
   end
 
   local destroy
@@ -2273,20 +2264,18 @@ local addBellhopGoal = function (self, target)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
-    if self.component.following == true then
-      return -1
-    end
+  goal.getDesirability = function (self, df)
     if reception and reception.status == "active" then
-      return 1000
+      return 1
     end
-    local myPos = transform.getPos(self.component.entity)
-    local time = path.getCost(myPos, targetPos)
-    if time == -1 then
-      return -1
+    if not self.component.following then
+      local myPos = transform.getPos(self.component.entity)
+      local time = path.getCost(myPos, targetPos)
+      if time ~= -1 then
+        return room.occupation(self.target) * (1 / (1 + time))
+      end
     end
-
-    return room.occupation(self.target) + (1 / (1 + time))
+    return -1
   end
 
   local function destroy (t)
@@ -2319,9 +2308,9 @@ local addEnterGoal = function (self)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
+  goal.getDesirability = function (self, df)
     if self.pos.roomNum < .5 or (seek and seek.status == "active") then
-      return 0
+      return 0.1
     else
       return -1
     end
@@ -2434,9 +2423,9 @@ local addCookGoal = function (self, target)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
+  goal.getDesirability = function (self, df)
     if prepareGoal and prepareGoal.status == "active" then
-      return 1000
+      return 1
     end
 
     if self.component.cooking and
@@ -2444,13 +2433,11 @@ local addCookGoal = function (self, target)
         room.occupation(self.target) == 0 then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time == -1 then
-        return -1
+      if time ~= -1 then
+        return (1 / (COOK_TIME + time))
       end
-      return 1/(time + COOK_TIME)
-    else
-      return -1
     end
+    return -1
   end
 
   local function destroy (t)
@@ -2493,9 +2480,9 @@ local addIngredientsGoal = function (self, target)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
+  goal.getDesirability = function (self, df)
     if supply and supply.status == "active" then
-      return 1000
+      return 1
     end
     if self.component.cooking and
         room.getStock(self.target) > 0 and
@@ -2503,13 +2490,11 @@ local addIngredientsGoal = function (self, target)
         self.component.supply == 0 then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time == -1 then
-        return -1
+      if time ~= -1 then
+        return 1 / (SUPPLY_TIME + time)
       end
-      return 1 / (1 + time)
-    else
-      return -1
     end
+    return -1
   end
 
   local destroy
@@ -2604,17 +2589,16 @@ local addWaiterGoal = function (self, target)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
-    if self.component.cooking or self.component.hasMeal then
-      return -1
+  goal.getDesirability = function (self, df)
+    if not self.component.cooking and
+        not self.component.hasMeal then
+      local myPos = transform.getPos(self.component.entity)
+      local time = path.getCost(myPos, targetPos)
+      if time ~= -1 then
+        return (1 + room.occupation(self.target)) * (1 / (1 + time))
+      end
     end
-    local myPos = transform.getPos(self.component.entity)
-    local time = path.getCost(myPos, targetPos)
-    if time == -1 then
-      return -1
-    end
-
-    return (1 + room.occupation(self.target)) / time
+    return -1
   end
 
   local function destroy (t)
@@ -2659,9 +2643,9 @@ local addServeMealGoal = function (self)
     self.subgoals = {}
   end
 
-  goal.getDesirability = function (self, t)
+  goal.getDesirability = function (self, df)
     if self.component.hasMeal then
-      return 1000
+      return 1
     end
     return -1
   end
@@ -2684,7 +2668,7 @@ local addWanderGoal = function (com)
     self:addSubgoal(newSleepGoal(com, (4*math.random())+1))
   end
 
-  goal.getDesirability = function (self, t)
+  goal.getDesirability = function (self, df)
     return 0
   end
 
