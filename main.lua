@@ -568,6 +568,11 @@ menu.addButton(gui, menu.newButton("suites", function ()
     buildRoom("spoon", submenu)
   end))
 
+  --Balloon
+  menu.addButton(submenu, menu.newButton("balloon", function ()
+    buildRoom("balloon", submenu)
+  end))
+
    if gStars >= 2 then
     --Chocolate Moustache
     menu.addButton(submenu, menu.newButton("moustache", function ()
@@ -577,21 +582,11 @@ menu.addButton(gui, menu.newButton("suites", function ()
     addLockButton(submenu)
   end
 
-   if gStars >= 2 then
-    --Balloon
-    menu.addButton(submenu, menu.newButton("balloon", function ()
-      buildRoom("balloon", submenu)
-    end))
-  else
-    addLockButton(submenu)
-  end
-
   if gStars >= 3 then
-    --Nazi Furry
-    menu.addButton(submenu, menu.newButton("nazifurry", function ()
-      buildRoom("nazifurry", submenu)
+   --Eco
+    menu.addButton(submenu, menu.newButton("eco", function ()
+      buildRoom("eco", submenu)
     end))
-
   else
     addLockButton(submenu)
   end
@@ -606,9 +601,9 @@ menu.addButton(gui, menu.newButton("suites", function ()
   end
 
   if gStars >= 5 then
-    --Eco
-    menu.addButton(submenu, menu.newButton("eco", function ()
-      buildRoom("eco", submenu)
+    --Nazi Furry
+    menu.addButton(submenu, menu.newButton("nazifurry", function ()
+      buildRoom("nazifurry", submenu)
     end))
   else
     addLockButton(submenu)
@@ -628,16 +623,12 @@ menu.addButton(gui, menu.newButton("food", function ()
   --Create the food menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
 
-  if gStars >= 2 then
-    --Vending machine
-    menu.addButton(submenu, menu.newButton("vending", function ()
-      buildRoom("vending", submenu)
-    end))
-  else
-    addLockButton(submenu)
-  end
+  --Vending machine
+  menu.addButton(submenu, menu.newButton("vending", function ()
+    buildRoom("vending", submenu)
+  end))
 
-  if gStars >= 4 then
+  if gStars >= 3 then
     --Dining room
     menu.addButton(submenu, menu.newButton("dining", function ()
       buildRoom("dining", submenu)
@@ -646,15 +637,20 @@ menu.addButton(gui, menu.newButton("food", function ()
     menu.addButton(submenu, menu.newButton("kitchen", function ()
       buildRoom("kitchen", submenu)
     end))
+  else
+    addLockButton(submenu)
+    addLockButton(submenu)
+  end
+
+  if gStars >= 4 then
     --Freezer Room
     menu.addButton(submenu, menu.newButton("freezer", function ()
       buildRoom("freezer", submenu)
     end))
   else
     addLockButton(submenu)
-    addLockButton(submenu)
-    addLockButton(submenu)
   end
+
 
   --The back button deletes the submenu
   menu.setBack(submenu, function ()
@@ -686,7 +682,7 @@ menu.addButton(gui, menu.newButton("services", function ()
   else
     addLockButton(submenu)
   end
-  if gStars >= 3 then
+  if gStars >= 5 then
     --Spa room
     menu.addButton(submenu, menu.newButton("spa", function ()
       buildRoom("spa", submenu)
@@ -720,15 +716,15 @@ menu.addButton(gui, menu.newButton("staff", function ()
     staff.new("maintenance")
   end))
   if gStars >= 3 then
-    menu.addButton(submenu, menu.newButton("stocker", function ()
-      staff.new("stocker")
+    menu.addButton(submenu, menu.newButton("cook", function ()
+      staff.new("cook")
     end))
   else
     addLockButton(submenu)
   end
   if gStars >= 4 then
-    menu.addButton(submenu, menu.newButton("cook", function ()
-      staff.new("cook")
+    menu.addButton(submenu, menu.newButton("stocker", function ()
+      staff.new("stocker")
     end))
   else
     addLockButton(submenu)
