@@ -776,11 +776,11 @@ local addSpaGoal = function (self, target)
         not room.isBroken(self.target) then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time == -1 then
-        return -1
+      if time ~= -1 then
+        return (1 - df.needs.horniness) * (1 / (1 + time))
       end
-      return (1 - df.needs.horniness) * (1 / (1 + time))
     end
+    return -1
   end
 
   local destroy
@@ -1289,7 +1289,7 @@ local addFollowGoal = function (self, target, type)
 
   goal.getDesirability = function (self, df)
     if entity.get(self.target) then
-      return 1
+      return 1000
     end
     return -1
   end
