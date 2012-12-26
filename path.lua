@@ -100,13 +100,6 @@ end
 M.removeNode = function (pos)
   local pathLoc = pos2loc(pos.roomNum, pos.floorNum)
 
-  print("BEFORE")
-  for i,j in pairs(pathMap) do
-    for k,l in ipairs(j.neighbors) do
-      print(string.format("%u -> %u", j.pathLoc, l))
-    end
-  end
-
   -- Remove neighbouring connections
   for i,neighbor in ipairs(pathMap[pathLoc].neighbors) do
     for j,v in ipairs(pathMap[neighbor].neighbors) do
@@ -120,13 +113,6 @@ M.removeNode = function (pos)
 
   -- Remove node
   pathMap[pathLoc] = nil
-
-  print("AFTER")
-  for i,j in pairs(pathMap) do
-    for k,l in ipairs(j.neighbors) do
-      print(string.format("%u -> %u", j.pathLoc, l))
-    end
-  end
 end
 
 M.get = function (src, dst)
@@ -148,8 +134,10 @@ M.get = function (src, dst)
     end
   end
 
-  -- Set heuristic scores
+  -- Set heuristic scores and clear flags
   for pathLoc, node in pairs(pathMap) do
+    node.closed = nil
+    node.open = nil
     node.hScore = math.abs(node.roomNum - dst.roomNum)/PERSON_MOVE +
       math.abs(node.floorNum - dst.floorNum)/ELEVATOR_MOVE
   end

@@ -376,7 +376,6 @@ end
 local newMoveToGoal = function (com, moveTo, moveSpeed)
   local goal = M.newGoal(com)
   goal.moveTo = {roomNum = moveTo.roomNum, floorNum = moveTo.floorNum}
-  goal.pos = {}
   goal.speed = moveSpeed
   goal.name = "moveTo"
 

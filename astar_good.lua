@@ -44,12 +44,9 @@ end
 -- @param startPos:		the position of the start node
 -- #returns path:	the found path
 local function buildPath(closedSet, startPos)
-  print("==path==")
 	local path = {closedSet[#closedSet]}
-	print(path[#path].roomNum, path[#path].floorNum)
 	while path[#path].pathLoc ~= startPos do
 		table.insert(path, closedSet[path[#path].pCloseLoc])
-		print(path[#path].roomNum, path[#path].floorNum)
 	end
 	return path
 end
@@ -75,7 +72,7 @@ function startPathing(pathMap, startPos, exitPos)
 	-- Initialize the closedSet and the testNode
 	local closedSet = {}
 	local testNode = {}
-	
+
 	-- The main loop for the algorithm. Will continue to check as long as
 	-- there are open nodes that haven't been checked.
 	while #openSet > 0 do
@@ -90,9 +87,6 @@ function startPathing(pathMap, startPos, exitPos)
 			-- Clean the path map
 			cleanPathMap(pathMap, openSet, closedSet)
 			-- Return the build path and total cost
-			if exitPos == 3 then
-			  print("cost to leave:", pathMap[exitPos].gScore)
-			 end
 			return buildPath(closedSet, startPos), pathMap[exitPos].gScore
 		end
 		
@@ -124,6 +118,7 @@ function startPathing(pathMap, startPos, exitPos)
 			end
 		end
 	end
+	
 	-- Returns nil if it failed to find any path to the exit node
 	return nil
 end
