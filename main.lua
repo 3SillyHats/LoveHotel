@@ -231,12 +231,12 @@ local setupScreen = function (modes)
   end
 
   return {
-    x = 0, --math.floor((mode.width - (CANVAS_WIDTH * scale)) / 2),
-    y = 0, --math.floor((mode.height - (CANVAS_HEIGHT * scale)) / 2),
-    width = CANVAS_WIDTH * scale, --mode.width,
-    height = CANVAS_HEIGHT * scale, --mode.height,
+    x = math.floor((mode.width - (CANVAS_WIDTH * scale)) / 2),
+    y = math.floor((mode.height - (CANVAS_HEIGHT * scale)) / 2),
+    width = mode.width,
+    height = mode.height,
     scale = scale,
-    fullscreen = false, --true,
+    fullscreen = true,
   }
 end
 conf.screen = {
@@ -1247,11 +1247,17 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
     if conf.screen.i > #conf.screen.modes then
       conf.screen.i = 1
     end
-    --love.graphics.setMode(
-    --  conf.screen.modes[conf.screen.i].width,
-    --  conf.screen.modes[conf.screen.i].height,
-    --  conf.screen.modes[conf.screen.i].fullscreen
-    --)
+    love.graphics.setMode(
+      conf.screen.modes[conf.screen.i].width,
+      conf.screen.modes[conf.screen.i].height,
+      conf.screen.modes[conf.screen.i].fullscreen
+    )
+    -- Need to force reload of fragment shader
+    if pixelEffect then
+      pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+      pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+      pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.modes[conf.screen.i].scale, CANVAS_HEIGHT*conf.screen.modes[conf.screen.i].scale})
+    end
   elseif key == "return" and (gState == STATE_PAUSE or gState == STATE_DECISION) and not input.isMapped("return") then
     returnDown = true
     event.notify("pressed", 0, "a")
