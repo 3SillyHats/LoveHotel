@@ -268,7 +268,7 @@ end
 
 M.newSpawner = function (type, pos)
   local spawner = entity.new(STATE_PLAY)
-  local itime = SPAWN_MAX
+  local itime = SPAWN_MIN
 
   local com = entity.newComponent({
     timer = itime,
@@ -276,18 +276,18 @@ M.newSpawner = function (type, pos)
     update = function (self, dt)
       if self.timer <= 0 then
         local category
-        if type == nil then
-          category = getRandomCategory()
-        else
+        if type then
           category = type
+        else
+          category = getRandomCategory()
         end
 
-        local spawnFactor = -2 * (gStars - 1)
+        local spawnAdjust = SPAWN_FACTOR * gStars
         if type then
-          spawnFactor = 5
+          spawnAdjust = 0
         end
-        local spawnMin = SPAWN_MIN + spawnFactor
-        local spawnMax = SPAWN_MAX + spawnFactor
+        local spawnMin = SPAWN_MIN - spawnAdjust
+        local spawnMax = SPAWN_MAX - spawnAdjust
         self.timer = math.random(spawnMin, spawnMax)
         self.target = M.new({
           category = category,
