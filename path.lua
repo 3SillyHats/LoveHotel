@@ -1,143 +1,95 @@
 -- path.lua
--- A* pathfinding algorithm
+-- Interface between rest of game and the astar pathfinder
 
-M = {
-  edges = {},
-  costs = {},
-  last = nil,
-}
+require "astar_good"
 
-local serialize = function (t)
+M = {}
+
+local pathMap = {}
+
+local pos2loc = function (roomNum, floorNum)
   -- Assumes roomNum is integer or integer + 1/2, floorNum is integer
-  return math.floor((t.roomNum+.25)*2)/2 .. ","
-      .. math.floor((t.floorNum+.5))
+  return math.floor(roomNum*2+.5) + 14*math.floor(floorNum+.5) + 2
 end
 
-M.addEdge = function (src, dst, cost)
-  local s_src = serialize(src)
-  local s_dst = serialize(dst)
-  if M.edges[s_src] == nil then
-    M.edges[s_src] = {}
-  end
-  M.edges[s_src][s_dst] = {
-    cost = cost,
-    src = src,
-    dst = dst,
-  }
-  M.costs = {}
-  M.last = nil
-end
+M.addNode = function (pos)
+  local pathLoc = pos2loc(pos.roomNum, pos.floorNum)
+  local neighbors = {}
+  local distance = {}
 
-M.removeEdges = function (src)
-  local s_src = serialize(src)
-  if M.edges[s_src] then
-    for s_dst,_ in pairs(M.edges[s_src]) do
-      M.edges[s_src][s_dst] = nil
-      M.edges[s_dst][s_src] = nil
+  -- Make neighbouring connections on same floor
+  for roomNum = 1, 14 do
+    local other = pathMap[pos2loc(roomNum, pos.floorNum)]
+    if other then
+      -- same-floor neighbour
+      local d = math.abs((roomNum-pos.roomNum)/2) * PERSON_MOVE
+      table.insert(neighbors, other.pathLoc)
+      table.insert(distance, d)
+      table.insert(other.neighbors, pathLoc)
+      table.insert(other.distance, d)
     end
   end
-  M.costs = {}
-  M.last = nil
+
+  -- Make neighbouring connections above
+  local above = pathMap[pos2loc(pos.floorNum, pos.floorNum + 1)]
+  if above then
+    table.insert(neighbors, above.pathLoc)
+    table.insert(distance, ELEVATOR_MOVE)
+    table.insert(above.neighbors, pathLoc)
+    table.insert(above.distance, ELEVATOR_MOVE)
+  end
+
+  -- Make neighbouring connections below
+  local below = pathMap[pos2loc(pos.floorNum, pos.floorNum - 1)]
+  if below then
+    table.insert(neighbors, below.pathLoc)
+    table.insert(distance, ELEVATOR_MOVE)
+    table.insert(below.neighbors, pathLoc)
+    table.insert(below.distance, ELEVATOR_MOVE)
+  end
+
+  -- Add new node
+  local node = newNode(
+    pathLoc, -- path index
+    0, -- heuristic score
+    neighbors, -- neighbors
+    distance -- neighbour distances
+  )
+  node.roomNum = pos.roomNum
+  node.floorNum = pos.floorNum
+  pathMap[node.pathLoc] = node
 end
 
-M.removeEdge = function (src, dst)
-  local s_src = serialize(src)
-  local s_dst = serialize(dst)
-  if M.edges[s_src] then
-    M.edges[s_src][s_dst] = nil
-  end
-  M.costs = {}
-  M.last = nil
+M.removeNode = function (pos)
+  
 end
 
 M.get = function (src, dst)
-  local s_src = serialize(src)
-  local s_dst = serialize(dst)
-  
-  if M.prev and M.prev.src == s_src and M.prev.dst == s_dst then
-    return M.prev.path
+  local src_loc = pos2loc(src.roomNum, src.floorNum)
+  local dst_loc = pos2loc(dst.roomNum, dst.floorNum)
+
+  -- Set heuristic scores
+  for pathLoc, node in pairs(pathMap) do
+    node.hScore = math.abs(node.roomNum - dst.roomNum)*PERSON_MOVE +
+      math.abs(node.floorNum - dst.floorNum)*ELEVATOR_MOVE
   end
 
-  local spt = {}
-  local sf = {}
-  local costs = {}
-  local pq = {}
-  
-  costs[s_src] = 0
-  pq[1] = {0, s_src, src}
-  while #pq > 0 do
-    table.sort(pq, function(a,b)
-      return a[1] > b[1]
-    end)
-    local next = table.remove(pq)
-    local cost = next[1]
-    local node = next[2]
-    local node_pos = next[3]
-    if sf[node] then
-      spt[node] = sf[node][2]
-    end
-    
-    if node == s_dst then
-      local path = {dst}
-      while serialize(path[1]) ~= s_src do
-        table.insert(path, 1, spt[serialize(path[1])])
-      end
-      path.cost = costs[s_dst]
-      M.prev = {
-        src = s_src,
-        dst = s_dst,
-        path = path,
-      }
-      return path
-    end
-    
-    if M.edges[node] then
-      for edst,edata in pairs(M.edges[node]) do
-        local newCost = costs[node] + edata.cost
-        if sf[edst] == nil then
-          costs[edst] = newCost
-          table.insert(pq, {newCost,edst,edata.dst})
-          sf[edst] = {node, node_pos}
-        elseif newCost < costs[edst] then
-          costs[edst] = newCost
-          for k,v in ipairs(pq) do
-            if v[2] == edst then
-              pq[k][1] = newCost
-              break
-            end
-          end
-          sf[edst] = {node, node_pos}
-        end
-      end
-    end
-  end
-  
-  M.prev = {
-    src = s_src,
-    dst = s_dst,
-    path = nil,
-  }
-  return nil
+  local p = startPathing(pathMap, src_loc, dst_loc)
+
+  -- the path, or nil if no path found
+  return p
 end
 
 M.getCost = function (src, dst)
-  local s_src = serialize(src)
-  local s_dst = serialize(dst)
-  
-  if M.costs[s_src] and M.costs[s_src][s_dst] then
-    return M.costs[s_src][s_dst]
-  end
-  
   local p = M.get(src, dst)
-  local cost = -1
-  if p then
-    cost = p.cost
+  if p and #p > 1 then
+    local d = 0
+    for i = 1, #p - 1 do
+      d = d + p[i].distance[p[i+1]]
+    end
+    return d
   end
-  if not M.costs[s_src] then
-    M.costs[s_src] = {}
-  end
-  M.costs[s_src][s_dst] = cost
-  return cost
+  return -1
 end
 
 return M

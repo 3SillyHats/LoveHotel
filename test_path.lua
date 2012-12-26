@@ -1,62 +1,21 @@
 
-H_COST = 1
-V_COST = 2
-
-CLIENT_MOVE = H_COST
-ELEVATOR_MOVE = V_COST
+PERSON_MOVE = 1
+ELEVATOR_MOVE = 2
 
 local path = require("path")
 
 -- Create a navigation graph
 
-local addH = function(roomNum, floorNum)
-  path.addEdge({
-    floorNum = floorNum,
-    roomNum = roomNum,
-  }, {
-    floorNum = floorNum,
-    roomNum = roomNum + 1,
-  }, H_COST)
-  path.addEdge({
-    floorNum = floorNum,
-    roomNum = roomNum + 1,
-  }, {
-    floorNum = floorNum,
-    roomNum = roomNum,
-  }, H_COST)
-end
-
-local addV = function(roomNum, floorNum)
-  path.addEdge({
-    floorNum = floorNum,
-    roomNum = roomNum,
-  }, {
-    floorNum = floorNum + 1,
-    roomNum = roomNum,
-  }, V_COST)
-  path.addEdge({
-    floorNum = floorNum + 1,
-    roomNum = roomNum,
-  }, {
-    floorNum = floorNum,
-    roomNum = roomNum,
-  }, V_COST)
-end
-
-for floorNum = 1, 99 do
-  for roomNum = 1, 6 do
-    addH(roomNum, floorNum)
-  end
-  
-  addV(1, floorNum)
+for floorNum = 1, 100 do
+  path.addNode({ roomNum = 1, floorNum = floorNum })
   if floorNum % 2 > 0 then
-    addV(3, floorNum)
+    path.addNode({ roomNum = 3, floorNum = floorNum })
   end
   if floorNum % 3 > 0 then
-    addV(5, floorNum)
+    path.addNode({ roomNum = 5, floorNum = floorNum })
   end
   if floorNum % 4 > 0 then
-    addV(7, floorNum)
+    path.addNode({ roomNum = 7, floorNum = floorNum })
   end
 end
 
@@ -88,11 +47,11 @@ for i = 1, 1000 do
   
   -- 3
   path.get({
-    roomNum = 2,
+    roomNum = 1,
     floorNum = 25,
   },
   {
-    roomNum = 6,
+    roomNum = 5,
     floorNum = 75,
   })
   
@@ -108,11 +67,11 @@ for i = 1, 1000 do
   
   -- 5
   path.get({
-    roomNum = 4,
+    roomNum = 5,
     floorNum = 50,
   },
   {
-    roomNum = 4,
+    roomNum = 5,
     floorNum = 40,
   })
 end
