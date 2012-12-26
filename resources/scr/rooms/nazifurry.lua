@@ -1,8 +1,8 @@
 return {
   id = "nazifurry",
   name = "Nazi Furry",
-  cost = 3000,
-  profit = 1200,
+  cost = 50000,
+  profit = 10000,
   width = 3,
   dirtyable = true,
   visitable = true,

@@ -1,11 +1,11 @@
 return {
   id = "freezer",
   name = "Freezer",
-  cost = 3000,
+  cost = 10000,
   width = 2,
   cookingSupplies = true,
   stock = 8,
-  restockCost = 1500,
+  restockCost = 5000,
   breakable = true,
   integrity = 8,
 

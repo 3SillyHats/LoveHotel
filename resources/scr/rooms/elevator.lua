@@ -1,7 +1,7 @@
 return {
   id = "elevator",
   name = "Elevator",
-  cost = 100,
+  cost = 500,
   width = 1,
   dirtyable = false,
   breakable = true,

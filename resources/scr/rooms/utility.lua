@@ -1,8 +1,8 @@
 return {
   id = "utility",
   name = "Utility Room",
-  cost = 100,
-  profit = 20,
+  cost = 200,
+  profit = 50,
   width = 1,
   dirtyable = false,
   visitable = true,

@@ -1,8 +1,8 @@
 return {
   id = "eco",
   name = "Eco Room",
-  cost = 10000,
-  profit = 5000,
+  cost = 15000,
+  profit = 3000,
   width = 5,
   dirtyable = true,
   visitable = true,

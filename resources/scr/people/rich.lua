@@ -1,25 +1,25 @@
 return {
   name = "rich",
 
-  minHorniness = 80,
-  maxHorniness = 100,
-  minHunger = 30,
-  maxHunger = 50,
-  minSupply = 1,
-  maxSupply = 3,
-  minMoney = 7000,
-  maxMoney = 9000,
-  influence = 5,
+  minHorniness = 50,
+  maxHorniness = 80,
+  minHunger = 40,
+  maxHunger = 60,
+  minSupply = 0,
+  maxSupply = 1,
+  minMoney = 12000,
+  maxMoney = 15000,
+  influence = 10,
 
   desirability = {
-    utility = 2,
+    utility = 0,
     missionary = 10,
-    spoon = 5,
-    moustache = 15,
+    spoon = 15,
     balloon = 20,
-    nazifurry = 25,
-    torture = 30,
-    eco = 35,
+    moustache = 30,
+    eco = 50,
+    torture = 70,
+    nazifurry = 100,
   },
 
   spawnChance = {
@@ -27,6 +27,6 @@ return {
     0,
     .1,
     .5,
-    1,
+    .9,
   },
 }
