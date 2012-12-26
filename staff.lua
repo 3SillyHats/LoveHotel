@@ -53,6 +53,21 @@ M.new = function (type)
           last = 2,
           speed = .2,
         },
+        cooking = {
+          first = 3,
+          last = 6,
+          speed = .2,
+        },
+        fixing = {
+          first = 7,
+          last = 10,
+          speed = .2,
+        },
+        stocking = {
+          first = 11,
+          last = 14,
+          speed = .2,
+        },
       },
       playing = "idle",
     }
@@ -81,6 +96,7 @@ M.new = function (type)
   ))
 
   --add staff uniform
+  --[[
   entity.addComponent(id, sprite.new(
     id, {
       image = resource.get(staffimg),
@@ -101,6 +117,7 @@ M.new = function (type)
       playing = "idle",
     }
   ))
+  --]]
 
   local pos = {roomNum = -.5, floorNum = GROUND_FLOOR}
   entity.addComponent(id, transform.new(
