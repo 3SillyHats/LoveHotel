@@ -423,14 +423,6 @@ local newMoveToGoal = function (com, moveTo, moveSpeed)
     old_activate(self)
   end
 
-  local old_process = goal.process
-  goal.process = function (self, dt)
-    if self.component.patience then
-      self.component.patience = self.component.patience - (.5 * dt)
-    end
-    return old_process(self, dt)
-  end
-
   local old_terminate = goal.terminate
   goal.terminate = function (self)
     old_terminate(self)
@@ -841,17 +833,23 @@ local newWaitForMealGoal = function (com, target)
   goal.target = target
   goal.name = "waitForMeal"
 
-  local mealHandler = function (room)
+  local mealHandler = function (roomId)
     local myPos = transform.getPos(goal.component.entity)
     event.notify("room.check", 0, {
       roomNum = myPos.roomNum,
       floorNum = myPos.floorNum,
       callback = function (id, type)
-        if id == room then
+        if id == roomId then
           com.orderedMeal = false
         end
       end,
     })
+    local info = room.getInfo(roomId)
+    if goal.component.money >= info.profit then
+      goal.component.money = goal.component.money - info.profit
+      moneyChange(info.profit, transform.getPos(goal.component.entity))
+      goal.component.needs.hunger = 0
+    end
   end
 
   goal.process = function (self, dt)
@@ -903,21 +901,8 @@ local addOrderMealGoal = function (self, target)
 
   local old_process = goal.process
   goal.process = function (self, dt)
-    self.component.patience = self.component.patience - dt
+    self.component.patience = self.component.patience - 5*dt
     return old_process(self, dt)
-  end
-
-  local old_terminate = goal.terminate
-  goal.terminate = function (self)
-    if self.status == "complete" and
-        self.component.money >= info.profit then
-      self.component.money = self.component.money - info.profit
-      moneyChange(info.profit, transform.getPos(self.component.entity))
-      self.component.needs.hunger = 0
-    end
-
-    old_terminate(self)
-    self.subgoals = {}
   end
 
   goal.getDesirability = function (self, t)
@@ -982,7 +967,7 @@ local newWaitForReceptionGoal = function (com, target)
       return "failed"
     end
 
-    self.component.patience = self.component.patience - (5 * dt)
+    self.component.patience = self.component.patience - 5*dt
 
     return "active"
   end
@@ -2078,7 +2063,7 @@ local newGetSnackGoal = function (self, target)
     if self.component.money >= info.profit then
       self.component.money = self.component.money - info.profit
       moneyChange(info.profit, transform.getPos(self.component.entity))
-      self.component.needs.hunger = math.max(0, self.component.needs.hunger - 70)
+      self.component.needs.hunger = math.max(0, self.component.needs.hunger - 50)
       room.use(self.target)
     end
 
@@ -2338,7 +2323,7 @@ local newPrepareFoodGoal = function (self, target)
 
   local old_activate = goal.activate
   goal.activate = function(self, dt)
-    if not self.target or self.component.supply == 0 then
+    if not self.target then
       self.status = "failed"
       return
     end
@@ -2372,8 +2357,13 @@ local newPrepareFoodGoal = function (self, target)
       return
     end
 
+    local time = COOK_TIME
+    if self.component.supply > 0 then
+      time = time / 4
+    end
+
     self.status = "active"
-    self:addSubgoal(newSleepGoal(self.component, COOK_TIME))
+    self:addSubgoal(newSleepGoal(self.component, time))
     old_activate(self)
   end
 
@@ -2384,7 +2374,7 @@ local newPrepareFoodGoal = function (self, target)
     })
 
     if self.status == "complete" then
-      self.component.supply = self.component.supply - 1
+      self.component.supply = math.max(0, self.component.supply - 1)
       self.component.hasMeal = true
       self.component.cooking = false
     end
@@ -2430,14 +2420,13 @@ local addCookGoal = function (self, target)
     end
 
     if self.component.cooking and
-        self.component.supply > 0 and
         room.occupation(self.target) == 0 then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
       if time == -1 then
         return -1
       end
-      return 1/(time + COOK_TIME)
+      return (1 + self.component.supply)/(time + COOK_TIME)
     else
       return -1
     end
@@ -2488,18 +2477,16 @@ local addIngredientsGoal = function (self, target)
       return 1000
     end
     if self.component.cooking and
+        self.component.supply == 0 and
         room.getStock(self.target) > 0 and
-        room.occupation(self.target) == 0 and
-        self.component.supply == 0 then
+        room.occupation(self.target) == 0 then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time == -1 then
-        return -1
+      if time ~= -1 then
+        return 10 / (SUPPLY_TIME + time)
       end
-      return 1 / (1 + time)
-    else
-      return -1
     end
+    return -1
   end
 
   local destroy
@@ -2637,8 +2624,7 @@ local addServeMealGoal = function (self)
   goal.terminate = function (self)
     if self.status == "complete" then
       if self.component.hasMeal then
-        event.notify("staff.cook.serveMeal",
-          self.component.client, self.component.clientRoom)
+        event.notify("staff.cook.serveMeal", self.component.client, self.component.clientRoom)
       end
     end
     self.component.client = nil
