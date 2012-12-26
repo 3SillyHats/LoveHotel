@@ -1351,9 +1351,9 @@ local addExitGoal = function (self)
     if self.component.leader and self.status == "complete" then
       local info = resource.get("scr/people/" .. self.component.category .. ".lua")
       if self.component.needs.horniness < 100 then
-        reputationChange(info.goodRep)
+        reputationChange(info.influence)
       else
-        reputationChange(-info.badRep)
+        reputationChange(-3*info.influence)
       end
     end
 

@@ -9,8 +9,7 @@ return {
   maxSupply = 1,
   minMoney = 1500,
   maxMoney = 1800,
-  goodRep = 5,
-  badRep = 15,
+  influence = 5,
 
   desirability = {
     utility = 2,
