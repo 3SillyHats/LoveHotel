@@ -37,6 +37,25 @@ local pathMap = { -- initial, special nodes
   },
 }
 
+local getPathMap = function ()
+  local pm = {}
+  for i,j in pairs(pathMap) do
+    pm[i] = {
+      pathLoc = j.pathLoc,
+      hScore = j.hScore,
+      neighbors = {},
+      distance = {},
+      roomNum = j.roomNum,
+      floorNum = j.floorNum,
+    }
+    for k,l in ipairs(j.neighbors) do
+      pm[i].neighbors[k] = l
+      pm[i].distance[k] = j.distance[k]
+    end
+  end
+  return pm
+end
+
 local pos2loc = function (roomNum, floorNum)
   if floorNum == 0 then
     if roomNum == -.5 then
@@ -154,7 +173,7 @@ M.get = function (src, dst)
       math.abs(node.floorNum - dst.floorNum)/ELEVATOR_MOVE
   end
 
-  local p, c = startPathing(pathMap, SRC_LOC, DST_LOC)
+  local p, c = startPathing(getPathMap(), SRC_LOC, DST_LOC)
 
   -- Remove src and dst nodes
   pathMap[SRC_LOC].neighbors = {}
