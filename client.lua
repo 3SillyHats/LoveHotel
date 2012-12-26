@@ -326,22 +326,22 @@ event.subscribe("floor.new", 0, function (level)
     path.addEdge(
       {roomNum = -.5, floorNum = level},
       {roomNum = 0, floorNum = level},
-      .5/CLIENT_MOVE
+      .5/PERSON_MOVE
     )
     path.addEdge(
       {roomNum = 0, floorNum = level},
       {roomNum = -.5, floorNum = level},
-      .5/CLIENT_MOVE
+      .5/PERSON_MOVE
     )
     path.addEdge(
       {roomNum = 0, floorNum = level},
       {roomNum = .5, floorNum = level},
-      .5/CLIENT_MOVE
+      .5/PERSON_MOVE
     )
     path.addEdge(
       {roomNum = .5, floorNum = level},
       {roomNum = 0, floorNum = level},
-      .5/CLIENT_MOVE
+      .5/PERSON_MOVE
     )
   end
 end)

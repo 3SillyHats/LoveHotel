@@ -396,7 +396,8 @@ local newMoveToGoal = function (com, moveTo, moveSpeed)
     else
       local last = self.pos
       local old = nil
-      for _,pos in ipairs(p) do
+      for i = #p, 1, -1 do
+        local pos = p[i]
         if old then
           if last.roomNum ~= old.roomNum and old.floorNum ~= pos.floorNum then
             self:addSubgoal(newSeekGoal(self.component, last, {roomNum = old.roomNum, floorNum = last.floorNum}, moveSpeed))
@@ -732,7 +733,7 @@ local addSpaGoal = function (self, target)
       return
     end
 
-    self:addSubgoal(newMoveToGoal(self.component, targetPos, CLIENT_MOVE))
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     self.relax = newRelaxGoal(self.component, self.target)
     self:addSubgoal(self.relax)
     old_activate(self)
@@ -894,7 +895,7 @@ local addOrderMealGoal = function (self, target)
 
   local old_activate = goal.activate
   goal.activate = function (self)
-    goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), CLIENT_MOVE))
+    goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), PERSON_MOVE))
     goal:addSubgoal(newWaitForWaiterGoal(self.component, target))
     goal:addSubgoal(newWaitForMealGoal(self.component, target))
 
@@ -1039,7 +1040,7 @@ local addCheckInGoal = function (self, target)
 
   local old_activate = goal.activate
   goal.activate = function (self)
-    goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), CLIENT_MOVE))
+    goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), PERSON_MOVE))
     receptionGoal = newWaitForReceptionGoal(self.component, target)
     goal:addSubgoal(receptionGoal)
     old_activate(self)
@@ -1086,7 +1087,7 @@ local addVisitGoal = function (self, target)
 
   local old_activate = goal.activate
   goal.activate = function (self)
-    goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), CLIENT_MOVE))
+    goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), PERSON_MOVE))
     sexGoal = newSexGoal(self.component, target)
     goal:addSubgoal(sexGoal)
     old_activate(self)
@@ -1140,9 +1141,9 @@ local addFollowGoal = function (self, target, type)
   goal.name = "follow"
 
   if type == "client" then
-    goal.move = CLIENT_MOVE
+    goal.move = PERSON_MOVE
   elseif type == "staff" then
-    goal.move = STAFF_MOVE
+    goal.move = PERSON_MOVE
   end
 
   local sexGoal = nil
@@ -1340,7 +1341,7 @@ local addExitGoal = function (self)
       level = SPACE_SPAWN
     end
 
-    goal:addSubgoal(newMoveToGoal(self.component, {roomNum = -.5, floorNum = level}, CLIENT_MOVE))
+    goal:addSubgoal(newMoveToGoal(self.component, {roomNum = -.5, floorNum = level}, PERSON_MOVE))
     goal:addSubgoal(newDestroyGoal(self.component))
     old_activate(self)
   end
@@ -1450,7 +1451,7 @@ local addMaintenanceGoal = function (self, target)
       return
     end
 
-    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     fixing = newFixGoal(self.component, self.target)
     self:addSubgoal(fixing)
     old_activate(self)
@@ -1573,7 +1574,7 @@ local addStockGoal = function (self, target)
       return
     end
 
-    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     restocking = newRestockGoal(self.component, self.target)
     self:addSubgoal(restocking)
     old_activate(self)
@@ -1706,7 +1707,7 @@ local addCleanGoal = function (self, target)
       return
     end
 
-    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     cleaning = newPerformCleanGoal(self.component, self.target)
     self:addSubgoal(cleaning)
     old_activate(self)
@@ -1852,7 +1853,7 @@ local addSupplyGoal = function (self, target)
       return
     end
 
-    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     supply = newGetSupplyGoal(self.component, self.target, true)
     self:addSubgoal(supply)
     old_activate(self)
@@ -1985,7 +1986,7 @@ local addCondomGoal = function (self, target)
       return
     end
 
-    self:addSubgoal(newMoveToGoal(self.component, targetPos, CLIENT_MOVE))
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     condom = newGetCondomGoal(self.component, self.target)
     self:addSubgoal(condom)
     old_activate(self)
@@ -2117,7 +2118,7 @@ local addSnackGoal = function (self, target)
       return
     end
 
-    self:addSubgoal(newMoveToGoal(self.component, targetPos, CLIENT_MOVE))
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     food = newGetSnackGoal(self.component, self.target)
     self:addSubgoal(food)
     old_activate(self)
@@ -2263,7 +2264,7 @@ local addBellhopGoal = function (self, target)
       return
     end
 
-    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     reception = newReceptionGoal(self.component, self.target)
     self:addSubgoal(reception)
     old_activate(self)
@@ -2309,7 +2310,7 @@ local addEnterGoal = function (self)
 
   local old_activate = goal.activate
   goal.activate = function (self)
-    seek = newSeekGoal(self.component, goal.pos, {roomNum = 1, floorNum = goal.pos.floorNum}, STAFF_MOVE)
+    seek = newSeekGoal(self.component, goal.pos, {roomNum = 1, floorNum = goal.pos.floorNum}, PERSON_MOVE)
     self:addSubgoal(seek)
     old_activate(self)
   end
@@ -2424,7 +2425,7 @@ local addCookGoal = function (self, target)
       return
     end
 
-    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     prepareGoal = newPrepareFoodGoal(self.component, self.target)
     self:addSubgoal(prepareGoal)
     old_activate(self)
@@ -2479,7 +2480,7 @@ local addIngredientsGoal = function (self, target)
       return
     end
 
-    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     supply = newGetSupplyGoal(self.component, self.target, false)
     self:addSubgoal(supply)
     old_activate(self)
@@ -2594,7 +2595,7 @@ local addWaiterGoal = function (self, target)
       return
     end
 
-    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     takeOrder = newTakeOrderGoal(self.component, self.target)
     self:addSubgoal(takeOrder)
     old_activate(self)
@@ -2641,7 +2642,7 @@ local addServeMealGoal = function (self)
     end
 
     local targetPos = room.getPos(self.component.clientRoom)
-    self:addSubgoal(newMoveToGoal(self.component, targetPos, STAFF_MOVE))
+    self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     old_activate(self)
   end
 
@@ -2682,7 +2683,7 @@ local addWanderGoal = function (com)
       floorNum = myPos.floorNum,
       roomNum = (6 * math.random()) + 1,
     }
-    self:addSubgoal(newSeekGoal(com, myPos, targetPos, STAFF_MOVE))
+    self:addSubgoal(newSeekGoal(com, myPos, targetPos, PERSON_MOVE))
     self:addSubgoal(newSleepGoal(com, (4*math.random())+1))
   end
 
@@ -2726,93 +2727,15 @@ M.new = function (id)
   return com
 end
 
-path.addEdge(
-  {roomNum = -.5, floorNum = GROUND_FLOOR},
-  {roomNum = 0, floorNum = GROUND_FLOOR},
-  .5/CLIENT_MOVE
-)
-path.addEdge(
-  {roomNum = 0, floorNum = GROUND_FLOOR},
-  {roomNum = -.5, floorNum = GROUND_FLOOR},
-  .5/CLIENT_MOVE
-)
-path.addEdge(
-  {roomNum = 0, floorNum = GROUND_FLOOR},
-  {roomNum = .5, floorNum = GROUND_FLOOR},
-  .5/CLIENT_MOVE
-)
-path.addEdge(
-  {roomNum = .5, floorNum = GROUND_FLOOR},
-  {roomNum = 0, floorNum = GROUND_FLOOR},
-  .5/CLIENT_MOVE
-)
-
-event.subscribe("floor.new", 0, function (level)
-  for i = .5, 7, .5 do
-    path.addEdge(
-      {roomNum = i, floorNum = level},
-      {roomNum = i+.5, floorNum = level},
-      .5/CLIENT_MOVE
-    )
-    path.addEdge(
-      {roomNum = i+.5, floorNum = level},
-      {roomNum = i, floorNum = level},
-      .5/CLIENT_MOVE
-    )
-  end
-end)
-
 local addElevator = function (t)
   if t.type == "elevator" then
-    -- Check for elevator above
-    event.notify("room.check", 0, {
-      roomNum = t.pos.roomNum,
-      floorNum = t.pos.floorNum + 1,
-      callback = function (id, type)
-        if type == "elevator" and not room.isBroken(id) then
-          local dst = {
-            roomNum = t.pos.roomNum,
-            floorNum = t.pos.floorNum + 1,
-          }
-          path.addEdge(t.pos, dst, 1/ELEVATOR_MOVE)
-          path.addEdge(dst, t.pos, 1/ELEVATOR_MOVE)
-        end
-      end,
-    })
-
-    -- Check for elevator below
-    event.notify("room.check", 0, {
-      roomNum = t.pos.roomNum,
-      floorNum = t.pos.floorNum - 1,
-      callback = function (id, type)
-        if type == "elevator" and not room.isBroken(id) then
-          local dst = {
-            roomNum = t.pos.roomNum,
-            floorNum = t.pos.floorNum - 1,
-          }
-          path.addEdge(t.pos, dst, 1/ELEVATOR_MOVE)
-          path.addEdge(dst, t.pos, 1/ELEVATOR_MOVE)
-        end
-      end,
-    })
+    path.addNode(t.pos)
   end
 end
 
 local removeElevator = function (t)
   if t.type == "elevator" then
-    local dst = {
-      roomNum = t.pos.roomNum,
-      floorNum = t.pos.floorNum + 1,
-    }
-    path.removeEdge(t.pos,dst)
-    path.removeEdge(dst,t.pos)
-
-    dst = {
-      roomNum = t.pos.roomNum,
-      floorNum = t.pos.floorNum - 1,
-    }
-    path.removeEdge(t.pos,dst)
-    path.removeEdge(dst,t.pos)
+    path.removeNode(t.pos)
   end
 end
 

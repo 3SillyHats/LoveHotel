@@ -1,15 +1,52 @@
 -- path.lua
 -- Interface between rest of game and the astar pathfinder
 
+local SRC_LOC = 1
+local DST_LOC = 2
+
 require "astar_good"
 
-M = {}
+local M = {}
 
-local pathMap = {}
+local pathMap = { -- initial, special nodes
+  { -- source
+    pathLoc = SRC_LOC,
+    neighbors = {},
+    distance = {},
+  },
+  { -- destination
+    pathLoc = DST_LOC,
+    neighbors = {},
+    distance = {},
+  },
+  { -- this and the next allow walking in from the left screen edge
+    pathLoc = 3,
+    hScore = 0,
+    neighbors = {4},
+    distance = {1/PERSON_MOVE},
+    roomNum = -.5,
+    floorNum = 0,
+  },
+  {
+    pathLoc = 4,
+    hScore = 0,
+    neighbors = {3},
+    distance = {1/PERSON_MOVE},
+    roomNum = .5,
+    floorNum = 0,
+  },
+}
 
 local pos2loc = function (roomNum, floorNum)
+  if floorNum == 0 then
+    if roomNum == -.5 then
+      return 3 
+    elseif roomNum == .5 then
+      return 4
+    end
+  elseif floorNum < 0 then floorNum = 100 - floorNum end
   -- Assumes roomNum is integer or integer + 1/2, floorNum is integer
-  return math.floor(roomNum*2+.5) + 14*math.floor(floorNum+.5) + 2
+  return math.floor(roomNum*2+.5) + 14*math.floor(floorNum+.5) + 4
 end
 
 M.addNode = function (pos)
@@ -18,11 +55,11 @@ M.addNode = function (pos)
   local distance = {}
 
   -- Make neighbouring connections on same floor
-  for roomNum = 1, 14 do
+  for roomNum = .5, 7, .5 do
     local other = pathMap[pos2loc(roomNum, pos.floorNum)]
     if other then
       -- same-floor neighbour
-      local d = math.abs((roomNum-pos.roomNum)/2) * PERSON_MOVE
+      local d = math.abs(roomNum - pos.roomNum) / PERSON_MOVE
       table.insert(neighbors, other.pathLoc)
       table.insert(distance, d)
       table.insert(other.neighbors, pathLoc)
@@ -34,18 +71,18 @@ M.addNode = function (pos)
   local above = pathMap[pos2loc(pos.floorNum, pos.floorNum + 1)]
   if above then
     table.insert(neighbors, above.pathLoc)
-    table.insert(distance, ELEVATOR_MOVE)
+    table.insert(distance, 1/ELEVATOR_MOVE)
     table.insert(above.neighbors, pathLoc)
-    table.insert(above.distance, ELEVATOR_MOVE)
+    table.insert(above.distance, 1/ELEVATOR_MOVE)
   end
 
   -- Make neighbouring connections below
   local below = pathMap[pos2loc(pos.floorNum, pos.floorNum - 1)]
   if below then
     table.insert(neighbors, below.pathLoc)
-    table.insert(distance, ELEVATOR_MOVE)
+    table.insert(distance, 1/ELEVATOR_MOVE)
     table.insert(below.neighbors, pathLoc)
-    table.insert(below.distance, ELEVATOR_MOVE)
+    table.insert(below.distance, 1/ELEVATOR_MOVE)
   end
 
   -- Add new node
@@ -65,29 +102,51 @@ M.removeNode = function (pos)
 end
 
 M.get = function (src, dst)
-  local src_loc = pos2loc(src.roomNum, src.floorNum)
-  local dst_loc = pos2loc(dst.roomNum, dst.floorNum)
+  -- Add src and dst nodes
+  pathMap[SRC_LOC].roomNum = src.roomNum
+  pathMap[SRC_LOC].floorNum = src.floorNum
+  pathMap[DST_LOC].roomNum = dst.roomNum
+  pathMap[DST_LOC].floorNum = dst.floorNum
+  for roomNum = .5, 7, .5 do
+    local src_n = pathMap[pos2loc(roomNum, src.floorNum)]
+    if src_n then
+      table.insert(pathMap[SRC_LOC].neighbors, src_n.pathLoc)
+      table.insert(pathMap[SRC_LOC].distance, math.abs(src.roomNum - src_n.roomNum)/PERSON_MOVE)
+    end
+    local dst_n = pathMap[pos2loc(roomNum, dst.floorNum)]
+    if dst_n then
+      table.insert(dst_n.neighbors, DST_LOC)
+      table.insert(dst_n.distance, math.abs(dst.roomNum - dst_n.roomNum)/PERSON_MOVE)
+    end
+  end
 
   -- Set heuristic scores
   for pathLoc, node in pairs(pathMap) do
-    node.hScore = math.abs(node.roomNum - dst.roomNum)*PERSON_MOVE +
-      math.abs(node.floorNum - dst.floorNum)*ELEVATOR_MOVE
+    node.hScore = math.abs(node.roomNum - dst.roomNum)/PERSON_MOVE +
+      math.abs(node.floorNum - dst.floorNum)/ELEVATOR_MOVE
   end
 
-  local p = startPathing(pathMap, src_loc, dst_loc)
+  local p, c = startPathing(pathMap, SRC_LOC, DST_LOC)
+
+  -- Remove src and dst nodes
+  pathMap[SRC_LOC].neighbors = {}
+  pathMap[SRC_LOC].distance = {}
+  for roomNum = .5, 7, .5 do
+    local dst_n = pathMap[pos2loc(roomNum, dst.floorNum)]
+    if dst_n then
+      table.remove(dst_n.neighbors)
+      table.remove(dst_n.distance)
+    end
+  end
 
   -- the path, or nil if no path found
-  return p
+  return p, c
 end
 
 M.getCost = function (src, dst)
-  local p = M.get(src, dst)
-  if p and #p > 1 then
-    local d = 0
-    for i = 1, #p - 1 do
-      d = d + p[i].distance[p[i+1]]
-    end
-    return d
+  local path, cost = M.get(src, dst)
+  if path then
+    return cost
   end
   return -1
 end

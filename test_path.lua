@@ -47,11 +47,11 @@ for i = 1, 1000 do
   
   -- 3
   path.get({
-    roomNum = 1,
+    roomNum = 2,
     floorNum = 25,
   },
   {
-    roomNum = 5,
+    roomNum = 6,
     floorNum = 75,
   })
   
@@ -67,11 +67,11 @@ for i = 1, 1000 do
   
   -- 5
   path.get({
-    roomNum = 5,
+    roomNum = 4,
     floorNum = 50,
   },
   {
-    roomNum = 5,
+    roomNum = 4,
     floorNum = 40,
   })
 end
