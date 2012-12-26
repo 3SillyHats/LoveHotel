@@ -158,6 +158,7 @@ M.new = function (type)
 
     -- start with no cooking supplies
     aiComponent.supply = 0
+    aiComponent.hasMeal = 0
 
     addRoomGoal = function (id)
       local info = room.getInfo(id)
