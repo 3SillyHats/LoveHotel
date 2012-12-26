@@ -78,6 +78,13 @@ local transform = require("transform")
 local path = require("path")
 local decision = require("decision")
 
+local thousandify = function (str)
+  if str:len() > 3 then
+    str = str:sub(1, -4) .. "," .. str:sub(-3, -1)
+  end
+  return str
+end
+
 conf = {
   menu = {
     -- Main menu
@@ -117,11 +124,11 @@ conf = {
     -- Structure
     floorUp =  {
       name="Build Up",
-      desc="$" .. UP_FLOOR_BASE,
+      desc="$" .. thousandify(tostring(UP_FLOOR_BASE)),
     },
     floorDown =  {
       name="Build Down",
-      desc="$" .. DOWN_FLOOR_BASE,
+      desc="$" .. thousandify(tostring(DOWN_FLOOR_BASE)),
     },
     destroy =  {
       name="Destroy",
@@ -202,7 +209,7 @@ for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
   local room = resource.get("scr/rooms/" .. fname)
   conf.menu[room.id] = {
     name = room.name,
-    desc = "$" .. room.cost,
+    desc = "$" .. thousandify(tostring(room.cost)),
   }
 end
 
@@ -476,7 +483,7 @@ local floorUp = function()
       amount = -cost,
     })
     gTopFloor = gTopFloor + 1
-    conf.menu["floorUp"].desc = "$" .. tostring(UP_FLOOR_BASE + (gTopFloor * UP_FLOOR_INC))
+    conf.menu["floorUp"].desc = "$" .. thousandify(tostring(UP_FLOOR_BASE + (gTopFloor * UP_FLOOR_INC)))
     event.notify("menu.info", 0, {selected = "floorUp"})
     local newFloor = newFloor(gTopFloor)
   else
@@ -494,7 +501,7 @@ local floorDown = function()
       amount = -cost,
     })
     gBottomFloor = gBottomFloor - 1
-    conf.menu["floorDown"].desc = "$" .. tostring(DOWN_FLOOR_BASE + (gBottomFloor * DOWN_FLOOR_INC))
+    conf.menu["floorDown"].desc = "$" .. thousandify(tostring(DOWN_FLOOR_BASE + (gBottomFloor * DOWN_FLOOR_INC)))
     event.notify("menu.info", 0, {selected = "floorDown"})
     local newFloor = newFloor(gBottomFloor)
   else
@@ -940,10 +947,7 @@ local moneyCom = entity.newComponent()
 moneyCom.change = 0
 moneyCom.changeTimer = 0
 moneyCom.draw = function (self)
-  local money = tostring(gMoney)
-  if money:len() > 3 then
-    money = money:sub(1, -4) .. "," .. money:sub(-3, -1)
-  end
+  local money = thousandify(tostring(gMoney))
   
   love.graphics.setFont(gFont)
   love.graphics.setColor(255, 255, 255)
@@ -996,10 +1000,10 @@ event.subscribe("money.change", 0, function (e)
       local str = ""
       if self.amount > 0 then
         colors[2] = {0, 184, 0}
-        str = "+"..self.amount
+        str = "+"..thousandify(tostring(self.amount))
       elseif self.amount < 0 then
         colors[2] = {172, 16, 0}
-        str = self.amount
+        str = thousandify(tostring(self.amount))
       end
       for i = 1, #colors do
         love.graphics.setColor(colors[i])
