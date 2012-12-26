@@ -310,39 +310,18 @@ end
 M.newSpawner(nil, {roomNum = -.5, floorNum = GROUND_FLOOR})
 
 event.subscribe("floor.new", 0, function (level)
-  local newFloor = false
   if level == SKY_SPAWN then
-    M.newSpawner("sky", {roomNum = -.5, floorNum = SKY_SPAWN})
-    newFloor = true
+    local pos = {roomNum = -.5, floorNum = SKY_SPAWN}
+    M.newSpawner("sky", pos)
+    path.addNode(pos)
   elseif level == GROUND_SPAWN then
-    M.newSpawner("ground", {roomNum = -.5, floorNum = GROUND_SPAWN})
-    newFloor = true
+    local pos = {roomNum = -.5, floorNum = GROUND_SPAWN}
+    M.newSpawner("ground", pos)
+    path.addNode(pos)
   elseif level == SPACE_SPAWN then
-    M.newSpawner("space", {roomNum = -.5, floorNum = SPACE_SPAWN})
-    newFloor = true
-  end
-
-  if newFloor then
-    path.addEdge(
-      {roomNum = -.5, floorNum = level},
-      {roomNum = 0, floorNum = level},
-      .5/PERSON_MOVE
-    )
-    path.addEdge(
-      {roomNum = 0, floorNum = level},
-      {roomNum = -.5, floorNum = level},
-      .5/PERSON_MOVE
-    )
-    path.addEdge(
-      {roomNum = 0, floorNum = level},
-      {roomNum = .5, floorNum = level},
-      .5/PERSON_MOVE
-    )
-    path.addEdge(
-      {roomNum = .5, floorNum = level},
-      {roomNum = 0, floorNum = level},
-      .5/PERSON_MOVE
-    )
+    local pos = {roomNum = -.5, floorNum = SPACE_SPAWN}
+    M.newSpawner("space", pos)
+    path.addNode(pos)
   end
 end)
 
