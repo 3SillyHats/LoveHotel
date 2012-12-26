@@ -46,7 +46,7 @@ local pos2loc = function (roomNum, floorNum)
     end
   elseif floorNum < 0 then floorNum = 100 - floorNum end
   -- Assumes roomNum is integer or integer + 1/2, floorNum is integer
-  return math.floor(roomNum*2+.5) + 14*math.floor(floorNum+.5) + 4
+  return math.floor(roomNum*2+.5) + 15*math.floor(floorNum+.5) + 4
 end
 
 M.addNode = function (pos)
@@ -68,7 +68,7 @@ M.addNode = function (pos)
   end
 
   -- Make neighbouring connections above
-  local above = pathMap[pos2loc(pos.floorNum, pos.floorNum + 1)]
+  local above = pathMap[pos2loc(pos.roomNum, pos.floorNum + 1)]
   if above then
     table.insert(neighbors, above.pathLoc)
     table.insert(distance, 1/ELEVATOR_MOVE)
@@ -77,7 +77,7 @@ M.addNode = function (pos)
   end
 
   -- Make neighbouring connections below
-  local below = pathMap[pos2loc(pos.floorNum, pos.floorNum - 1)]
+  local below = pathMap[pos2loc(pos.roomNum, pos.floorNum - 1)]
   if below then
     table.insert(neighbors, below.pathLoc)
     table.insert(distance, 1/ELEVATOR_MOVE)
@@ -98,7 +98,35 @@ M.addNode = function (pos)
 end
 
 M.removeNode = function (pos)
-  
+  local pathLoc = pos2loc(pos.roomNum, pos.floorNum)
+
+  print("BEFORE")
+  for i,j in pairs(pathMap) do
+    for k,l in ipairs(j.neighbors) do
+      print(string.format("%u -> %u", j.pathLoc, l))
+    end
+  end
+
+  -- Remove neighbouring connections
+  for i,neighbor in ipairs(pathMap[pathLoc].neighbors) do
+    for j,v in ipairs(pathMap[neighbor].neighbors) do
+      if v == pathLoc and v > 4 then
+        table.remove(pathMap[neighbor].neighbors, j)
+        table.remove(pathMap[neighbor].distance, j)
+        break -- to outer loop of our neighbours
+      end
+    end
+  end
+
+  -- Remove node
+  pathMap[pathLoc] = nil
+
+  print("AFTER")
+  for i,j in pairs(pathMap) do
+    for k,l in ipairs(j.neighbors) do
+      print(string.format("%u -> %u", j.pathLoc, l))
+    end
+  end
 end
 
 M.get = function (src, dst)

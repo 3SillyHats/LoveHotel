@@ -1723,28 +1723,16 @@ local addCleanGoal = function (self, target)
     if cleaning and cleaning.status == "active" then
       return 1000
     end
-    if self.component.supply == 0 then
-      return -1
-    end
-    local myPos = transform.getPos(self.component.entity)
-    local time = path.getCost(myPos, targetPos)
-    if time == -1 then
-      return -1
-    end
-    time = time + CLEAN_TIME
-    if room.isDirty(self.target) then
-      if room.occupation(self.target) == 0 then
-        return info.profit/time
-      else
-        return -1
-      end
-    else
-      if room.occupation(self.target) > 0 and info.dirtyable then
-        return info.profit/math.max(time, SEX_TIME+CLEAN_TIME)
-      else
-        return -1
+    if self.component.supply > 0 and
+        room.occupation(self.target) == 0 and
+        room.isDirty(self.target) then
+      local myPos = transform.getPos(self.component.entity)
+      local time = path.getCost(myPos, targetPos)
+      if time ~= -1 then
+        return info.profit / (CLEAN_TIME + time)
       end
     end
+    return -1
   end
 
   local function destroy (t)
