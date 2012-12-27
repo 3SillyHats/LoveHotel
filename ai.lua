@@ -1654,7 +1654,8 @@ local newPerformCleanGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    room.exit()
+    room.exit(self.target)
+    room.setDirty(self.target, false)
 
     event.notify("sprite.hide", self.component.entity, false)
     event.notify("sprite.play", self.target, "cleanless")

@@ -54,6 +54,10 @@ local infoComponent = function (id, info, pos)
     callback(component.messy)
   end
 
+  local setDirty = function (value)
+    component.messy = value
+  end
+
   local checkOccupied = function (callback)
     callback(component.occupied)
   end
@@ -205,6 +209,7 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("room.unoccupied", 0, unoccupied)
     event.unsubscribe("room.dirty", 0, dirtyRooms)
     event.unsubscribe("room.isDirty", id, isDirty)
+    event.unsubscribe("room.setDirty", id, setDirty)
     event.unsubscribe("room.occupation", id, checkOccupied)
     event.unsubscribe("room.reservations", id, checkReservations)
     event.unsubscribe("room.getStock", id, getStock)
@@ -227,6 +232,7 @@ local infoComponent = function (id, info, pos)
   event.subscribe("room.unoccupied", 0, unoccupied)
   event.subscribe("room.dirty", 0, dirtyRooms)
   event.subscribe("room.isDirty", id, isDirty)
+  event.subscribe("room.setDirty", id, setDirty)
   event.subscribe("room.occupation", id, checkOccupied)
   event.subscribe("room.reservations", id, checkReservations)
   event.subscribe("room.getStock", id, getStock)
@@ -356,6 +362,13 @@ M.isDirty = function (id)
     end)
   end
   return dirty
+end
+
+M.setDirty = function (id, value)
+  local info = M.getInfo(id)
+  if info.dirtyable then
+    event.notify("room.setDirty", id, value)
+  end
 end
 
 M.enter = function (id)
