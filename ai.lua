@@ -678,19 +678,12 @@ local newRelaxGoal = function (self, target)
       return
     end
 
-    local relaxing = false
-    event.notify("room.beginRelax", self.target, {
-      id = self.component.entity,
-      enter = true,
-      callback = function (res)
-        relaxing = res
-      end,
-    })
-
-    if not relaxing then
+    if room.occupied(self.target) > 0 then
       self.status = "failed"
       return
     end
+    
+    room.enter(self.target)
 
     self.status = "active"
     old_activate(self)
@@ -707,9 +700,7 @@ local newRelaxGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    event.notify("room.endRelax", self.target, {
-      id = self.component.entity,
-    })
+    room.exit(self.target)
     room.use(self.target)
 
     old_terminate(self)
@@ -805,17 +796,7 @@ local newWaitForWaiterGoal = function (com, target)
       return
     end
 
-    local occupied = false
-    event.notify("room.occupy", self.target, {
-      id = self.component.entity,
-      callback = function (success)
-        occupied = success
-      end,
-    })
-    if not occupied then
-      self.status = "failed"
-      return
-    end
+    room.enter(self.target)
 
     event.subscribe("staff.queryServe", self.target, queryHandler)
     event.subscribe("staff.cook.serve", com.entity, serveHandler)
@@ -825,9 +806,7 @@ local newWaitForWaiterGoal = function (com, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function(self)
-    event.notify("room.depart", self.target, {
-      id = self.component.entity,
-    })
+    room.exit(self.target)
 
     event.unsubscribe("staff.queryServe", self.target, queryHandler)
     event.unsubscribe("staff.cook.serve", com.entity, serveHandler)
@@ -1008,17 +987,7 @@ local newWaitForReceptionGoal = function (com, target)
       return
     end
 
-    local occupied = false
-    event.notify("room.occupy", self.target, {
-      id = self.component.entity,
-      callback = function (success)
-        occupied = success
-      end,
-    })
-    if not occupied then
-      self.status = "failed"
-      return
-    end
+    room.enter(self.target)
 
     event.subscribe("staff.queryServe", self.target, queryHandler)
     event.subscribe("staff.bellhop.serve", com.entity, serveHandler)
@@ -1028,10 +997,8 @@ local newWaitForReceptionGoal = function (com, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function(self)
-    event.notify("room.depart", self.target, {
-      id = self.component.entity,
-    })
-
+    room.exit(self.target)
+    
     event.unsubscribe("staff.queryServe", self.target, queryHandler)
     event.unsubscribe("staff.bellhop.serve", com.entity, serveHandler)
     
@@ -1433,18 +1400,12 @@ local newFixGoal = function (self, target)
       return
     end
 
-    local fixing = false
-    event.notify("room.beginFix", self.target, {
-      id = self.component.entity,
-      callback = function (res)
-        fixing = res
-      end,
-    })
-
-    if not fixing then
+    if room.occupation(self.target) > 0 then
       self.status = "failed"
       return
     end
+
+    room.enter(self.target)
 
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, FIX_TIME))
@@ -1453,9 +1414,7 @@ local newFixGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    event.notify("room.endFix", self.target, {
-      id = self.component.entity,
-    })
+    room.exit(self.target)
 
     local info = room.getInfo(self.target)
     local integrity = info.integrity + math.random(1, info.integrity)
@@ -1552,18 +1511,12 @@ local newRestockGoal = function (self, target)
       return
     end
 
-    local restocking = false
-    event.notify("room.beginRestock", self.target, {
-      id = self.component.entity,
-      callback = function (res)
-        restocking = res
-      end,
-    })
-
-    if not restocking then
+    if room.occupation(self.target) > 0 then
       self.status = "failed"
       return
     end
+
+    room.enter(self.target)
 
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, RESTOCK_TIME))
@@ -1572,9 +1525,7 @@ local newRestockGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    event.notify("room.endRestock", self.target, {
-      id = self.component.entity,
-    })
+    room.exit(self.target)
 
     local myPos = transform.getPos(self.component.entity)
     local info = room.getInfo(self.target)
@@ -1674,18 +1625,12 @@ local newPerformCleanGoal = function (self, target)
       return
     end
 
-    local cleaning = false
-    event.notify("room.beginClean", self.target, {
-      id = self.component.entity,
-      callback = function (res)
-        cleaning = res
-      end,
-    })
-
-    if not cleaning then
+    if room.occupation(self.target) > 0 then
       self.status = "failed"
       return
     end
+
+    room.enter(self.target)
 
     event.notify("sprite.hide", self.component.entity, true)
     event.notify("sprite.play", self.target, "closing")
@@ -1709,9 +1654,7 @@ local newPerformCleanGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    event.notify("room.endClean", self.target, {
-      id = self.component.entity,
-    })
+    room.exit()
 
     event.notify("sprite.hide", self.component.entity, false)
     event.notify("sprite.play", self.target, "cleanless")
@@ -1807,18 +1750,13 @@ local newGetSupplyGoal = function (self, target, hidden)
     end
 
     local supplying = false
-    event.notify("room.beginSupply", self.target, {
-      id = self.component.entity,
-      enter = true,
-      callback = function (res)
-        supplying = res
-      end,
-    })
 
-    if not supplying then
+    if room.occupation(self.target) > 0 then
       self.status = "failed"
       return
     end
+
+    room.enter(self.target)
 
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, SUPPLY_TIME))
@@ -1845,9 +1783,7 @@ local newGetSupplyGoal = function (self, target, hidden)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    event.notify("room.endSupply", self.target, {
-      id = self.component.entity,
-    })
+    room.exit(self.target)
     event.notify("sprite.hide", self.component.entity, false)
     room.use(self.target)
 
@@ -1952,19 +1888,12 @@ local newGetCondomGoal = function (self, target)
       return
     end
 
-    local supplying = false
-    event.notify("room.beginSupply", self.target, {
-      id = self.component.entity,
-      enter = false,
-      callback = function (res)
-        supplying = res
-      end,
-    })
-
-    if not supplying then
+    if room.occupation(self.target) > 0 then
       self.status = "failed"
       return
     end
+
+    room.enter(self.target)
 
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, CONDOM_TIME))
@@ -1973,9 +1902,7 @@ local newGetCondomGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    event.notify("room.endSupply", self.target, {
-      id = self.component.entity,
-    })
+    room.exit(self.target)
 
     if self.component.money >= info.profit then
       self.component.supply = self.component.supply + 1
@@ -2084,19 +2011,12 @@ local newGetSnackGoal = function (self, target)
       return
     end
 
-    local eating = false
-    event.notify("room.beginSupply", self.target, {
-      id = self.component.entity,
-      enter = false,
-      callback = function (res)
-        eating = res
-      end,
-    })
-
-    if not eating then
+    if room.occupation(self.target) > 0 then
       self.status = "failed"
       return
     end
+    
+    room.enter(self.target)
 
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, EAT_TIME))
@@ -2105,9 +2025,7 @@ local newGetSnackGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    event.notify("room.endSupply", self.target, {
-      id = self.component.entity,
-    })
+    room.exit(self.target)
 
     if self.component.money >= info.profit then
       self.component.money = self.component.money - info.profit
@@ -2393,18 +2311,12 @@ local newPrepareFoodGoal = function (self, target)
       return
     end
 
-    local canCook = false
-    event.notify("room.beginCook", self.target, {
-      id = self.component.entity,
-      callback = function (res)
-        canCook = res
-      end,
-    })
-
-    if not canCook then
+    if room.occupation(self.target) > 0 then
       self.status = "failed"
       return
     end
+    
+    room.enter(self.target)
 
     local time = COOK_TIME
     if self.component.supply > 0 then
@@ -2418,9 +2330,7 @@ local newPrepareFoodGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    event.notify("room.endCook", self.target, {
-      id = self.component.entity,
-    })
+    room.exit(self.target)
 
     if self.status == "complete" then
       self.component.supply = math.max(0, self.component.supply - 1)

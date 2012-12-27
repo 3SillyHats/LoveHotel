@@ -79,6 +79,16 @@ local infoComponent = function (id, info, pos)
     callback(component.reservations)
   end
 
+  local enter = function ()
+    component.occupied = component.occupied + 1
+  end
+
+  local exit = function ()
+    if component.occupied > 0 then
+      component.occupied = component.occupied - 1
+    end
+  end
+
   local occupy = function (e)
     if component.occupied < 2 then
       component.occupied = component.occupied + 1
@@ -101,103 +111,6 @@ local infoComponent = function (id, info, pos)
     if component.occupied <= 0 then
       component.occupied = 0
     end
-  end
-
-  local beginRelax = function (e)
-    if component.occupied > 0 then
-      e.callback(false)
-      return
-    end
-
-    component.occupied = component.occupied + 1
-
-    e.callback(true)
-  end
-
-  local endRelax = function (e)
-    component.occupied = 0
-  end
-
-  local beginCook = function (e)
-    if component.occupied > 0 then
-      e.callback(false)
-      return
-    end
-
-    component.occupied = component.occupied + 1
-
-    e.callback(true)
-  end
-
-  local endCook = function (e)
-    component.occupied = 0
-  end
-
-  local beginFix = function (e)
-    if component.occupied > 0 then
-      e.callback(false)
-      return
-    end
-
-    component.occupied = component.occupied + 1
-
-    e.callback(true)
-  end
-
-  local endFix = function (e)
-    component.occupied = 0
-  end
-
-  local beginRestock = function (e)
-    if component.occupied > 0 then
-      e.callback(false)
-      return
-    end
-
-    component.occupied = component.occupied + 1
-
-    e.callback(true)
-  end
-
-  local endRestock = function (e)
-    component.occupied = 0
-  end
-
-  local beginClean = function (e)
-    if component.occupied > 0 then
-      e.callback(false)
-      return
-    end
-
-    component.occupied = component.occupied + 1
-
-    event.notify("sprite.hide", e.id, true)
-    e.callback(true)
-  end
-
-  local endClean = function (e)
-    component.occupied = 0
-    component.messy = false
-
-    event.notify("sprite.hide", e.id, false)
-  end
-
-  local beginSupply = function (e)
-    if component.occupied > 0 or component.stock == 0 then
-      e.callback(false)
-      return
-    end
-
-    component.occupied = component.occupied + 1
-
-    e.callback(true)
-  end
-
-  local endSupply = function (e)
-    component.occupied = 0
-    component.stock = component.stock - 1
-
-    event.notify("sprite.play", id, "stocked" .. component.stock)
   end
 
   local isBroken = function (callback)
@@ -261,6 +174,10 @@ local infoComponent = function (id, info, pos)
     if info.breakable then
       setIntegrity(component.integrity - 1)
     end
+    if component.stock then
+      component.stock = component.stock - 1
+      event.notify("sprite.play", id, "stocked" .. component.stock)
+    end
   end
 
   local fix = function (t)
@@ -294,20 +211,10 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("room.setStock", id, setStock)
     event.unsubscribe("room.reserve", id, reserve)
     event.unsubscribe("room.release", id, release)
+    event.unsubscribe("room.enter", id, enter)
+    event.unsubscribe("room.exit", id, exit)
     event.unsubscribe("room.occupy", id, occupy)
     event.unsubscribe("room.depart", id, depart)
-    event.unsubscribe("room.beginRelax", id, beginRelax)
-    event.unsubscribe("room.endRelax", id, endRelax)
-    event.unsubscribe("room.beginCook", id, beginCook)
-    event.unsubscribe("room.endCook", id, endCook)
-    event.unsubscribe("room.beginFix", id, beginFix)
-    event.unsubscribe("room.endFix", id, endFix)
-    event.unsubscribe("room.beginRestock", id, beginRestock)
-    event.unsubscribe("room.endRestock", id, endRestock)
-    event.unsubscribe("room.beginClean", id, beginClean)
-    event.unsubscribe("room.endClean", id, endClean)
-    event.unsubscribe("room.beginSupply", id, beginSupply)
-    event.unsubscribe("room.endSupply", id, endSupply)
     event.unsubscribe("room.isBroken", id, isBroken)
     event.unsubscribe("room.use", id, use)
     event.unsubscribe("room.fix", id, fix)
@@ -326,20 +233,10 @@ local infoComponent = function (id, info, pos)
   event.subscribe("room.setStock", id, setStock)
   event.subscribe("room.reserve", id, reserve)
   event.subscribe("room.release", id, release)
+  event.subscribe("room.enter", id, enter)
+  event.subscribe("room.exit", id, exit)
   event.subscribe("room.occupy", id, occupy)
   event.subscribe("room.depart", id, depart)
-  event.subscribe("room.beginRelax", id, beginRelax)
-  event.subscribe("room.endRelax", id, endRelax)
-  event.subscribe("room.beginCook", id, beginCook)
-  event.subscribe("room.endCook", id, endCook)
-  event.subscribe("room.beginFix", id, beginFix)
-  event.subscribe("room.endFix", id, endFix)
-  event.subscribe("room.beginRestock", id, beginRestock)
-  event.subscribe("room.endRestock", id, endRestock)
-  event.subscribe("room.beginClean", id, beginClean)
-  event.subscribe("room.endClean", id, endClean)
-  event.subscribe("room.beginSupply", id, beginSupply)
-  event.subscribe("room.endSupply", id, endSupply)
   event.subscribe("room.isBroken", id, isBroken)
   event.subscribe("room.use", id, use)
   event.subscribe("room.fix", id, fix)
@@ -459,6 +356,14 @@ M.isDirty = function (id)
     end)
   end
   return dirty
+end
+
+M.enter = function (id)
+  event.notify("room.enter", id, nil)
+end
+
+M.exit = function (id)
+  event.notify("room.exit", id, nil)
 end
 
 M.occupation = function (id)
