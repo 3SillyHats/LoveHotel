@@ -142,6 +142,15 @@ M.newGoal = function (com)
   }
 end
 
+local cancelReservation = function (self)
+  if self.reserved ~= nil then
+    event.notify("reservation.cancelled", self.id)
+    self.beenServed = false
+    room.release(self.reserved)
+    self.reserved = nil
+  end
+end
+
 local seekGoto = function (self,pos)
   local passable = false
   if (pos.floorNum >= gBottomFloor and
@@ -724,6 +733,8 @@ local addSpaGoal = function (self, target)
       return
     end
 
+    cancelReservation(self.component)
+
     self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     self.relax = newRelaxGoal(self.component, self.target)
     self:addSubgoal(self.relax)
@@ -892,6 +903,7 @@ local addOrderMealGoal = function (self, target)
 
   local old_activate = goal.activate
   goal.activate = function (self)
+    cancelReservation(self.component)
     goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), PERSON_MOVE))
     goal:addSubgoal(newWaitForWaiterGoal(self.component, target))
     goal:addSubgoal(newWaitForMealGoal(self.component, target))
@@ -946,21 +958,38 @@ local newWaitForReceptionGoal = function (com, target)
   end
 
   goal.process = function (self, dt)
+    if self.component.supply == 0 then
+      return "failed"
+    end
+    if self.component.needs.horniness <= self.component.needs.hunger then
+      return "failed"
+    end
     if self.component.beenServed then
-      local roomAvailable = false
+      local rooms = {}
       event.notify("room.all", 0, function (id, type)
         local roomInfo = room.getInfo(id)
-        local myPos = transform.getPos(self.component.entity)
-        local targetPos = transform.getPos(self.target)
         if roomInfo.visitable and
+            self.component.money >= roomInfo.profit and
             not room.isDirty(id) and
-            room.occupation(id) == 0 and
-            path.getCost(myPos, targetPos) ~= -1 then
-          roomAvailable = true
+            room.reservations(id) == 0 and
+            room.occupation(id) == 0 then
+          local myPos = transform.getPos(self.component.entity)
+          local targetPos = transform.getPos(self.target)
+          local time = path.getCost(myPos, targetPos)
+          if time ~= -1 then
+            local myInfo = resource.get("scr/people/" .. self.component.category .. ".lua")
+            table.insert(rooms, {id = id, desirability = 1/(1+time) + myInfo.desirability[roomInfo.id]})
+          end
         end
       end)
 
-      if roomAvailable then
+      if #rooms > 0 then
+        table.sort(rooms, function (a,b)
+          return a.desirability > b.desirability
+        end)
+        local id = rooms[1].id
+        room.reserve(id)
+        self.component.reserved = id
         return "complete"
       end
 
@@ -1005,6 +1034,11 @@ local newWaitForReceptionGoal = function (com, target)
 
     event.unsubscribe("staff.queryServe", self.target, queryHandler)
     event.unsubscribe("staff.bellhop.serve", com.entity, serveHandler)
+    
+    if self.status ~= "complete" then
+      event.notify("reservation.cancelled", self.component.entity)
+      self.component.beenServed = false
+    end
 
     old_terminate(self)
     goal.subgoals = {}
@@ -1024,6 +1058,7 @@ local addCheckInGoal = function (self, target)
 
   local old_activate = goal.activate
   goal.activate = function (self)
+    cancelReservation(self.component)
     goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), PERSON_MOVE))
     receptionGoal = newWaitForReceptionGoal(self.component, target)
     goal:addSubgoal(receptionGoal)
@@ -1060,19 +1095,17 @@ local addCheckInGoal = function (self, target)
   self.goalEvaluator:addSubgoal(goal)
 end
 
-local addVisitGoal = function (self, target)
+local addVisitGoal = function (self)
   local goal = M.newGoal(self)
-  goal.target = target
   goal.name = "visit"
 
-  local roomInfo = room.getInfo(goal.target)
-  local targetPos = room.getPos(goal.target)
   local sexGoal = nil
 
   local old_activate = goal.activate
   goal.activate = function (self)
-    goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), PERSON_MOVE))
-    sexGoal = newSexGoal(self.component, target)
+    local targetPos = room.getPos(self.component.reserved)
+    goal:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
+    sexGoal = newSexGoal(self.component, self.component.reserved)
     goal:addSubgoal(sexGoal)
     old_activate(self)
   end
@@ -1084,21 +1117,27 @@ local addVisitGoal = function (self, target)
   end
 
   goal.getDesirability = function (self, t)
-    if not self.component.beenServed then
+    if not self.component.beenServed or
+        not self.component.reserved then
       return -1
     end
     if sexGoal and sexGoal.status == "active" then
       return 1000
     end
+    local roomInfo = room.getInfo(self.component.reserved)
     local cheapInfo = resource.get("scr/rooms/missionary.lua")
-    if self.component.money >= cheapInfo.profit and
-        self.component.money >= roomInfo.profit and
-        self.component.supply > 0 and
-        t.needs.horniness > t.needs.hunger and
-        not room.isDirty(self.target) and
-        room.occupation(self.target) == 0 then
+    if self.component.money < cheapInfo.profit or
+        self.component.money < roomInfo.profit or
+        self.component.supply <= 0 then
+      cancelReservation(self.component)
+      return -1
+    end
+    if t.needs.horniness > t.needs.hunger and
+        not room.isDirty(self.component.reserved) and
+        room.occupation(self.component.reserved) == 0 then
       local myInfo = resource.get("scr/people/" .. self.component.category .. ".lua")
       local myPos = transform.getPos(self.component.entity)
+      local targetPos = room.getPos(self.component.reserved)
       local time = path.getCost(myPos, targetPos)
       if time == -1 then
         return -1
@@ -1107,12 +1146,6 @@ local addVisitGoal = function (self, target)
     end
     return -1
   end
-
-  local function destroy (t)
-    self.goalEvaluator:removeSubgoal(goal)
-    event.unsubscribe("destroy", goal.target, destroy)
-  end
-  event.subscribe("destroy", goal.target, destroy)
 
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -1176,6 +1209,15 @@ local addFollowGoal = function (self, target, type)
     goal.room = room
   end
 
+  local onCancel = function ()
+    if #goal.targetHist == 0 then
+      table.insert(goal.targetHist, {
+        pos = transform.getPos(goal.target),
+      })
+    end
+    goal.cancelled = true
+  end
+
   local old_activate = goal.activate
   goal.activate = function (self)
     if self.type == "staff" then
@@ -1190,6 +1232,7 @@ local addFollowGoal = function (self, target, type)
     event.subscribe("sprite.play", self.target, onPlay)
     event.subscribe("sprite.flip", self.target, onFlip)
     event.subscribe("enterRoom", self.target, onEnter)
+    event.subscribe("reservation.cancelled", self.target, onCancel)
     old_activate(self)
   end
 
@@ -1229,6 +1272,10 @@ local addFollowGoal = function (self, target, type)
             return "complete"
           end
         end
+        if goal.cancelled and self.type == "staff" then
+          self.message = "staff cancelled"
+          return "complete"
+        end
         myPos = transform.getPos(self.component.entity)
       end
       self.message = "active"
@@ -1257,6 +1304,7 @@ local addFollowGoal = function (self, target, type)
     event.unsubscribe("sprite.play", self.target, onPlay)
     event.unsubscribe("sprite.flip", self.target, onFlip)
     event.unsubscribe("enterRoom", self.target, onEnter)
+    event.unsubscribe("reservation.cancelled", self.target, onCancel)
     if self.type == "staff" then
       self.component.following = false
       self.component.goalEvaluator:removeSubgoal(self)
@@ -1281,6 +1329,7 @@ local addExitGoal = function (self)
 
   local old_activate = goal.activate
   goal.activate = function (self)
+    cancelReservation(self.component)
     if self.component.leader then
       if self.component.needs.horniness <= 0 then
         event.notify("sprite.play", self.component.entity, "thoughtHappy")
@@ -2696,6 +2745,13 @@ M.new = function (id)
   })
   com.goalEvaluator = M.newGoal(com)
   com.goalEvaluator.arbitrate = arbitrate
+
+  local onDelete
+  event.subscribe("delete", id, onDelete)
+  onDelete = function ()
+    cancelReservation(com)
+    event.unsubscribe("delete", id, onDelete)
+  end
 
   return com
 end

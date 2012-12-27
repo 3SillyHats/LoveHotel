@@ -176,9 +176,7 @@ M.new = function (t)
 
   local addRoomGoal = function (id)
     local info = room.getInfo(id)
-    if info.visitable then
-      aiComponent:addVisitGoal(id)
-    elseif info.reception then
+    if info.reception then
       aiComponent:addCheckInGoal(id)
     elseif info.condomSupplies then
       aiComponent:addCondomGoal(id)
@@ -200,6 +198,7 @@ M.new = function (t)
     event.subscribe("build", 0, function (e)
       addRoomGoal(e.id)
     end)
+    aiComponent:addVisitGoal()
   end
   entity.addComponent(id, aiComponent)
   aiComponent:addExitGoal()

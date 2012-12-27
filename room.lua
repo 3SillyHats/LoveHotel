@@ -16,6 +16,7 @@ local infoComponent = function (id, info, pos)
   --then store the info table into it.
   local component = entity.newComponent(info)
   component.occupied = 0
+  component.reservations = 0
   component.messy = false
   if info.cleaningSupplies then
     component.stock = info.stock
@@ -64,6 +65,18 @@ local infoComponent = function (id, info, pos)
   local setStock = function (stock)
     component.stock = stock
     event.notify("sprite.play", id, "stocked" .. stock)
+  end
+
+  local reserve = function (e)
+    component.reservations = component.reservations + 1
+  end
+
+  local release = function (e)
+    component.reservations = component.reservations - 1
+  end
+
+  local checkReservations = function (callback)
+    callback(component.reservations)
   end
 
   local occupy = function (e)
@@ -276,8 +289,11 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("room.dirty", 0, dirtyRooms)
     event.unsubscribe("room.isDirty", id, isDirty)
     event.unsubscribe("room.occupation", id, checkOccupied)
+    event.unsubscribe("room.reservations", id, checkReservations)
     event.unsubscribe("room.getStock", id, getStock)
     event.unsubscribe("room.setStock", id, setStock)
+    event.unsubscribe("room.reserve", id, reserve)
+    event.unsubscribe("room.release", id, release)
     event.unsubscribe("room.occupy", id, occupy)
     event.unsubscribe("room.depart", id, depart)
     event.unsubscribe("room.beginRelax", id, beginRelax)
@@ -305,8 +321,11 @@ local infoComponent = function (id, info, pos)
   event.subscribe("room.dirty", 0, dirtyRooms)
   event.subscribe("room.isDirty", id, isDirty)
   event.subscribe("room.occupation", id, checkOccupied)
+  event.subscribe("room.reservations", id, checkReservations)
   event.subscribe("room.getStock", id, getStock)
   event.subscribe("room.setStock", id, setStock)
+  event.subscribe("room.reserve", id, reserve)
+  event.subscribe("room.release", id, release)
   event.subscribe("room.occupy", id, occupy)
   event.subscribe("room.depart", id, depart)
   event.subscribe("room.beginRelax", id, beginRelax)
@@ -448,6 +467,22 @@ M.occupation = function (id)
     occupation = e
   end)
   return occupation
+end
+
+M.reserve = function (id)
+  event.notify("room.reserve", id, nil)
+end
+
+M.release = function (id)
+  event.notify("room.release", id, nil)
+end
+
+M.reservations = function (id)
+  local reservations = nil
+  event.notify("room.reservations", id, function (e)
+    reservations = e
+  end)
+  return reservations
 end
 
 M.getStock = function (id)
