@@ -627,6 +627,12 @@ local newSexGoal = function (com, target)
       self.component.needs.horniness = math.max(0, self.component.needs.horniness - SEX_HORNINESS)
       self.component.money = self.component.money - self.profit
       self.component.supply = self.component.supply - 1
+
+      local clientInfo = resource.get("scr/people/" .. self.component.category .. ".lua")
+      local roomInfo = room.getInfo(self.target)
+      if roomInfo.id == "utility" then
+        reputationChange(-clientInfo.influence)
+      end
     end
 
     self.component.beenServed = false
