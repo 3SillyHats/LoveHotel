@@ -684,7 +684,7 @@ local newRelaxGoal = function (self, target)
       return
     end
 
-    if room.occupied(self.target) > 0 then
+    if room.occupation(self.target) > 0 then
       self.status = "failed"
       return
     end
@@ -1450,7 +1450,12 @@ local newFixGoal = function (self, target)
     room.exit(self.target)
 
     local info = room.getInfo(self.target)
-    local integrity = info.integrity + math.random(1, info.integrity)
+    local integrity
+    if info.id == "elevator" then
+      integrity = (info.integrity * room.height(self.target)) + math.random(1, info.integrity)
+    else
+      integrity = info.integrity + math.random(1, info.integrity)
+    end
     room.fix(self.target, integrity)
 
     self.target = nil

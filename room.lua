@@ -429,6 +429,48 @@ M.reservations = function (id)
   return reservations
 end
 
+local heightUp
+heightUp = function (roomNum, floorNum, cType)
+  local id, type
+  event.notify("room.check", 0, {
+    roomNum = roomNum,
+    floorNum = floorNum,
+    callback = function (_id, _type)
+      id = _id
+      type = _type
+    end,
+  })
+  if cType ~= type then
+    return 0
+  end
+  return 1 + heightUp(roomNum, floorNum + 1, cType)
+end
+local heightDown
+heightDown = function (roomNum, floorNum, cType)
+  local id, type
+  event.notify("room.check", 0, {
+    roomNum = roomNum,
+    floorNum = floorNum,
+    callback = function (_id, _type)
+      id = _id
+      type = _type
+    end,
+  })
+  if cType ~= type then
+    return 0
+  end
+  return 1 + heightDown(roomNum, floorNum - 1, cType)
+end
+
+M.height = function (id)
+  local info = M.getInfo(id)
+  local type = info.id
+  local pos = M.getPos(id)
+  return (1 +
+    heightUp(pos.roomNum, pos.floorNum + 1, type) +
+    heightDown(pos.roomNum, pos.floorNum - 1, type))
+end
+
 M.getStock = function (id)
   local stock = nil
   event.notify("room.getStock", id, function (e)
