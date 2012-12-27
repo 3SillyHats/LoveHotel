@@ -1039,7 +1039,7 @@ local addCheckInGoal = function (self, target)
   end
 
   goal.getDesirability = function (self, t)
-    if not self.component.beenServed and
+    if not self.component.reserved and
         self.component.patience > 0 and
         self.component.needs.horniness > 0 and
         self.component.needs.horniness > self.component.needs.hunger and
@@ -2196,6 +2196,7 @@ local addBellhopGoal = function (self, target)
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local reception = nil
+  local reserved = false
 
   local old_activate = goal.activate
   goal.activate = function (self)
@@ -2203,6 +2204,9 @@ local addBellhopGoal = function (self, target)
       self.status = "failed"
       return
     end
+
+    room.reserve(self.target)
+    reserved = true
 
     self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     reception = newReceptionGoal(self.component, self.target)
@@ -2212,6 +2216,9 @@ local addBellhopGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
+    room.release(self.target)
+    reserved = false
+
     old_terminate(self)
     self.subgoals = {}
   end
@@ -2229,7 +2236,13 @@ local addBellhopGoal = function (self, target)
       return -1
     end
 
-    return room.occupation(self.target) + (1 / (1 + time))
+    -- Use exponential to map potentially negative desirability to wholly positive range while preserving ordering
+    -- prioritise by (client pairs - bellhops) then by distance
+    local desirability = room.occupation(self.target) - room.reservations(self.target) + (1 / (1 + time))
+    if reserved then
+      desirability = desirability + 1
+    end
+    return math.exp(desirability)
   end
 
   local function destroy (t)
