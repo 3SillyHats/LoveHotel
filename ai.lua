@@ -143,8 +143,8 @@ M.newGoal = function (com)
 end
 
 local cancelReservation = function (self)
+  event.notify("reservation.cancelled", self.entity)
   if self.reserved ~= nil then
-    event.notify("reservation.cancelled", self.id)
     self.beenServed = false
     room.release(self.reserved)
     self.reserved = nil
