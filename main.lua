@@ -80,7 +80,8 @@ local path = require("path")
 local decision = require("decision")
 
 local thousandify = function (str)
-  if str:len() > 3 then
+  if (str:sub(1, 1) == "-" and str:len() > 4) or
+      (str:sub(1, 1) ~= "-" and str:len() > 3) then
     str = str:sub(1, -4) .. "," .. str:sub(-3, -1)
   end
   return str
@@ -949,7 +950,7 @@ moneyCom.change = 0
 moneyCom.changeTimer = 0
 moneyCom.draw = function (self)
   local money = thousandify(tostring(gMoney))
-  
+
   love.graphics.setFont(gFont)
   love.graphics.setColor(255, 255, 255)
   love.graphics.printf(
