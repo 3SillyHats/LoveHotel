@@ -1211,6 +1211,10 @@ local addFollowGoal = function (self, target, type)
       table.insert(self.targetHist, {
         pos = targetPos,
       })
+      if goal.cancelled and self.type == "staff" then
+        self.message = "staff cancelled"
+        return "complete"
+      end
       if goal.room then
         self.followDist = self.followDist - self.move*dt
       end
@@ -1238,10 +1242,6 @@ local addFollowGoal = function (self, target, type)
             self.message = "staff complete"
             return "complete"
           end
-        end
-        if goal.cancelled and self.type == "staff" then
-          self.message = "staff cancelled"
-          return "complete"
         end
         myPos = transform.getPos(self.component.entity)
       end
