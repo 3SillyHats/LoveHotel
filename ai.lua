@@ -682,7 +682,7 @@ local newRelaxGoal = function (self, target)
       self.status = "failed"
       return
     end
-    
+
     room.enter(self.target)
 
     self.status = "active"
@@ -1000,10 +1000,10 @@ local newWaitForReceptionGoal = function (com, target)
   local old_terminate = goal.terminate
   goal.terminate = function(self)
     room.exit(self.target)
-    
+
     event.unsubscribe("staff.queryServe", self.target, queryHandler)
     event.unsubscribe("staff.bellhop.serve", com.entity, serveHandler)
-    
+
     if self.status ~= "complete" then
       event.notify("reservation.cancelled", self.component.entity)
       self.component.beenServed = false
@@ -1300,14 +1300,27 @@ local addExitGoal = function (self)
   goal.activate = function (self)
     cancelReservation(self.component)
     if self.component.leader then
+      local info = resource.get("scr/people/" .. self.component.category .. ".lua")
       if self.component.needs.horniness <= 0 then
         event.notify("sprite.play", self.component.entity, "thoughtHappy")
+        self.rep = info.influence
       elseif self.component.patience <= 0 then
         event.notify("sprite.play", self.component.entity, "thoughtImpatient")
+        self.rep = -3*info.influence
       elseif self.component.needs.hunger > self.component.needs.horniness then
         event.notify("sprite.play", self.component.entity, "thoughtHungry")
+        if gStars >= 2 then
+          self.rep = -3*info.influence
+        else
+          self.rep = info.influence
+        end
       elseif self.component.supply <= 0 then
         event.notify("sprite.play", self.component.entity, "thoughtCondomless")
+        if gStars >= 3 then
+          self.rep = -3*info.influence
+        else
+          self.rep = info.influence
+        end
       else
         local minCost = 9999999999
         event.notify("room.all", 0, function (id, type)
@@ -1328,8 +1341,10 @@ local addExitGoal = function (self)
         end)
         if minCost == 9999999999 then
           event.notify("sprite.play", self.component.entity, "thoughtRoomless")
-        elseif minCost > self.component.money then
+          self.rep = -3*info.influence
+        else
           event.notify("sprite.play", self.component.entity, "thoughtBroke")
+          self.rep = info.influence
         end
       end
     end
@@ -1351,13 +1366,9 @@ local addExitGoal = function (self)
   local old_terminate = goal.terminate
   goal.terminate = function (self)
     event.notify("sprite.play", self.component.entity, "thoughtNone")
-    if self.component.leader and self.status == "complete" then
-      local info = resource.get("scr/people/" .. self.component.category .. ".lua")
-      if self.component.needs.horniness < 100 then
-        reputationChange(info.influence)
-      else
-        reputationChange(-3*info.influence)
-      end
+    if self.component.leader and self.status == "complete" and
+        self.rep then
+      reputationChange(self.rep)
     end
 
     old_terminate(self)
@@ -2018,7 +2029,7 @@ local newGetSnackGoal = function (self, target)
       self.status = "failed"
       return
     end
-    
+
     room.enter(self.target)
 
     self.status = "active"
@@ -2331,7 +2342,7 @@ local newPrepareFoodGoal = function (self, target)
       self.status = "failed"
       return
     end
-    
+
     room.enter(self.target)
 
     local time = COOK_TIME
