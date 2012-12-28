@@ -2468,13 +2468,11 @@ local addCookGoal = function (self, target)
         room.occupation(self.target) == 0 then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time == -1 then
-        return -1
+      if time ~= -1 then
+        return (1 + self.component.supply)/(time + COOK_TIME)
       end
-      return (1 + self.component.supply)/(time + COOK_TIME)
-    else
-      return -1
     end
+    return -1
   end
 
   local function destroy (t)
