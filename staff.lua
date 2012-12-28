@@ -54,8 +54,7 @@ M.new = function (type)
           speed = .2,
         },
         cooking = {
-          first = 3,
-          last = 6,
+          frames = {3,4,3,4,3,4,3,4,5,6,5,6,5,6,5,6},
           speed = .2,
         },
         fixing = {
@@ -115,8 +114,7 @@ M.new = function (type)
           speed = .2,
         },
         cooking = {
-          first = 3,
-          last = 6,
+          frames = {3,4,3,4,3,4,3,4,5,6,5,6,5,6,5,6},
           speed = .2,
         },
         fixing = {

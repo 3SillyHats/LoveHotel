@@ -26,12 +26,11 @@ local update = function (self, dt)
   end
   self.timer = self.timer + dt
   local anim = self.animations[self.playing]
-  local frameCount = math.abs(anim.last - anim.first) + 1
   while self.timer >= self.animations[self.playing].speed do
     self.frame = self.frame + 1
     self.timer = self.timer - self.animations[self.playing].speed
   end
-  while self.frame >= frameCount do
+  while self.frame >= anim.frameCount do
     event.notify(
       "sprite.onAnimationEnd",
       self.entity,
@@ -40,7 +39,7 @@ local update = function (self, dt)
     if self.animations[self.playing].goto then
       self:play(self.animations[self.playing].goto, self.flipped)
     else
-      self.frame = self.frame - frameCount
+      self.frame = self.frame - anim.frameCount
     end
   end
 
@@ -113,17 +112,19 @@ M.new = function (id, t)
   if sprite.animations then
     for _, anim in pairs(sprite.animations) do
       if anim.first and anim.last then
-        local frameCount = math.abs(anim.last - anim.first) + 1
+        anim.frameCount = math.abs(anim.last - anim.first) + 1
         anim.frames = {}
         if anim.first < anim.last then
-          for i = 0, frameCount - 1 do
+          for i = 0, anim.frameCount - 1 do
             table.insert(anim.frames, anim.first + i)
           end
         else
-          for i = 0, frameCount - 1 do
+          for i = 0, anim.frameCount - 1 do
             table.insert(anim.frames, anim.first - i)
           end
         end
+      elseif anim.frames then
+        anim.frameCount = #anim.frames
       end
     end
   end
