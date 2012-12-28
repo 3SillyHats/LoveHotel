@@ -478,6 +478,7 @@ end
 newFloor(GROUND_FLOOR)
 
 local floorUp = function()
+  if gTopFloor >= 16 then return end
   local cost = UP_FLOOR_BASE + (gTopFloor * UP_FLOOR_INC)
   if gMoney >= cost then
     gMoney = gMoney - cost
@@ -486,6 +487,9 @@ local floorUp = function()
     })
     gTopFloor = gTopFloor + 1
     conf.menu["floorUp"].desc = "$" .. thousandify(tostring(UP_FLOOR_BASE + (gTopFloor * UP_FLOOR_INC)))
+    if gTopFloor >= 16 then
+      conf.menu["floorUp"].desc = "MAXED"
+    end
     event.notify("menu.info", 0, {selected = "floorUp"})
     local newFloor = newFloor(gTopFloor)
   else
@@ -496,6 +500,7 @@ local floorUp = function()
 end
 
 local floorDown = function()
+  if gBottomFloor <= -8 then return end
   local cost = DOWN_FLOOR_BASE + (-gBottomFloor * DOWN_FLOOR_INC)
   if gMoney >= cost then
     gMoney = gMoney - cost
@@ -504,6 +509,9 @@ local floorDown = function()
     })
     gBottomFloor = gBottomFloor - 1
     conf.menu["floorDown"].desc = "$" .. thousandify(tostring(DOWN_FLOOR_BASE + (-gBottomFloor * DOWN_FLOOR_INC)))
+    if gBottomFloor <= -8 then
+      conf.menu["floorDown"].desc = "MAXED"
+    end
     event.notify("menu.info", 0, {selected = "floorDown"})
     local newFloor = newFloor(gBottomFloor)
   else
