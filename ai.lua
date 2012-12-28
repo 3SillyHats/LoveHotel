@@ -1820,7 +1820,8 @@ local newGetSupplyGoal = function (self, target, hidden)
 
     local supplying = false
 
-    if room.occupation(self.target) > 0 then
+    if room.occupation(self.target) > 0 or
+        room.isBroken(self.target) then
       self.status = "failed"
       return
     end
@@ -2525,7 +2526,8 @@ local addIngredientsGoal = function (self, target)
     if self.component.cooking and
         self.component.supply == 0 and
         room.getStock(self.target) > 0 and
-        room.occupation(self.target) == 0 then
+        room.occupation(self.target) == 0 and
+        not room.isBroken(self.target) then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
       if time ~= -1 then
