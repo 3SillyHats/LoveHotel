@@ -74,29 +74,30 @@ M.new = function (type)
   ))
 
   --add hair
-  entity.addComponent(id, sprite.new(
-    id, {
-      image = resource.get(hairimg),
-      width = 24, height = 24,
-      originX = 8, originY = 24,
-      animations = {
-        neat = {
-          first = haircolour,
-          last = haircolour,
-          speed = 1,
+  if type ~= "cook" and type ~= "stocker" then
+    entity.addComponent(id, sprite.new(
+      id, {
+        image = resource.get(hairimg),
+        width = 24, height = 24,
+        originX = 8, originY = 24,
+        animations = {
+          neat = {
+            first = haircolour,
+            last = haircolour,
+            speed = 1,
+          },
+          messy = {
+            first = haircolour + 4,
+            last = haircolour + 4,
+            speed = 1,
+          },
         },
-        messy = {
-          first = haircolour + 4,
-          last = haircolour + 4,
-          speed = 1,
-        },
-      },
-      playing = "neat",
-    }
-  ))
+        playing = "neat",
+      }
+    ))
+  end
 
   --add staff uniform
-  --[[
   entity.addComponent(id, sprite.new(
     id, {
       image = resource.get(staffimg),
@@ -113,11 +114,25 @@ M.new = function (type)
           last = 2,
           speed = .2,
         },
+        cooking = {
+          first = 3,
+          last = 6,
+          speed = .2,
+        },
+        fixing = {
+          first = 3,
+          last = 6,
+          speed = .2,
+        },
+        stocking = {
+          first = 3,
+          last = 6,
+          speed = .2,
+        },
       },
       playing = "idle",
     }
   ))
-  --]]
 
   local pos = {roomNum = -.5, floorNum = GROUND_FLOOR}
   entity.addComponent(id, transform.new(
