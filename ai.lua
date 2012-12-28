@@ -905,7 +905,7 @@ local addOrderMealGoal = function (self, target)
 
   local old_process = goal.process
   goal.process = function (self, dt)
-    self.component.patience = self.component.patience - 5*dt
+    self.component.patience = self.component.patience - 2*dt
     return old_process(self, dt)
   end
 
