@@ -116,6 +116,9 @@ M.removeNode = function (pos)
 end
 
 M.get = function (src, dst)
+  if src.floorNum == dst.floorNum then
+    return {dst, src}, math.abs(src.roomNum - dst.roomNum)/PERSON_MOVE
+  end
   -- Add src and dst nodes
   pathMap[SRC_LOC].roomNum = src.roomNum
   pathMap[SRC_LOC].floorNum = src.floorNum
@@ -163,6 +166,13 @@ M.getCost = function (src, dst)
   local path, cost = M.get(src, dst)
   if path then
     return cost
+  end
+  if src.floorNum == 1 and dst.floorNum == 1 then
+    for i,j in pairs(pathMap) do
+      for k,l in ipairs(j.neighbors) do
+        print(string.format("%u -> %u (%f)", i, l, j.distance[k]))
+      end
+    end
   end
   return -1
 end

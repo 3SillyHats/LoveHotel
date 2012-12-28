@@ -1512,12 +1512,9 @@ local addMaintenanceGoal = function (self, target)
         (room.reservations(self.target) == 0 or reserved) then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time == -1 then
-        return -1
+      if time ~= -1 then
+        return 1/(time + FIX_TIME)
       end
-      time = time + FIX_TIME
-
-      return 1/time
     end
     return -1
   end
@@ -2705,7 +2702,7 @@ local addWanderGoal = function (com)
       roomNum = (6 * math.random()) + 1,
     }
     self:addSubgoal(newSeekGoal(com, myPos, targetPos, PERSON_MOVE))
-    self:addSubgoal(newSleepGoal(com, (4*math.random())+1))
+    self:addSubgoal(newSleepGoal(com, math.random(1, 5)))
   end
 
   goal.getDesirability = function (self, t)
