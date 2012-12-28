@@ -1322,6 +1322,7 @@ local addExitGoal = function (self)
   goal.activate = function (self)
     cancelReservation(self.component)
     if self.component.leader then
+      self.rep = nil -- reset incase we started exiting last time
       local info = resource.get("scr/people/" .. self.component.category .. ".lua")
       if self.component.needs.horniness <= 0 then
         event.notify("sprite.play", self.component.entity, "thoughtHappy")
