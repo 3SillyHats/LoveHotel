@@ -1,8 +1,8 @@
 return {
   name = "ground",
 
-  minHorniness = 160,
-  maxHorniness = 200,
+  minHorniness = 90,
+  maxHorniness = 100,
   minHunger = 0,
   maxHunger = 0,
   minSupply = 0,

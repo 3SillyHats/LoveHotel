@@ -13,6 +13,14 @@ local staff = require("staff")
 --Create the module
 local M = {}
 
+local info = {
+  condoms = 0,
+  money = 0,
+  patience = 0,
+  horniness = 0,
+  hunger = 0,
+}
+
 --Constructor
 M.new = function (state)
   --Create an entity and get the id for the new room
@@ -39,81 +47,49 @@ M.new = function (state)
   entity.addComponent(id, transform.new(id, {roomNum = gRoomNum, floorNum = gScrollPos}))
   --Add position component
   entity.addComponent(id, transform.new(id, {roomNum = gRoomNum, floorNum = gScrollPos}))
-  
-  --Add demolisher component (including outline)
-  demolishUtility = entity.newComponent({
+
+  --Add inspector component
+  inspectorUtility = entity.newComponent({
     entity = id,
     selected = 1,
-    inspectClients = false,
     update = function (self, dt)
-      local clients = client.getAll()
-      local staff = staff.getAll()
-      if #clients > 0 or #staff > 0 then
-        local max
-        if inspectClients then
-          max = #clients
-        else
-          max = #staff
-        end
+      local clients = client.getLeaders()
+      if #clients > 0 then
+        local max = #clients
         while self.selected < 1 or self.selected > max do
           if self.selected < 1 then
-            inspectClients = not inspectClients
-            if inspectClients then
-              max = #clients
-            else
-              max = #staff
-            end
+            max = #clients
             self.selected = max
           elseif self.selected > max then
-            inspectClients = not inspectClients
-            if inspectClients then
-              max = #clients
-            else
-              max = #staff
-            end
+            max = #clients
             self.selected = 1
           end
         end
-        local target = nil
-        if inspectClients then
-          target = clients[self.selected]
-        else
-          target = staff[self.selected]
-        end
+        local target = clients[self.selected]
         local pos = transform.getPos(target.id)
         event.notify("entity.move", self.entity, pos)
-        local name = "none"
-        local desc = "none"
-        if target.ai.currentGoal then
-          name = target.ai.currentGoal.name
-          local g = target.ai.currentGoal
-          if #g.subgoals > 0 then
-            while #g.subgoals > 0 do
-              g = g.subgoals[1]
-            end
-            desc = g.name
-          end
-          if target.ai.currentGoal.message then
-            desc = target.ai.currentGoal.message
-            target.ai.currentGoal.message = nil
-          end
-        end
+
+        info.condoms = target.ai.supply
+        info.money = target.ai.money / target.ai.info.maxMoney
+        info.patience = target.ai.patience / 100
+        info.horniness = target.ai.needs.horniness / 100
+        info.hunger = target.ai.needs.hunger / 100
+
         event.notify("menu.info", 0, {
-          name = name,
-          desc = desc,
+          inspector = info,
         })
       end
     end,
   })
-  
-  entity.addComponent(id, demolishUtility)
-  
+
+  entity.addComponent(id, inspectorUtility)
+
   local pressed = function (key)
     if gState == STATE_PLAY then
       if key == "left" then
-        demolishUtility.selected = demolishUtility.selected - 1
+        inspectorUtility.selected = inspectorUtility.selected - 1
       elseif key == "right" then
-        demolishUtility.selected = demolishUtility.selected + 1
+        inspectorUtility.selected = inspectorUtility.selected + 1
       end
     end
   end
@@ -124,7 +100,7 @@ M.new = function (state)
     event.unsubscribe("pressed", 0, pressed)
     event.unsubscribe("delete", id, delete)
   end
-  
+
   event.subscribe("pressed", 0, pressed)
   event.subscribe("delete", id, delete)
   --Function returns the rooms id

@@ -903,6 +903,18 @@ local buttQuad = love.graphics.newQuad(
   resource.get("img/hud.png"):getWidth(),
   resource.get("img/hud.png"):getHeight()
 )
+local inspectorQuad = love.graphics.newQuad(
+  0, 176,
+  81, 32,
+  resource.get("img/hud.png"):getWidth(),
+  resource.get("img/hud.png"):getHeight()
+)
+local condomQuad = love.graphics.newQuad(
+  16, 160,
+  8, 8,
+  resource.get("img/hud.png"):getWidth(),
+  resource.get("img/hud.png"):getHeight()
+)
 local hudBar = entity.new(STATE_PLAY)
 entity.setOrder(hudBar, 90)
 local hudCom = entity.newComponent()
@@ -914,21 +926,49 @@ hudCom.draw = function (self)
     0, CANVAS_HEIGHT - 32,
     0
   )
-  -- draw info
+  if self.inspector then
+    love.graphics.drawq(
+      resource.get("img/hud.png"), inspectorQuad,
+      112, CANVAS_HEIGHT - 32,
+      0
+    )
+    -- draw condoms
+    for i = 0, self.inspector.condoms - 1 do
+      love.graphics.drawq(
+        resource.get("img/hud.png"), condomQuad,
+        170 + (7 * i), 197,
+        0
+      )
+    end
+    -- draw needs bars
+    love.graphics.setColor(0, 114, 0)
+    love.graphics.rectangle("fill", 124, 207, self.inspector.money * 26, 2)
+    love.graphics.setColor(172, 128, 0)
+    love.graphics.rectangle("fill", 163, 207, self.inspector.patience * 26, 2)
+    love.graphics.setColor(172, 16, 0)
+    love.graphics.rectangle("fill", 124, 215, self.inspector.horniness * 26, 2)
+    love.graphics.setColor(148, 0, 140)
+    love.graphics.rectangle("fill", 163, 215, self.inspector.hunger * 26, 2)
+  end
+  -- draw info text
   love.graphics.setColor(255, 255, 255)
   love.graphics.setFont(gFont)
-  love.graphics.printf(
-    self.name,
-    115, CANVAS_HEIGHT - 26,
-    76,
-    "left"
-  )
-  love.graphics.printf(
-    self.desc,
-    115, CANVAS_HEIGHT - 15,
-    76,
-    "left"
-  )
+  if self.name then
+    love.graphics.printf(
+      self.name,
+      115, CANVAS_HEIGHT - 26,
+      76,
+      "left"
+    )
+  end
+  if self.desc then
+    love.graphics.printf(
+      self.desc,
+      115, CANVAS_HEIGHT - 15,
+      76,
+      "left"
+    )
+  end
 end
 entity.addComponent(hudBar, hudCom)
 event.subscribe("menu.info", 0, function (e)
@@ -940,6 +980,7 @@ event.subscribe("menu.info", 0, function (e)
     hudCom.name = e.name
     hudCom.desc = e.desc
   end
+  hudCom.inspector = e.inspector
 end)
 
 -- Create the gMoney display

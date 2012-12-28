@@ -11,6 +11,7 @@ local path = require("path")
 local M = {}
 
 local clients = {}
+local leaders = {}
 
 local categories = {}
 local totalChance = {0, 0, 0, 0, 0}
@@ -203,13 +204,13 @@ M.new = function (t)
   entity.addComponent(id, aiComponent)
   aiComponent:addExitGoal()
 
-  local info = resource.get("scr/people/" .. t.category .. ".lua")
+  aiComponent.info = resource.get("scr/people/" .. t.category .. ".lua")
   aiComponent.needs = {
-    horniness = math.random(info.minHorniness, info.maxHorniness),
-    hunger = math.random(info.minHunger, info.maxHunger),
+    horniness = math.random(aiComponent.info.minHorniness, aiComponent.info.maxHorniness),
+    hunger = math.random(aiComponent.info.minHunger, aiComponent.info.maxHunger),
   }
-  aiComponent.supply = math.random(info.minSupply, info.maxSupply)
-  aiComponent.money = math.random(info.minMoney, info.maxMoney)
+  aiComponent.supply = math.random(aiComponent.info.minSupply, aiComponent.info.maxSupply)
+  aiComponent.money = math.random(aiComponent.info.minMoney, aiComponent.info.maxMoney)
   aiComponent.patience = 100
 
   local old_update = aiComponent.update
@@ -233,6 +234,13 @@ M.new = function (t)
         table.remove(clients, k)
       end
     end
+    if t.leader then
+      for k,v in ipairs(leaders) do
+        if v.id == id then
+          table.remove(leaders, k)
+        end
+      end
+    end
     event.unsubscribe("actor.check", 0, check)
     event.unsubscribe("delete", id, delete)
   end
@@ -243,6 +251,12 @@ M.new = function (t)
     id = id,
     ai = aiComponent,
   })
+  if t.leader then
+    table.insert(leaders, {
+      id = id,
+      ai = aiComponent,
+    })
+  end
 
   return id
 end
@@ -326,6 +340,10 @@ end)
 
 M.getAll = function ()
   return clients
+end
+
+M.getLeaders = function ()
+  return leaders
 end
 
 return M
