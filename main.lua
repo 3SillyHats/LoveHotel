@@ -54,11 +54,11 @@ STARS_INITIAL = 1
 STARS_MAX = 5
 REP_THRESHOLDS = {
   0,
-  60,
-  240,
-  960,
-  2700,
-  6000,
+  30,
+  120,
+  480,
+  1350,
+  3000,
 }
 
 local event = require("event")
