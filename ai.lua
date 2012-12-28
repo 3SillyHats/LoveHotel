@@ -1442,6 +1442,8 @@ local newFixGoal = function (self, target)
 
     room.enter(self.target)
 
+    event.notify("sprite.play", self.component.entity, "fixing")
+
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, FIX_TIME))
     old_activate(self)
@@ -1565,6 +1567,8 @@ local newRestockGoal = function (self, target)
     end
 
     room.enter(self.target)
+
+    event.notify("sprite.play", self.component.entity, "stocking")
 
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, RESTOCK_TIME))
