@@ -2404,6 +2404,7 @@ local newPrepareFoodGoal = function (self, target)
     end
 
     event.notify("sprite.play", self.component.entity, "cooking")
+    event.notify("sprite.flip", self.component.entity, true)
 
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, time))
