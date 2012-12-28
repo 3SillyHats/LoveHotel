@@ -1566,6 +1566,7 @@ local newRestockGoal = function (self, target)
 
     room.enter(self.target)
 
+    event.notify("sprite.play", self.target, "opening")
     event.notify("sprite.play", self.component.entity, "stocking")
 
     self.status = "active"
@@ -1585,6 +1586,7 @@ local newRestockGoal = function (self, target)
       floorNum = myPos.floorNum,
     })
 
+    event.notify("sprite.play", self.target, "closing")
     event.notify("sprite.play", self.component.entity, "idle")
 
     self.target = nil
