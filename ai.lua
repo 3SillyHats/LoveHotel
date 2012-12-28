@@ -887,13 +887,18 @@ local addOrderMealGoal = function (self, target)
 
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
+  local reserved = false
 
   local old_activate = goal.activate
   goal.activate = function (self)
     cancelReservation(self.component)
-    goal:addSubgoal(newMoveToGoal(self.component, room.getPos(target), PERSON_MOVE))
+    local p = room.getPos(goal.target)
+    p.roomNum = p.roomNum - 1 + room.reservations(goal.target)
+    goal:addSubgoal(newMoveToGoal(self.component, p, PERSON_MOVE))
     goal:addSubgoal(newWaitForWaiterGoal(self.component, target))
     goal:addSubgoal(newWaitForMealGoal(self.component, target))
+    room.reserve(goal.target)
+    reserved = true
 
     old_activate(self)
   end
@@ -904,11 +909,20 @@ local addOrderMealGoal = function (self, target)
     return old_process(self, dt)
   end
 
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    room.release(self.target)
+    reserved = false
+    old_terminate(self)
+    self.subgoals = {}
+  end
+
   goal.getDesirability = function (self, t)
     if self.component.patience > 0 and
         self.component.money >= info.profit and
         self.component.needs.hunger > 50 and
-        self.component.needs.hunger > self.component.needs.horniness then
+        self.component.needs.hunger > self.component.needs.horniness and
+        (room.reservations(goal.target) < 3 or reserved) then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
       if time == -1 then
