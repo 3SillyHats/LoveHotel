@@ -496,14 +496,14 @@ local floorUp = function()
 end
 
 local floorDown = function()
-  local cost = UP_FLOOR_BASE + (gBottomFloor * UP_FLOOR_INC)
+  local cost = DOWN_FLOOR_BASE + (-gBottomFloor * DOWN_FLOOR_INC)
   if gMoney >= cost then
     gMoney = gMoney - cost
     event.notify("money.change", 0, {
       amount = -cost,
     })
     gBottomFloor = gBottomFloor - 1
-    conf.menu["floorDown"].desc = "$" .. thousandify(tostring(DOWN_FLOOR_BASE + (gBottomFloor * DOWN_FLOOR_INC)))
+    conf.menu["floorDown"].desc = "$" .. thousandify(tostring(DOWN_FLOOR_BASE + (-gBottomFloor * DOWN_FLOOR_INC)))
     event.notify("menu.info", 0, {selected = "floorDown"})
     local newFloor = newFloor(gBottomFloor)
   else
