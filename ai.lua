@@ -1340,7 +1340,7 @@ local addExitGoal = function (self)
           event.notify("sprite.play", self.component.entity, "thoughtCondomlessBad")
           self.rep = -3*info.influence
         else
-          event.notify("sprite.play", self.component.entity, "thoughtCondomlessBad")
+          event.notify("sprite.play", self.component.entity, "thoughtCondomlessGood")
           self.rep = info.influence
         end
       else
