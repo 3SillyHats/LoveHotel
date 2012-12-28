@@ -856,6 +856,8 @@ local newWaitForMealGoal = function (com, target)
       return
     end
 
+    cancelReservation(self.component)
+
     event.subscribe("staff.cook.serveMeal", self.component.entity, mealHandler)
 
     old_activate(self)
