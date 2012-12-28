@@ -6,7 +6,7 @@ return {
   dirtyable = false,
   breakable = true,
   integrity = 32,
-  
+
   sprites = {
     {
       name = "background",
@@ -30,13 +30,13 @@ return {
         closing = {
           first = 0,
           last = 5,
-          speed = 0.2,
+          speed = 0.05,
           goto = "closed",
         },
         opening = {
           first = 5,
           last = 0,
-          speed = 0.2,
+          speed = 0.05,
           goto = "closing",
         },
         broken = {
