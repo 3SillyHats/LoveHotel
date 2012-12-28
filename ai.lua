@@ -2439,6 +2439,7 @@ local addCookGoal = function (self, target)
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local prepareGoal = nil
+  local reserved = false
 
   local old_activate = goal.activate
   goal.activate = function (self)
@@ -2446,6 +2447,9 @@ local addCookGoal = function (self, target)
       self.status = "failed"
       return
     end
+
+    room.reserve(self.target)
+    reserved = true
 
     self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     prepareGoal = newPrepareFoodGoal(self.component, self.target)
@@ -2455,6 +2459,9 @@ local addCookGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
+    room.release(self.target)
+    reserved = false
+  
     old_terminate(self)
     self.subgoals = {}
   end
@@ -2465,11 +2472,15 @@ local addCookGoal = function (self, target)
     end
 
     if self.component.cooking and
-        room.occupation(self.target) == 0 then
+        (room.reservations(self.target) == 0 or reserved) then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
       if time ~= -1 then
-        return (1 + self.component.supply)/(time + COOK_TIME)
+        local desirability = (1 + self.component.supply)/(time + COOK_TIME)
+        if reserved then
+          desirability = desirability + 1
+        end
+        return desirability
       end
     end
     return -1
@@ -2605,6 +2616,7 @@ local addWaiterGoal = function (self, target)
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local takeOrder = nil
+  local occupied = false
 
   local old_activate = goal.activate
   goal.activate = function (self)
@@ -2612,6 +2624,9 @@ local addWaiterGoal = function (self, target)
       self.status = "failed"
       return
     end
+
+    room.enter(self.target)
+    occupied = true
 
     self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     takeOrder = newTakeOrderGoal(self.component, self.target)
@@ -2621,6 +2636,9 @@ local addWaiterGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
+    room.exit(self.target)
+    occupied = false
+  
     old_terminate(self)
     self.subgoals = {}
   end
@@ -2635,7 +2653,13 @@ local addWaiterGoal = function (self, target)
       return -1
     end
 
-    return (1 + room.occupation(self.target)) / time
+    -- Use exponential to map potentially negative desirability to wholly positive range while preserving ordering
+    -- prioritise by (client pairs - cooks) then by distance
+    local desirability = room.reservations(self.target)/3 - room.occupation(self.target) + (1 / (1 + time))
+    if occupied then
+      desirability = desirability + 1
+    end
+    return math.exp(desirability)
   end
 
   local function destroy (t)
