@@ -631,7 +631,9 @@ local newSexGoal = function (com, target)
       local clientInfo = resource.get("scr/people/" .. self.component.category .. ".lua")
       local roomInfo = room.getInfo(self.target)
       if roomInfo.id == "utility" then
-        reputationChange(-clientInfo.influence)
+        reputationChange(-clientInfo.influence/2)
+      else
+        reputationChange(clientInfo.influence)
       end
     end
 
@@ -1323,25 +1325,22 @@ local addExitGoal = function (self)
       local info = resource.get("scr/people/" .. self.component.category .. ".lua")
       if self.component.needs.horniness <= 0 then
         event.notify("sprite.play", self.component.entity, "thoughtHappy")
-        self.rep = info.influence
       elseif self.component.patience <= 0 then
         event.notify("sprite.play", self.component.entity, "thoughtImpatient")
-        self.rep = -3*info.influence
+        self.rep = -2*info.influence
       elseif self.component.needs.hunger > self.component.needs.horniness then
         if gStars >= 2 then
           event.notify("sprite.play", self.component.entity, "thoughtHungryBad")
-          self.rep = -3*info.influence
+          self.rep = -2*info.influence
         else
           event.notify("sprite.play", self.component.entity, "thoughtHungryGood")
-          self.rep = info.influence
         end
       elseif self.component.supply <= 0 then
         if gStars >= 3 then
           event.notify("sprite.play", self.component.entity, "thoughtCondomlessBad")
-          self.rep = -3*info.influence
+          self.rep = -2*info.influence
         else
           event.notify("sprite.play", self.component.entity, "thoughtCondomlessGood")
-          self.rep = info.influence
         end
       else
         local minCost = 9999999999
@@ -1363,10 +1362,9 @@ local addExitGoal = function (self)
         end)
         if minCost == 9999999999 then
           event.notify("sprite.play", self.component.entity, "thoughtRoomless")
-          self.rep = -3*info.influence
+          self.rep = -2*info.influence
         else
           event.notify("sprite.play", self.component.entity, "thoughtBroke")
-          self.rep = info.influence
         end
       end
     end
