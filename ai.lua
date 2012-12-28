@@ -1458,6 +1458,8 @@ local newFixGoal = function (self, target)
     end
     room.fix(self.target, integrity)
 
+    event.notify("sprite.play", self.component.entity, "idle")
+
     self.target = nil
     old_terminate(self)
     self.subgoals = {}
@@ -1578,6 +1580,8 @@ local newRestockGoal = function (self, target)
       roomNum = myPos.roomNum,
       floorNum = myPos.floorNum,
     })
+
+    event.notify("sprite.play", self.component.entity, "idle")
 
     self.target = nil
     old_terminate(self)
@@ -2395,6 +2399,8 @@ local newPrepareFoodGoal = function (self, target)
       time = time / 4
     end
 
+    event.notify("sprite.play", self.component.entity, "cooking")
+
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, time))
     old_activate(self)
@@ -2409,6 +2415,8 @@ local newPrepareFoodGoal = function (self, target)
       self.component.hasMeal = true
       self.component.cooking = false
     end
+
+    event.notify("sprite.play", self.component.entity, "idle")
 
     self.target = nil
     old_terminate(self)

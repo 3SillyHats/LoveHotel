@@ -112,15 +112,17 @@ M.new = function (id, t)
   -- Setup arrays of animation frames
   if sprite.animations then
     for _, anim in pairs(sprite.animations) do
-      local frameCount = math.abs(anim.last - anim.first) + 1
-      anim.frames = {}
-      if anim.first < anim.last then
-        for i = 0, frameCount - 1 do
-          table.insert(anim.frames, anim.first + i)
-        end
-      else
-        for i = 0, frameCount - 1 do
-          table.insert(anim.frames, anim.first - i)
+      if anim.first and anim.last then
+        local frameCount = math.abs(anim.last - anim.first) + 1
+        anim.frames = {}
+        if anim.first < anim.last then
+          for i = 0, frameCount - 1 do
+            table.insert(anim.frames, anim.first + i)
+          end
+        else
+          for i = 0, frameCount - 1 do
+            table.insert(anim.frames, anim.first - i)
+          end
         end
       end
     end
