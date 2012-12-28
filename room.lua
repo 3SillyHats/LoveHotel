@@ -71,12 +71,37 @@ local infoComponent = function (id, info, pos)
     event.notify("sprite.play", id, "stocked" .. stock)
   end
 
+  local setReservations = function (r)
+    if component.reservations ~= r then
+      component.reservations = r
+      event.notify("room.reservationChange", 0, {
+        type = info.id,
+        pos = pos,
+        id = id,
+        reservations = r,
+      })
+    end
+  end
+
   local reserve = function (e)
-    component.reservations = component.reservations + 1
+    setReservations(component.reservations + 1)
   end
 
   local release = function (e)
-    component.reservations = component.reservations - 1
+    setReservations(component.reservations - 1)
+  end
+
+  local propogate_res
+  if info.id == "elevator" then
+    propogate_res = function (e)
+      if e.pos.roomNum == pos.roomNum and
+          (e.pos.floorNum == pos.floorNum - 1 or e.pos.floorNum == pos.floorNum + 1) and
+          e.reservations ~= component.reservations and
+          e.type == "elevator" then
+        setReservations(e.reservations)
+      end
+    end
+    event.subscribe("room.reservationChange", 0, propogate_res)
   end
 
   local checkReservations = function (callback)
@@ -175,12 +200,12 @@ local infoComponent = function (id, info, pos)
   end
 
   local use = function ()
-    if info.breakable then
-      setIntegrity(component.integrity - 1)
-    end
     if component.stock then
       component.stock = component.stock - 1
       event.notify("sprite.play", id, "stocked" .. component.stock)
+    end
+    if info.breakable then
+      setIntegrity(component.integrity - 1)
     end
   end
 
@@ -224,6 +249,7 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("room.use", id, use)
     event.unsubscribe("room.fix", id, fix)
     event.unsubscribe("room.integrityChange", 0, propogate)
+    event.unsubscribe("room.reservationChange", 0, propogate_res)
     event.unsubscribe("delete", id, delete)
   end
 

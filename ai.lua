@@ -170,9 +170,9 @@ local seekProcess = function  (self, dt)
   if not self.moveTo or not self.pos then
     return "failed"
   end
-  if self.moveTo.floorNum ~= self.pos.floorNum then
-    return "failed"
-  end
+  --if self.moveTo.floorNum ~= self.pos.floorNum then
+  --  return "failed"
+  --end
   if math.abs(self.moveTo.roomNum - self.pos.roomNum) < self.speed*dt then
     local result = seekGoto(self, {
       roomNum = self.moveTo.roomNum,
@@ -1454,6 +1454,7 @@ local addMaintenanceGoal = function (self, target)
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local fixing = nil
+  local reserved = false
 
   local old_activate = goal.activate
   goal.activate = function (self)
@@ -1461,6 +1462,8 @@ local addMaintenanceGoal = function (self, target)
       self.status = "failed"
       return
     end
+    room.reserve(self.target)
+    reserved = true
 
     self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     fixing = newFixGoal(self.component, self.target)
@@ -1470,6 +1473,8 @@ local addMaintenanceGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
+    room.release(self.target)
+    reserved = false
     old_terminate(self)
     self.subgoals = {}
   end
@@ -1480,7 +1485,8 @@ local addMaintenanceGoal = function (self, target)
     end
 
     if room.isBroken(self.target) and
-        room.occupation(self.target) == 0 then
+        room.occupation(self.target) == 0 and
+        (room.reservations(self.target) == 0 or reserved) then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
       if time == -1 then
@@ -1569,6 +1575,7 @@ local addStockGoal = function (self, target)
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local restocking = nil
+  local reserved = false
 
   local old_activate = goal.activate
   goal.activate = function (self)
@@ -1576,6 +1583,9 @@ local addStockGoal = function (self, target)
       self.status = "failed"
       return
     end
+
+    room.reserve(self.target)
+    reserved = true
 
     self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     restocking = newRestockGoal(self.component, self.target)
@@ -1585,6 +1595,8 @@ local addStockGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
+    room.release(self.target)
+    reserved = false
     old_terminate(self)
     self.subgoals = {}
   end
@@ -1595,7 +1607,8 @@ local addStockGoal = function (self, target)
     end
 
     if room.getStock(self.target) == 0 and
-        room.occupation(self.target) == 0 then
+        room.occupation(self.target) == 0 and
+        (room.reservations(self.target) == 0 or reserved)then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
       if time == -1 then
@@ -1695,6 +1708,7 @@ local addCleanGoal = function (self, target)
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local cleaning = nil
+  local reserved = false
 
   local old_activate = goal.activate
   goal.activate = function (self)
@@ -1702,6 +1716,9 @@ local addCleanGoal = function (self, target)
       self.status = "failed"
       return
     end
+
+    room.reserve(self.target)
+    reserved = true
 
     self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     cleaning = newPerformCleanGoal(self.component, self.target)
@@ -1711,6 +1728,8 @@ local addCleanGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
+    room.release(self.target)
+    reserved = false
     old_terminate(self)
     self.subgoals = {}
   end
@@ -1721,6 +1740,7 @@ local addCleanGoal = function (self, target)
     end
     if self.component.supply > 0 and
         room.occupation(self.target) == 0 and
+        (room.reservations(self.target) == 0 or reserved) and
         room.isDirty(self.target) then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
