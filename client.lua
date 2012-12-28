@@ -143,24 +143,34 @@ M.new = function (t)
           last = 2,
           speed = 1,
         },
-        thoughtHungry = {
+        thoughtHungryGood = {
           first = 3,
           last = 3,
           speed = 1,
         },
-        thoughtCondomless = {
+        thoughtHungryBad = {
           first = 4,
           last = 4,
           speed = 1,
         },
-        thoughtRoomless = {
+        thoughtCondomlessGood = {
           first = 5,
           last = 5,
           speed = 1,
         },
-        thoughtImpatient = {
+        thoughtCondomlessBad = {
           first = 6,
           last = 6,
+          speed = 1,
+        },
+        thoughtRoomless = {
+          first = 7,
+          last = 7,
+          speed = 1,
+        },
+        thoughtImpatient = {
+          first = 8,
+          last = 8,
           speed = 1,
         },
       },

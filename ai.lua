@@ -1328,17 +1328,19 @@ local addExitGoal = function (self)
         event.notify("sprite.play", self.component.entity, "thoughtImpatient")
         self.rep = -3*info.influence
       elseif self.component.needs.hunger > self.component.needs.horniness then
-        event.notify("sprite.play", self.component.entity, "thoughtHungry")
         if gStars >= 2 then
+          event.notify("sprite.play", self.component.entity, "thoughtHungryBad")
           self.rep = -3*info.influence
         else
+          event.notify("sprite.play", self.component.entity, "thoughtHungryGood")
           self.rep = info.influence
         end
       elseif self.component.supply <= 0 then
-        event.notify("sprite.play", self.component.entity, "thoughtCondomless")
         if gStars >= 3 then
+          event.notify("sprite.play", self.component.entity, "thoughtCondomlessBad")
           self.rep = -3*info.influence
         else
+          event.notify("sprite.play", self.component.entity, "thoughtCondomlessBad")
           self.rep = info.influence
         end
       else
