@@ -1351,7 +1351,7 @@ local addExitGoal = function (self)
         local minCost = 9999999999
         event.notify("room.all", 0, function (id, type)
           local info = room.getInfo(id)
-          if info.visitable then
+          if info.visitable and info.id ~= "utility" then
             local available = true
             local myPos = transform.getPos(self.component.entity)
             local targetPos = transform.getPos(id)
