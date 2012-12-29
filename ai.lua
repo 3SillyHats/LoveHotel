@@ -711,6 +711,9 @@ local newRelaxGoal = function (self, target)
     room.exit(self.target)
     room.use(self.target)
 
+    local clientInfo = resource.get("scr/people/" .. self.component.category .. ".lua")
+    reputationChange(clientInfo.influence)
+
     old_terminate(self)
     self.subgoals = {}
   end
@@ -847,6 +850,9 @@ local newWaitForMealGoal = function (com, target)
       goal.component.money = goal.component.money - info.profit
       moneyChange(info.profit, transform.getPos(goal.component.entity))
       goal.component.needs.hunger = 0
+
+      local clientInfo = resource.get("scr/people/" .. goal.component.category .. ".lua")
+      reputationChange(clientInfo.influence)
     end
   end
 
