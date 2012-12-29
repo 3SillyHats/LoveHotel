@@ -57,7 +57,8 @@ local decisions = {
   },
   star3 = {
     prompt = "Good work reaching three stars! You can now buy" ..
-    " dining rooms and kitchens, hire cooks, and build a new themed suite.",
+    " dining rooms and kitchens, hire cooks, and build a new themed suite." ..
+    " But people will be upset if they run out of condoms!",
     options = {
       {
         text = "Okay",
@@ -67,7 +68,8 @@ local decisions = {
   },
   star4 = {
     prompt = "Four stars - you're nearly there! You can now hire a stocker, " ..
-    "buy a freezer, andbuild a new themed suite.",
+    "buy a freezer, andbuild a new themed suite." ..
+    " People expect food and will be upset if they leave hungry!",
     options = {
       {
         text = "Okay",
