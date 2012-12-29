@@ -73,7 +73,7 @@ M.new = function (state)
         info.money = target.ai.money / target.ai.info.maxMoney
         info.patience = target.ai.patience / 100
         info.horniness = target.ai.needs.horniness / 100
-        info.hunger = target.ai.needs.hunger / 100
+        info.hunger = (100 - target.ai.needs.hunger) / 100
 
         event.notify("menu.info", 0, {
           inspector = info,

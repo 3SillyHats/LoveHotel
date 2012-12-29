@@ -1329,7 +1329,8 @@ local addExitGoal = function (self)
       elseif self.component.patience <= 0 then
         event.notify("sprite.play", self.component.entity, "thoughtImpatient")
         self.rep = -2*info.influence
-      elseif self.component.needs.hunger > self.component.needs.horniness then
+      elseif self.component.needs.hunger > 50 and
+          self.component.needs.hunger > self.component.needs.horniness then
         if gStars >= 4 then
           event.notify("sprite.play", self.component.entity, "thoughtHungryBad")
           self.rep = -2*info.influence
