@@ -1317,7 +1317,8 @@ end
 local addExitGoal = function (self)
   local goal = M.newGoal(self)
   goal.name = "exit"
-  local condomInfo = resource.get("scr/rooms/condom")
+  local condomInfo = resource.get("scr/rooms/condom.lua")
+  local missionaryInfo = resource.get("scr/rooms/missionary.lua")
 
   local old_activate = goal.activate
   goal.activate = function (self)
@@ -1326,6 +1327,8 @@ local addExitGoal = function (self)
       self.rep = nil -- reset incase we started exiting last time
       local info = resource.get("scr/people/" .. self.component.category .. ".lua")
       if self.component.needs.horniness <= 0 then
+        event.notify("sprite.play", self.component.entity, "thoughtHappy")
+      elseif self.component.money < missionaryInfo.profit then
         event.notify("sprite.play", self.component.entity, "thoughtHappy")
       elseif self.component.patience <= 0 then
         event.notify("sprite.play", self.component.entity, "thoughtImpatient")
