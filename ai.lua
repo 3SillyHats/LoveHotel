@@ -2027,13 +2027,11 @@ local addCondomGoal = function (self, target)
         self.component.supply == 0 then
         local myPos = transform.getPos(self.component.entity)
         local time = path.getCost(myPos, targetPos)
-        if time == -1 then
-          return -1
+        if time ~= -1 then
+          return 1 / (1 + time)
         end
-      return 1 / time
-    else
-      return -1
     end
+    return -1
   end
 
   local destroy
