@@ -48,6 +48,7 @@ DOWN_FLOOR_BASE = 1000
 DOWN_FLOOR_INC = 500
 
 MONEY_INITIAL = UP_FLOOR_BASE + 2000
+MONEY_MAX = 999999
 REP_INITIAL = 10
 REP_MAX = 3000
 STARS_INITIAL = 1
@@ -178,7 +179,7 @@ gReputation = REP_INITIAL
 gStars = STARS_INITIAL
 
 moneyChange = function (c, pos)
-  gMoney = math.max(0, gMoney + c)
+  gMoney = math.max(0, math.min(MONEY_MAX, gMoney + c))
 
   if pos then
     event.notify("money.change", 0, {
