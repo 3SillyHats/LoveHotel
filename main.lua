@@ -193,8 +193,10 @@ reputationChange = function (c)
 
   if gStars < STARS_MAX and gReputation >= REP_THRESHOLDS[gStars + 1] then
     gStars = gStars + 1
+    event.notify("stars", 0, gStars)
   elseif gStars > 1 and gReputation < REP_THRESHOLDS[gStars] then
     gStars = gStars - 1
+    event.notify("stars", 0, gStars)
   end
 end
 
@@ -1233,6 +1235,9 @@ event.subscribe("pressed", 0, function (button)
     end
   end
 end)
+
+-- Show starting title card
+event.notify("stars", 0, 1)
 
 love.draw = function ()
   -- Draw to canvas without scaling

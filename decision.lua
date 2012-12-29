@@ -8,7 +8,7 @@ local M = {}
 
 local decisions = {
   skySpawn = {
-    prompt = "Sky travellers can now reach Love Hotel, and they want to join the mile high club",
+    prompt = "Sky travellers can now reach Love Hotel, and they want to join the mile high club.",
     options = {
       {
         text = "Okay",
@@ -17,7 +17,7 @@ local decisions = {
     },
   },
   groundSpawn = {
-    prompt = "That cave seems to be letting in other-worldly demons... and they're horny!",
+    prompt = "The cave seems to be letting in other-worldly demons... and they're horny!",
     options = {
       {
         text = "Okay",
@@ -26,7 +26,7 @@ local decisions = {
     },
   },
   spaceSpawn = {
-    prompt = "They came from outer space!",
+    prompt = "Starfarers are arriving at Love Hotel - make sure that they spend all of that space cash!",
     options = {
       {
         text = "Okay",
@@ -34,50 +34,55 @@ local decisions = {
       },
     },
   },
-  burialGround = {
-    prompt = "While digging out the new underground floor the work " ..
-    "crew discovers an ancient native burial ground filled with " ..
-    "gleaming treasures.",
+  star1 = {
+    prompt = "You are the manager of Love Hotel. To turn it into the best romantic" ..
+    " hotel in the world, you will need to earn money and gain all five stars by satisfying" ..
+    " your clients needs.",
     options = {
       {
-        text = "Screw the ghosts, take the treasure.",
-        func = function ()
-          moneyChange(2000)
-          if math.random() < 0.5 then
-            reputationChange(-45)
-            return("Ghosts! Clients are scared - I hope the $2000 was worth it...")
-          end
-          return("No ghosts... And you gained $2000!")
-        end,
-      },
-      {
-        text = "I'm scared, leave the treasure.",
+        text = "Okay",
         func = nil,
       },
     },
   },
-  zoningPermit = {
-    prompt = "Construction of the new top floor has drawn attention " ..
-    "from city officials, who demand that you obtain a permit for " ..
-    "your new hotel renovations.",
+  star2 = {
+    prompt = "Love Hotel is now a two star establishment! You can now buy" ..
+    " condom machines and build a new themed suite.",
     options = {
       {
-        text = "Buy a permit ($2000)",
-        func = function ()
-          moneyChange(-2000)
-          return("You payed $2000 for a permit to appease our new city official overlords.")
-        end,
+        text = "Okay",
+        func = nil,
       },
+    },
+  },
+  star3 = {
+    prompt = "Good work reaching three stars! You can now buy" ..
+    " dining rooms and kitchens, hire cooks, and build a new themed suite.",
+    options = {
       {
-        text = "Bribe the officials ($500)",
-        func = function ()
-          moneyChange(-500)
-          if math.random() < 0.5 then
-            reputationChange(-30)
-            return("You payed a $500 bribe, but word got out and you lost reputation.")
-          end
-          return("You payed a $500 bribe, and I think you got away with it.")
-        end,
+        text = "Okay",
+        func = nil,
+      },
+    },
+  },
+  star4 = {
+    prompt = "Four stars - you're nearly there! You can now hire a stocker, " ..
+    "buy a freezer, andbuild a new themed suite.",
+    options = {
+      {
+        text = "Okay",
+        func = nil,
+      },
+    },
+  },
+  star5 = {
+    prompt = "Congratulations! Love Hotel is now a five-star resort." ..
+    " You can now build spas and the final themed suite, but you have already" ..
+    " won so you shouldn't feel bad if you just leave now. Have a lovely day.",
+    options = {
+      {
+        text = "Okay",
+        func = nil,
       },
     },
   },
@@ -164,6 +169,13 @@ event.subscribe("pressed", 0, function (button)
 end)
 
 -- Setup some handlers to prompt decisions
+local topStar = 0
+event.subscribe("stars", 0, function (stars)
+  if stars > topStar then
+    topStar = stars
+    M.prompt("star" .. topStar)
+  end
+end)
 event.subscribe("floor.new", 0, function (level)
   if level == SKY_SPAWN then
     M.prompt("skySpawn")
@@ -174,14 +186,6 @@ event.subscribe("floor.new", 0, function (level)
   elseif level == SPACE_SPAWN then
     M.prompt("spaceSpawn")
     return
-  end
-
-  if level == 7 then
-    if math.random() < 0.5 then
-      M.prompt("zoningPermit")
-    end
-  elseif level == -3 then
-    M.prompt("burialGround")
   end
 end)
 
