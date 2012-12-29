@@ -1317,6 +1317,7 @@ end
 local addExitGoal = function (self)
   local goal = M.newGoal(self)
   goal.name = "exit"
+  local condomInfo = resource.get("scr/rooms/condom")
 
   local old_activate = goal.activate
   goal.activate = function (self)
@@ -1337,7 +1338,7 @@ local addExitGoal = function (self)
         else
           event.notify("sprite.play", self.component.entity, "thoughtHungryGood")
         end
-      elseif self.component.supply <= 0 then
+      elseif self.component.supply <= 0 and self.component.money >= condomInfo.profit then
         if gStars >= 3 then
           event.notify("sprite.play", self.component.entity, "thoughtCondomlessBad")
           self.rep = -2*info.influence
