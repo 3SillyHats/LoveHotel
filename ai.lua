@@ -950,7 +950,9 @@ local newWaitForReceptionGoal = function (com, target)
 
   local queryHandler = function (e)
     if com.leader and not com.beenServed then
-      e.callback(com.entity)
+      if e.id == nil then
+        e.id = com.entity
+      end
     end
   end
 
@@ -2240,15 +2242,11 @@ local newReceptionGoal = function (com, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function(self)
-    local client
-    event.notify("staff.queryServe", target, {
-      callback = function (id)
-        client = id
-      end,
-    })
-    if client then
-      event.notify("staff.bellhop.serve", client, {})
-      self.component:addFollowGoal(client, "staff")
+    local client = {}
+    event.notify("staff.queryServe", target, client)
+    if client.id then
+      event.notify("staff.bellhop.serve", client.id, {})
+      self.component:addFollowGoal(client.id, "staff")
       self.component.following = true
     end
 
