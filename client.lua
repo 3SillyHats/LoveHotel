@@ -225,7 +225,9 @@ M.new = function (t)
 
   local old_update = aiComponent.update
   aiComponent.update = function (self, dt)
-    aiComponent.needs.hunger = aiComponent.needs.hunger + dt
+    if not aiComponent.orderedMeal then
+      aiComponent.needs.hunger = aiComponent.needs.hunger + dt
+    end
     old_update(self, dt)
   end
 
