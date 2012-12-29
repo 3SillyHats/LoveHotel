@@ -2661,7 +2661,7 @@ local addWaiterGoal = function (self, target)
 
     -- Use exponential to map potentially negative desirability to wholly positive range while preserving ordering
     -- prioritise by (client pairs - cooks) then by distance
-    local desirability = room.reservations(self.target)/3 - room.occupation(self.target) + (1 / (1 + time))
+    local desirability = room.reservations(self.target) - room.occupation(self.target) + (1 / (1 + time))
     if occupied then
       desirability = desirability + 1
     end
