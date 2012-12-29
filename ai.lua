@@ -923,18 +923,15 @@ local addOrderMealGoal = function (self, target)
   goal.getDesirability = function (self, t)
     if self.component.patience > 0 and
         self.component.money >= info.profit and
-        self.component.needs.hunger > 50 and
         self.component.needs.hunger > self.component.needs.horniness and
         (room.reservations(goal.target) < 3 or reserved) then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time == -1 then
-        return -1
+      if time ~= -1 then
+        return (8 * self.component.needs.hunger) / (time + 1)
       end
-      return self.component.needs.hunger / (time + 1)
-    else
-      return -1
     end
+    return -1
   end
 
   local function destroy (t)
@@ -2152,13 +2149,11 @@ local addSnackGoal = function (self, target)
         self.component.needs.hunger > self.component.needs.horniness then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time == -1 then
-        return -1
+      if time ~= -1 then
+        return self.component.needs.hunger / (1 + time)
       end
-      return self.component.needs.hunger / time
-    else
-      return -1
     end
+    return -1
   end
 
   local destroy
