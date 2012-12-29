@@ -1401,7 +1401,8 @@ local addExitGoal = function (self)
   end
 
   goal.getDesirability = function (self, t)
-    if self.component.patience <= 0 then
+    if self.component.money < missionaryInfo.profit or
+        self.component.patience <= 0 then
       return 1000
     end
     return 0
