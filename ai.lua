@@ -1329,24 +1329,24 @@ local addExitGoal = function (self)
         end)
         if minCost == 9999999999 then
           event.notify("sprite.play", self.component.entity, "thoughtRoomless")
-          self.rep = -2*info.influence
+          self.rep = -5*info.influence
         elseif self.component.money  < minCost then
           event.notify("sprite.play", self.component.entity, "thoughtBroke")
         elseif self.component.patience <= 0 then
           event.notify("sprite.play", self.component.entity, "thoughtImpatient")
-          self.rep = -2*info.influence
+          self.rep = -5*info.influence
         elseif self.component.needs.hunger > 50 and
           self.component.needs.hunger > self.component.needs.horniness then
           if gStars >= 4 then
             event.notify("sprite.play", self.component.entity, "thoughtHungryBad")
-            self.rep = -2*info.influence
+            self.rep = -5*info.influence
           else
             event.notify("sprite.play", self.component.entity, "thoughtHungryGood")
           end
         elseif self.component.supply <= 0 then
           if gStars >= 3 then
             event.notify("sprite.play", self.component.entity, "thoughtCondomlessBad")
-            self.rep = -2*info.influence
+            self.rep = -5*info.influence
           else
             event.notify("sprite.play", self.component.entity, "thoughtCondomlessGood")
           end
@@ -2439,7 +2439,7 @@ local addCookGoal = function (self, target)
   goal.terminate = function (self)
     room.release(self.target)
     reserved = false
-  
+
     old_terminate(self)
     self.subgoals = {}
   end
@@ -2621,7 +2621,7 @@ local addWaiterGoal = function (self, target)
       room.unassign(self.target)
       self.component.assigned = nil
     end
-  
+
     old_terminate(self)
     self.subgoals = {}
   end
