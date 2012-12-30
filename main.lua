@@ -1253,7 +1253,7 @@ local winCom = entity.newComponent({
     love.graphics.setColor(255, 255, 255)
     love.graphics.printf(
       "Press START",
-      0, CANVAS_HEIGHT - 10,
+      0, CANVAS_HEIGHT - 9,
       CANVAS_WIDTH,
       "center"
     )
