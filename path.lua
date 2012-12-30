@@ -99,19 +99,21 @@ end
 
 M.removeNode = function (pos)
   local pathLoc = pos2loc(pos.roomNum, pos.floorNum)
-  -- Remove neighbouring connections
-  for i,neighbor in ipairs(pathMap[pathLoc].neighbors) do
-    for j,v in ipairs(pathMap[neighbor].neighbors) do
-      if v == pathLoc and v > 4 then
-        table.remove(pathMap[neighbor].neighbors, j)
-        table.remove(pathMap[neighbor].distance, j)
-        break -- to outer loop of our neighbours
+  if pathMap[pathLoc] then
+    -- Remove neighbouring connections
+    for i,neighbor in ipairs(pathMap[pathLoc].neighbors) do
+      for j,v in ipairs(pathMap[neighbor].neighbors) do
+        if v == pathLoc and v > 4 then
+          table.remove(pathMap[neighbor].neighbors, j)
+          table.remove(pathMap[neighbor].distance, j)
+          break -- to outer loop of our neighbours
+        end
       end
     end
+  
+    -- Remove node
+    pathMap[pathLoc] = nil
   end
-
-  -- Remove node
-  pathMap[pathLoc] = nil
 end
 
 M.get = function (src, dst)
