@@ -40,13 +40,13 @@ local pathMap = { -- initial, special nodes
 local pos2loc = function (roomNum, floorNum)
   if floorNum == 0 then
     if roomNum == -.5 then
-      return 3 
+      return 3
     elseif roomNum == .5 then
       return 4
     end
   elseif floorNum < 0 then floorNum = 100 - floorNum end
   -- Assumes roomNum is integer or integer + 1/2, floorNum is integer
-  return math.floor(roomNum*2+.5) + 15*math.floor(floorNum+.5) + 4
+  return math.floor(roomNum*2+2) + 17*math.floor(floorNum+.5) + 4
 end
 
 M.addNode = function (pos)
@@ -99,7 +99,6 @@ end
 
 M.removeNode = function (pos)
   local pathLoc = pos2loc(pos.roomNum, pos.floorNum)
-
   -- Remove neighbouring connections
   for i,neighbor in ipairs(pathMap[pathLoc].neighbors) do
     for j,v in ipairs(pathMap[neighbor].neighbors) do
