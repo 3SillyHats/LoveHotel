@@ -151,78 +151,43 @@ local cancelReservation = function (self)
   end
 end
 
-local seekGoto = function (self,pos)
-  local passable = false
-  if (pos.floorNum >= gBottomFloor and
-      pos.floorNum <= gTopFloor) or
-    (pos.roomNum < 7.5 and
-     pos.floorNum == GROUND_FLOOR) then
-      passable = true
-  end
-  if passable then
-    event.notify("entity.move", self.component.entity, pos)
-  else
-    return "failed"
-  end
-end
-
 local seekProcess = function  (self, dt)
-  if not self.moveTo or not self.pos then
-    return "failed"
-  end
-  --if self.moveTo.floorNum ~= self.pos.floorNum then
-  --  return "failed"
-  --end
-  if math.abs(self.moveTo.roomNum - self.pos.roomNum) < self.speed*dt then
-    local result = seekGoto(self, {
-      roomNum = self.moveTo.roomNum,
-      floorNum = self.pos.floorNum,
-    })
-    if result then return result end
-    return "complete"
-  else
-    local delta = self.speed*dt
-    if self.moveTo.roomNum < self.pos.roomNum then
-      delta = delta * -1
-      event.notify("sprite.flip", self.component.entity, true)
-    else
-      event.notify("sprite.flip", self.component.entity, false)
-    end
-    local result = seekGoto(self, {
-      roomNum = self.pos.roomNum + delta,
-      floorNum = self.pos.floorNum,
-    })
-    if result then return result end
+  self.time = self.time + dt
+  event.notify("sprite.play", self.component.entity, "walking")
+  if self.time < self.length then
+    local pos = {
+      roomNum = self.moveTo.roomNum - self.delta.roomNum * (self.length - self.time) / self.length,
+      floorNum = self.moveTo.floorNum - self.delta.floorNum * (self.length - self.time) / self.length,
+    }
+    event.notify("entity.move", self.component.entity, pos)
     return "active"
+  else
+    event.notify("entity.move", self.component.entity, self.moveTo)
+    return "complete"
   end
 end
 
 local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
   local goal = M.newGoal(com)
   goal.moveTo = {roomNum = moveTo.roomNum, floorNum = moveTo.floorNum}
-  goal.pos = {roomNum = moveFrom.roomNum, floorNum = moveFrom.floorNum}
-  goal.speed = moveSpeed
+  goal.delta = {roomNum = moveTo.roomNum - moveFrom.roomNum, floorNum = moveTo.floorNum - moveFrom.floorNum}
+  goal.length = math.abs(goal.delta.roomNum)/moveSpeed
+  goal.time = 0
   goal.process = seekProcess
   goal.name = "seek"
-  local onMove = function (pos)
-    goal.pos.roomNum = pos.roomNum
-    goal.pos.floorNum = pos.floorNum
-  end
-  local function delete()
-    event.unsubscribe("entity.move", goal.component.entity, onMove)
-    event.unsubscribe("delete", goal.component.entity, delete)
-  end
   local old_activate = goal.activate
   goal.activate = function (self)
-    event.subscribe("entity.move", goal.component.entity, onMove)
-    event.subscribe("delete", goal.component.entity, delete)
-    event.notify("sprite.play", goal.component.entity, "walking")
+    if self.delta.roomNum > 0 then
+      event.notify("sprite.flip", self.component.entity, false)
+    else
+      event.notify("sprite.flip", self.component.entity, true)
+    end
+    event.notify("sprite.play", self.component.entity, "walking")
     old_activate(self)
   end
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    delete()
-    event.notify("sprite.play", goal.component.entity, "idle")
+    event.notify("sprite.play", self.component.entity, "idle")
     old_terminate(self)
   end
 
