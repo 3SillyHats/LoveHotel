@@ -5,7 +5,7 @@ return {
   maxHorniness = 80,
   minHunger = 30,
   maxHunger = 40,
-  minSupply = 0,
+  minSupply = 1,
   maxSupply = 1,
   minMoney = 12000,
   maxMoney = 15000,
