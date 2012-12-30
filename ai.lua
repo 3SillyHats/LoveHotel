@@ -934,7 +934,11 @@ local addOrderMealGoal = function (self, target)
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
       if time ~= -1 then
-        return (8 * self.component.needs.hunger) / (time + 1)
+        local res = room.reservations(goal.target)
+        if reserved then
+          res = 0
+        end
+        return (8 * self.component.needs.hunger) / (time + 1 + 3*res)
       end
     end
     return -1
@@ -2622,7 +2626,6 @@ local addWaiterGoal = function (self, target)
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local takeOrder = nil
-  local occupied = false
 
   local old_activate = goal.activate
   goal.activate = function (self)
@@ -2631,8 +2634,12 @@ local addWaiterGoal = function (self, target)
       return
     end
 
-    room.enter(self.target)
-    occupied = true
+    if self.component.assigned ~= nil then
+      room.unassign(self.target)
+      self.component.assigned = nil
+    end
+    room.assign(self.target)
+    self.component.assigned = self.target
 
     self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     takeOrder = newTakeOrderGoal(self.component, self.target)
@@ -2642,8 +2649,10 @@ local addWaiterGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    room.exit(self.target)
-    occupied = false
+    if self.status ~= "complete" then
+      room.unassign(self.target)
+      self.component.assigned = nil
+    end
   
     old_terminate(self)
     self.subgoals = {}
@@ -2659,10 +2668,10 @@ local addWaiterGoal = function (self, target)
       return -1
     end
 
-    -- Use exponential to map potentially negative desirability to wholly positive range while preserving ordering
+    -- Use exponential to map potentially negative desirability to wholly positive range while preserving orderng
     -- prioritise by (client pairs - cooks) then by distance
-    local desirability = room.reservations(self.target) - room.occupation(self.target) + (1 / (1 + time))
-    if occupied then
+    local desirability = room.reservations(self.target) + room.occupation(self.target) - room.assigned(self.target) + (1 / (1 + time))
+    if self.component.assigned and self.component.assigned == self.target then
       desirability = desirability + 1
     end
     return math.exp(desirability)

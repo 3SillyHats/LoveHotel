@@ -17,6 +17,7 @@ local infoComponent = function (id, info, pos)
   local component = entity.newComponent(info)
   component.occupied = 0
   component.reservations = 0
+  component.assigned = 0
   component.messy = false
   if info.cleaningSupplies then
     component.stock = info.stock
@@ -69,6 +70,18 @@ local infoComponent = function (id, info, pos)
   local setStock = function (stock)
     component.stock = stock
     event.notify("sprite.play", id, "stocked" .. stock)
+  end
+
+  local assign = function (e)
+    component.assigned = component.assigned + 1
+  end
+
+  local unassign = function (e)
+    component.assigned = component.assigned - 1
+  end
+
+  local checkAssigned = function (callback)
+    callback(component.assigned)
   end
 
   local setReservations = function (r)
@@ -239,6 +252,9 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("room.reservations", id, checkReservations)
     event.unsubscribe("room.getStock", id, getStock)
     event.unsubscribe("room.setStock", id, setStock)
+    event.unsubscribe("room.assign", id, assign)
+    event.unsubscribe("room.unassign", id, unassign)
+    event.unsubscribe("room.assigned", id, checkAssigned)
     event.unsubscribe("room.reserve", id, reserve)
     event.unsubscribe("room.release", id, release)
     event.unsubscribe("room.enter", id, enter)
@@ -263,6 +279,9 @@ local infoComponent = function (id, info, pos)
   event.subscribe("room.reservations", id, checkReservations)
   event.subscribe("room.getStock", id, getStock)
   event.subscribe("room.setStock", id, setStock)
+  event.subscribe("room.assign", id, assign)
+  event.subscribe("room.unassign", id, unassign)
+  event.subscribe("room.assigned", id, checkAssigned)
   event.subscribe("room.reserve", id, reserve)
   event.subscribe("room.release", id, release)
   event.subscribe("room.enter", id, enter)
@@ -411,6 +430,22 @@ M.occupation = function (id)
     occupation = e
   end)
   return occupation
+end
+
+M.assign = function (id)
+  event.notify("room.assign", id, nil)
+end
+
+M.unassign = function (id)
+  event.notify("room.unassign", id, nil)
+end
+
+M.assigned = function (id)
+  local assigned = nil
+  event.notify("room.assigned", id, function (e)
+    assigned = e
+  end)
+  return assigned
 end
 
 M.reserve = function (id)
