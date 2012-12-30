@@ -11,6 +11,7 @@ STATE_TRAIN = 1
 STATE_PLAY = 2
 STATE_PAUSE = 3
 STATE_DECISION = 4
+STATE_WIN = 5
 
 PERSON_MOVE = 1
 ELEVATOR_MOVE = 1.2
@@ -190,7 +191,7 @@ moneyChange = function (c, pos)
 end
 
 reputationChange = function (c)
-  gReputation = math.max(math.min(gReputation + c, REP_MAX - 1), 0)
+  gReputation = math.max(math.min(gReputation + c, REP_MAX), 0)
 
   if gStars < STARS_MAX and gReputation >= REP_THRESHOLDS[gStars + 1] then
     gStars = gStars + 1
@@ -198,6 +199,8 @@ reputationChange = function (c)
   elseif gStars > 1 and gReputation < REP_THRESHOLDS[gStars] then
     gStars = gStars - 1
     event.notify("stars", 0, gStars)
+  elseif gReputation == REP_MAX then
+    event.notify("win", 0)
   end
 end
 
@@ -536,10 +539,8 @@ end
 --Main menu
 local gui = menu.new(STATE_PLAY, mainMenuY)
 
---The back button, quits the game at the moment
+--The back button
 menu.setBack(gui, function ()
-  --love.event.push("quit")
-  --love.event.push("q")
 end)
 
 --Infrastructure button
@@ -1237,6 +1238,20 @@ event.subscribe("pressed", 0, function (button)
   end
 end)
 
+-- GAME WIN SCREEN
+local winScreen = entity.new(STATE_WIN)
+local winCom = entity.newComponent({
+  draw = function (self)
+    -- Draw win screen
+    local img = resource.get("img/win.png")
+    love.graphics.draw(img, 0, 0)
+  end,
+})
+entity.addComponent(winScreen, winCom)
+event.subscribe("win", 0, function ()
+  event.notify("state.enter", 0, STATE_WIN)
+end)
+
 -- Show starting title card
 event.notify("stars", 0, 1)
 
@@ -1300,6 +1315,9 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
       event.notify("state.enter", 0, STATE_PAUSE)
     elseif gState == STATE_PAUSE then
       event.notify("state.enter", 0, STATE_PLAY)
+    elseif gState == STATE_WIN then
+      love.event.push("quit")
+      love.event.push("q")
     end
   elseif key == "f1" then
     event.notify("training.begin", 0)
