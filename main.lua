@@ -190,6 +190,7 @@ moneyChange = function (c, pos)
   end
 end
 
+local won = false
 reputationChange = function (c)
   gReputation = math.max(math.min(gReputation + c, REP_MAX), 0)
 
@@ -199,7 +200,8 @@ reputationChange = function (c)
   elseif gStars > 1 and gReputation < REP_THRESHOLDS[gStars] then
     gStars = gStars - 1
     event.notify("stars", 0, gStars)
-  elseif gReputation == REP_MAX then
+  elseif not won and gReputation == REP_MAX then
+    won = true
     event.notify("win", 0)
   end
 end
@@ -1246,11 +1248,27 @@ local winCom = entity.newComponent({
     -- Draw win screen
     local img = resource.get("img/win.png")
     love.graphics.draw(img, 0, 0)
-  end,
+
+    love.graphics.setFont(gFont)
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.printf(
+      "Press START",
+      0, CANVAS_HEIGHT - 10,
+      CANVAS_WIDTH,
+      "center"
+    )
+  end
 })
 entity.addComponent(winScreen, winCom)
 event.subscribe("win", 0, function ()
   event.notify("state.enter", 0, STATE_WIN)
+end)
+event.subscribe("pressed", 0, function (button)
+  if gState == STATE_WIN then
+    if button == "start" then
+      event.notify("state.enter", 0, STATE_PLAY)
+    end
+  end
 end)
 
 -- Show starting title card
