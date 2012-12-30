@@ -1,12 +1,12 @@
 return {
   id = "balloon",
   name = "Balloons",
-  cost = 1800,
-  profit = 800,
+  cost = 5000,
+  profit = 1500,
   width = 3,
   dirtyable = true,
   visitable = true,
-  
+
   sprites = {
     {
       name = "interior",

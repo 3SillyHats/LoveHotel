@@ -2,11 +2,11 @@ return {
   id = "missionary",
   name = "Missionary",
   cost = 500,
-  profit = 250,
+  profit = 300,
   width = 2,
   dirtyable = true,
   visitable = true,
-  
+
   sprites = {
     {
       name = "interior",

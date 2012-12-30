@@ -590,29 +590,25 @@ menu.addButton(gui, menu.newButton("suites", function ()
     buildRoom("missionary", submenu)
   end))
 
-  --Spoon
-  menu.addButton(submenu, menu.newButton("spoon", function ()
-    buildRoom("spoon", submenu)
-  end))
+  if gStars >= 2 then
+    --Spoon
+    menu.addButton(submenu, menu.newButton("spoon", function ()
+      buildRoom("spoon", submenu)
+    end))
 
-  --Balloon
-  menu.addButton(submenu, menu.newButton("balloon", function ()
-    buildRoom("balloon", submenu)
-  end))
-
-   if gStars >= 2 then
-    --Chocolate Moustache
-    menu.addButton(submenu, menu.newButton("moustache", function ()
-      buildRoom("moustache", submenu)
+    --Balloon
+    menu.addButton(submenu, menu.newButton("balloon", function ()
+      buildRoom("balloon", submenu)
     end))
   else
+    addLockButton(submenu)
     addLockButton(submenu)
   end
 
   if gStars >= 3 then
-   --Eco
-    menu.addButton(submenu, menu.newButton("eco", function ()
-      buildRoom("eco", submenu)
+    --Chocolate Moustache
+    menu.addButton(submenu, menu.newButton("moustache", function ()
+      buildRoom("moustache", submenu)
     end))
   else
     addLockButton(submenu)
@@ -626,6 +622,11 @@ menu.addButton(gui, menu.newButton("suites", function ()
   else
     addLockButton(submenu)
   end
+
+  --Eco
+  menu.addButton(submenu, menu.newButton("eco", function ()
+    buildRoom("eco", submenu)
+  end))
 
   if gStars >= 5 then
     --Nazi Furry

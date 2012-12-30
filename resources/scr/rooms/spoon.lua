@@ -1,12 +1,12 @@
 return {
   id = "spoon",
   name = "Spooning",
-  cost = 1200,
-  profit = 500,
+  cost = 1500,
+  profit = 700,
   width = 2,
   dirtyable = true,
   visitable = true,
-  
+
   sprites = {
     {
       name = "interior",

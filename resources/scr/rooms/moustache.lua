@@ -1,12 +1,12 @@
 return {
   id = "moustache",
   name = "Choc 'tache",
-  cost = 4000,
-  profit = 1200,
+  cost = 8000,
+  profit = 2000,
   width = 2,
   dirtyable = true,
   visitable = true,
-  
+
   sprites = {
     {
       name = "interior",
