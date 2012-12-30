@@ -1317,8 +1317,7 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
     elseif gState == STATE_PAUSE then
       event.notify("state.enter", 0, STATE_PLAY)
     elseif gState == STATE_WIN then
-      love.event.push("quit")
-      love.event.push("q")
+      event.notify("state.enter", 0, STATE_PLAY)
     end
   elseif key == "f1" then
     event.notify("training.begin", 0)
