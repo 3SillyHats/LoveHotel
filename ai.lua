@@ -208,14 +208,14 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
     goal.pos.roomNum = pos.roomNum
     goal.pos.floorNum = pos.floorNum
   end
-  event.subscribe("entity.move", goal.component.entity, onMove)
   local function delete()
     event.unsubscribe("entity.move", goal.component.entity, onMove)
     event.unsubscribe("delete", goal.component.entity, delete)
   end
-  event.subscribe("delete", goal.component.entity, delete)
   local old_activate = goal.activate
   goal.activate = function (self)
+    event.subscribe("entity.move", goal.component.entity, onMove)
+    event.subscribe("delete", goal.component.entity, delete)
     event.notify("sprite.play", goal.component.entity, "walking")
     old_activate(self)
   end
@@ -315,6 +315,7 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
   end
 
   goal.endHandler = function (e)
+    event.unsubscribe("sprite.onAnimationEnd", goal.roomIdEnd, goal.endHandler)
     if e.animation == "opening" then
       goal.waitEnd = false
     end
@@ -324,16 +325,16 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
     goal.pos.roomNum = pos.roomNum
     goal.pos.floorNum = pos.floorNum
   end
-  event.subscribe("entity.move", goal.component.entity, onMove)
 
   local function delete()
     event.unsubscribe("entity.move", goal.component.entity, onMove)
     event.unsubscribe("delete", goal.component.entity, delete)
   end
-  event.subscribe("delete", goal.component.entity, delete)
 
   local old_activate = goal.activate
   goal.activate = function (self)
+    event.subscribe("entity.move", goal.component.entity, onMove)
+    event.subscribe("delete", goal.component.entity, delete)
     event.notify("sprite.play", self.component.entity, "idle")
     self.roomIdStart = nil
     event.notify("room.check", 0, {
