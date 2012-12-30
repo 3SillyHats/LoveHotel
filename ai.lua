@@ -987,7 +987,7 @@ local newWaitForReceptionGoal = function (com, target)
             room.reservations(id) == 0 and
             room.occupation(id) == 0 then
           local myPos = transform.getPos(self.component.entity)
-          local targetPos = transform.getPos(self.target)
+          local targetPos = transform.getPos(id)
           local time = path.getCost(myPos, targetPos)
           if time ~= -1 then
             local myInfo = resource.get("scr/people/" .. self.component.category .. ".lua")
@@ -1024,6 +1024,7 @@ local newWaitForReceptionGoal = function (com, target)
     room.enter(self.target)
 
     self.component.patience = 100
+    self.component.reserved = nil
 
     event.subscribe("staff.queryServe", self.target, queryHandler)
     event.subscribe("staff.bellhop.serve", com.entity, serveHandler)
@@ -1041,6 +1042,7 @@ local newWaitForReceptionGoal = function (com, target)
     if self.status ~= "complete" then
       event.notify("reservation.cancelled", self.component.entity)
       self.component.beenServed = false
+      self.component.reserved = nil
     end
 
     old_terminate(self)
@@ -1341,24 +1343,6 @@ local addExitGoal = function (self)
         event.notify("sprite.play", self.component.entity, "thoughtHappy")
       elseif self.component.money < missionaryInfo.profit then
         event.notify("sprite.play", self.component.entity, "thoughtBroke")
-      elseif self.component.patience <= 0 then
-        event.notify("sprite.play", self.component.entity, "thoughtImpatient")
-        self.rep = -2*info.influence
-      elseif self.component.needs.hunger > 50 and
-          self.component.needs.hunger > self.component.needs.horniness then
-        if gStars >= 4 then
-          event.notify("sprite.play", self.component.entity, "thoughtHungryBad")
-          self.rep = -2*info.influence
-        else
-          event.notify("sprite.play", self.component.entity, "thoughtHungryGood")
-        end
-      elseif self.component.supply <= 0 then
-        if gStars >= 3 then
-          event.notify("sprite.play", self.component.entity, "thoughtCondomlessBad")
-          self.rep = -2*info.influence
-        else
-          event.notify("sprite.play", self.component.entity, "thoughtCondomlessGood")
-        end
       else
         local minCost = 9999999999
         event.notify("room.all", 0, function (id, type)
@@ -1380,8 +1364,26 @@ local addExitGoal = function (self)
         if minCost == 9999999999 then
           event.notify("sprite.play", self.component.entity, "thoughtRoomless")
           self.rep = -2*info.influence
-        else
+        elseif self.component.money  < minCost then
           event.notify("sprite.play", self.component.entity, "thoughtBroke")
+        elseif self.component.patience <= 0 then
+          event.notify("sprite.play", self.component.entity, "thoughtImpatient")
+          self.rep = -2*info.influence
+        elseif self.component.needs.hunger > 50 and
+          self.component.needs.hunger > self.component.needs.horniness then
+          if gStars >= 4 then
+            event.notify("sprite.play", self.component.entity, "thoughtHungryBad")
+            self.rep = -2*info.influence
+          else
+            event.notify("sprite.play", self.component.entity, "thoughtHungryGood")
+          end
+        elseif self.component.supply <= 0 then
+          if gStars >= 3 then
+            event.notify("sprite.play", self.component.entity, "thoughtCondomlessBad")
+            self.rep = -2*info.influence
+          else
+            event.notify("sprite.play", self.component.entity, "thoughtCondomlessGood")
+          end
         end
       end
     end
