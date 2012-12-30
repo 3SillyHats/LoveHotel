@@ -1225,6 +1225,11 @@ local addFollowGoal = function (self, target, type)
       while #self.targetHist > 0 and
           math.abs(myPos.roomNum - targetPos.roomNum) + math.abs(myPos.floorNum - targetPos.floorNum) >= self.followDist do
         local next = table.remove(self.targetHist, 1)
+        if next.pos.roomNum > myPos.roomNum then
+          event.notify("sprite.flip", self.component.entity, false)
+        elseif next.pos.roomNum < myPos.roomNum then
+          event.notify("sprite.flip", self.component.entity, true)
+        end
         event.notify("entity.move", self.component.entity, next.pos)
         if next.hide and not next.enterRoom then
           event.notify("sprite.hide", self.component.entity, true)
@@ -1232,10 +1237,10 @@ local addFollowGoal = function (self, target, type)
           event.notify("sprite.hide", self.component.entity, false)
         end
         if next.flip then
-          event.notify("sprite.flip", goal.component.entity, next.flipTo)
+          event.notify("sprite.flip", self.component.entity, next.flipTo)
         end
         if next.play then
-          event.notify("sprite.play", goal.component.entity, next.play)
+          event.notify("sprite.play", self.component.entity, next.play)
         end
         if next.enterRoom then
           if self.type == "client" then
