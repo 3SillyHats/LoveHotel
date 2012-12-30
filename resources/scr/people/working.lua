@@ -3,8 +3,8 @@ return {
 
   minHorniness = 50,
   maxHorniness = 80,
-  minHunger = 20,
-  maxHunger = 30,
+  minHunger = 10,
+  maxHunger = 20,
   minSupply = 1,
   maxSupply = 2,
   minMoney = 3000,
