@@ -30,7 +30,7 @@ return {
         closing = {
           first = 0,
           last = 5,
-          speed = 0.05,
+          speed = 0.2,
           goto = "closed",
         },
         opening = {

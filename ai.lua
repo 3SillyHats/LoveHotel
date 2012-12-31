@@ -194,154 +194,111 @@ local newSeekGoal = function (com, moveFrom, moveTo, moveSpeed)
   return goal
 end
 
-local elevatorGoto = function(self, pos)
-  local passable = false
-  event.notify("room.check", 0, {
-    roomNum = pos.roomNum,
-    floorNum = pos.floorNum,
-    callback = function (id, roomType)
-      if roomType == "elevator" and not room.isBroken(id) then
-        passable = true
-      end
-    end,
-  })
-  if passable then
+local elevatorProcess = function  (self, dt)
+  if self.time == 0 and not self.waitEnter then
+    event.notify("sprite.hide", self.component.entity, true)
+  end
+  if not self.waitEnter and not self.waitExit then
+    self.time = self.time + dt
+  end
+  if self.time < self.length then
+    local pos = {
+      roomNum = self.moveTo.roomNum - self.delta.roomNum * (self.length - self.time) / self.length,
+      floorNum = self.moveTo.floorNum - self.delta.floorNum * (self.length - self.time) / self.length,
+    }
     event.notify("entity.move", self.component.entity, pos)
-  else
-    return "failed"
-  end
-end
-
-local elevatorProcess = function (self, dt)
-  if not self.moveTo or not self.pos then
-    return "failed"
-  end
-  if self.moveTo.roomNum ~= self.pos.roomNum then
-    return "failed"
-  end
-  if self.waitStart then
     return "active"
-  end
-  if not self.waitEnd then
+  elseif not self.exiting then
+    self.exiting = true
+    self.waitExit = true
+    event.notify("sprite.play", self.toRoom, "opening")
+    return "active"
+  elseif not self.waitExit then
+    event.notify("entity.move", self.component.entity, self.moveTo)
     return "complete"
-  end
-  if math.abs(self.moveTo.floorNum - self.pos.floorNum) < self.speed*dt then
-    local result = elevatorGoto(self, {
-      roomNum = self.moveTo.roomNum,
-      floorNum = self.moveTo.floorNum,
-    })
-    if result then return result end
-    self.roomIdEnd = nil
-    event.notify("room.check", 0, {
-      roomNum = self.pos.roomNum,
-      floorNum = self.pos.floorNum,
-      callback = function (id, type)
-        if type == "elevator" then
-          self.roomIdEnd = id
-        end
-      end,
-    })
-    if room.isBroken(self.roomIdEnd) then
-      return "complete"
-    else
-      event.subscribe("sprite.onAnimationEnd", self.roomIdEnd, self.endHandler)
-      event.notify("sprite.play", self.roomIdEnd, "opening")
-    end
   else
-    local delta = self.speed*dt
-    if self.moveTo.floorNum < self.pos.floorNum then
-      delta = delta * -1
-    end
-    local result = elevatorGoto(self, {
-      roomNum = self.pos.roomNum,
-      floorNum = self.pos.floorNum + delta,
-    })
-    if result then return result end
     return "active"
   end
 end
 
 local newElevatorGoal = function (com, moveFrom, moveTo)
   local goal = M.newGoal(com)
-  goal.elevator = true
   goal.moveTo = {roomNum = moveTo.roomNum, floorNum = moveTo.floorNum}
-  goal.pos = {roomNum = moveFrom.roomNum, floorNum = moveFrom.floorNum}
-  goal.speed = ELEVATOR_MOVE
+  goal.delta = {roomNum = moveTo.roomNum - moveFrom.roomNum, floorNum = moveTo.floorNum - moveFrom.floorNum}
+  goal.length = math.abs(goal.delta.floorNum)/ELEVATOR_MOVE
+  goal.time = 0
   goal.process = elevatorProcess
   goal.name = "elevator"
-  goal.waitStart = true
-  goal.waitEnd = true
-
-  goal.startHandler = function (e)
+  goal.waitEnter = false
+  goal.waitExit = false
+  goal.exiting = false
+  local enter = function (e)
     if e.animation == "opening" then
-      event.notify("sprite.hide", goal.component.entity, true)
-      goal.waitStart = false
+      goal.waitEnter = false
     end
   end
-
-  goal.endHandler = function (e)
-    event.unsubscribe("sprite.onAnimationEnd", goal.roomIdEnd, goal.endHandler)
+  local exit = function (e)
     if e.animation == "opening" then
-      goal.waitEnd = false
+      goal.waitExit = false
     end
   end
-
-  local onMove = function (pos)
-    goal.pos.roomNum = pos.roomNum
-    goal.pos.floorNum = pos.floorNum
-  end
-
-  local function delete()
-    event.unsubscribe("entity.move", goal.component.entity, onMove)
-    event.unsubscribe("delete", goal.component.entity, delete)
-  end
-
   local old_activate = goal.activate
   goal.activate = function (self)
-    event.subscribe("entity.move", goal.component.entity, onMove)
-    event.subscribe("delete", goal.component.entity, delete)
     event.notify("sprite.play", self.component.entity, "idle")
-    self.roomIdStart = nil
+    for f = self.delta.floorNum,0,self.delta.floorNum/math.abs(self.delta.floorNum) do
+      local passable = false
+      event.notify("room.check", 0, {
+        roomNum = self.moveTo.roomNum,
+        floorNum = self.moveTo.floorNum - f,
+        callback = function (id, roomType)
+          if roomType == "elevator" and not room.isBroken(id) then
+            passable = true
+          end
+        end,
+      })
+      if not passable then
+        self.status = "failed"
+        return
+      end
+    end
     event.notify("room.check", 0, {
-      roomNum = self.pos.roomNum,
-      floorNum = self.pos.floorNum,
-      callback = function (id, type)
-        if type == "elevator" then
-          self.roomIdStart = id
+      roomNum = self.moveTo.roomNum,
+      floorNum = self.moveTo.floorNum,
+      callback = function (id, roomType)
+        if roomType == "elevator" and not room.isBroken(id) then
+          self.toRoom = id
         end
       end,
     })
-    if not self.roomIdStart or room.isBroken(self.roomIdStart) then
+    if self.toRoom == nil then
       self.status = "failed"
       return
-    else
-      event.subscribe("sprite.onAnimationEnd", self.roomIdStart, self.startHandler)
-      event.notify("sprite.play", self.roomIdStart, "opening")
     end
-    old_activate(self)
-  end
-
-  local old_terminate = goal.terminate
-  goal.terminate = function (self)
-    delete()
-    event.notify("entity.move", goal.component.entity, {
-      roomNum = goal.pos.roomNum,
-      floorNum = math.floor(goal.pos.floorNum + .5)
-    })
-    local elevator
     event.notify("room.check", 0, {
-      roomNum = self.pos.roomNum,
-      floorNum = self.pos.floorNum,
-      callback = function (id, type)
-        elevator = id
+      roomNum = self.moveTo.roomNum - self.delta.roomNum,
+      floorNum = self.moveTo.floorNum - self.delta.floorNum,
+      callback = function (id, roomType)
+        if roomType == "elevator" and not room.isBroken(id) then
+          self.fromRoom = id
+        end
       end,
     })
-
-    room.use(elevator)
-    event.notify("sprite.play", goal.component.entity, "idle")
-    event.notify("sprite.hide", goal.component.entity, false)
-    event.unsubscribe("sprite.onAnimationEnd", self.roomIdStart, self.startHandler)
-    event.unsubscribe("sprite.onAnimationEnd", self.roomIdEnd, self.endHandler)
+    if self.fromRoom == nil then
+      self.status = "failed"
+      return
+    end
+    event.subscribe("sprite.onAnimationEnd", self.fromRoom, enter)
+    event.subscribe("sprite.onAnimationEnd", self.toRoom, exit)
+    event.notify("sprite.play", self.fromRoom, "opening")
+    self.waitEnter = true
+    old_activate(self)
+  end
+  local old_terminate = goal.terminate
+  goal.terminate = function (self)
+    event.notify("sprite.play", self.component.entity, "idle")
+    event.notify("sprite.hide", self.component.entity, false)
+    event.unsubscribe("sprite.onAnimationEnd", self.fromRoom, enter)
+    event.unsubscribe("sprite.onAnimationEnd", self.toRoom, exit)
     old_terminate(self)
   end
 
