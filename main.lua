@@ -457,6 +457,8 @@ event.subscribe("floor.new", 0, function (level)
   end
 end)
 
+local floors = {}
+
 -- Create an empty floor entity
 local newFloor = function (level)
   local id = entity.new(STATE_PLAY)
@@ -481,6 +483,7 @@ local newFloor = function (level)
   local snd = resource.get("snd/build.wav")
   love.audio.rewind(snd)
   love.audio.play(snd)
+  floors[level] = id
   return id
 end
 newFloor(GROUND_FLOOR)
@@ -1143,41 +1146,94 @@ bdCom.draw = function (self)
 end
 entity.addComponent(backdrop, bdCom)
 
+local initialised = false
+
 -- Create default rooms and staff
-floorUp()
-staff.new("bellhop")
-staff.new("cleaner")
-event.notify("menu.info", 0, {selected = "infrastructure"})
-local id, pos
+local init = function ()
+  floorUp()
+  staff.new("bellhop")
+  staff.new("cleaner")
+  event.notify("menu.info", 0, {selected = "infrastructure"})
+  local id, pos
+  
+  pos = {roomNum = 1, floorNum = 0}
+  id = room.new(STATE_PLAY, "elevator", pos)
+  event.notify("build", 0, {id=id, pos=pos, type="elevator"})
+  
+  pos = {roomNum = 2, floorNum = 0}
+  id = room.new(STATE_PLAY, "reception", pos)
+  event.notify("build", 0, {id=id, pos=pos, type="reception"})
+  
+  pos = {roomNum = 1, floorNum = 1}
+  id = room.new(STATE_PLAY, "elevator", pos)
+  event.notify("build", 0, {id=id, pos=pos, type="elevator"})
+  
+  pos = {roomNum = 2, floorNum = 1}
+  id = room.new(STATE_PLAY, "utility", pos)
+  event.notify("build", 0, {id=id, pos=pos, type="utility"})
+  
+  pos = {roomNum = 3, floorNum = 1}
+  id = room.new(STATE_PLAY, "missionary", pos)
+  event.notify("build", 0, {id=id, pos=pos, type="missionary"})
 
-pos = {roomNum = 1, floorNum = 0}
-id = room.new(STATE_PLAY, "elevator", pos)
-event.notify("build", 0, {id=id, pos=pos, type="elevator"})
+  initialised = true
+end
+init()
+  
+local reset = function ()
+  gTopFloor = GROUND_FLOOR
+  gBottomFloor = GROUND_FLOOR
+  gScrollPos = GROUND_FLOOR
+  event.notify("scroll", 0, gScrollPos)
+  gRoomNum = 1
+  gMoney = MONEY_INITIAL
+  gReputation = REP_INITIAL
+  gStars = STARS_INITIAL
 
-pos = {roomNum = 2, floorNum = 0}
-id = room.new(STATE_PLAY, "reception", pos)
-event.notify("build", 0, {id=id, pos=pos, type="reception"})
+  event.notify("room.all", 0, function (roomId, type)
+    local pos = transform.getPos(roomId)
+    entity.delete(roomId)
+    
+    event.notify("destroy", id, {id=roomId, pos=pos, type=type})
+    event.notify("destroy", roomId, {id=roomId, pos=pos, type=type})
+    event.notify("destroy", 0, {id=roomId, pos=pos, type=type})
+  end)
 
-pos = {roomNum = 1, floorNum = 1}
-id = room.new(STATE_PLAY, "elevator", pos)
-event.notify("build", 0, {id=id, pos=pos, type="elevator"})
-
-pos = {roomNum = 2, floorNum = 1}
-id = room.new(STATE_PLAY, "utility", pos)
-event.notify("build", 0, {id=id, pos=pos, type="utility"})
-
-pos = {roomNum = 3, floorNum = 1}
-id = room.new(STATE_PLAY, "missionary", pos)
-event.notify("build", 0, {id=id, pos=pos, type="missionary"})
+  for _,c in ipairs(client.getAll()) do
+    entity.delete(c.id)
+  end
+  for _,s in ipairs(staff.getAll()) do
+    entity.delete(s.id)
+  end
+  
+  for k,v in pairs(floors) do
+    if k ~= GROUND_FLOOR then
+      entity.delete(v)
+    end
+  end
+  floors = {floors[GROUND_FLOOR]}
+  event.notify("entity.move", roof, {roomNum=.5, floorNum=GROUND_FLOOR})
+  
+  entity.update(0)
+  
+  initialised = false
+end
 
 -- GAME PAUSE MENU
 local pauseMenu = entity.new(STATE_PAUSE)
 local pauseCom = entity.newComponent({
   options = {
     {
-      text = "Play",
+      text = "Resume",
       onPress = function ()
         event.notify("state.enter", 0, STATE_PLAY)
+      end,
+    },
+    {
+      text = "Restart",
+      onPress = function ()
+        event.notify("state.enter", 0, STATE_PLAY)
+        reset()
       end,
     },
     {
@@ -1321,6 +1377,9 @@ love.draw = function ()
 end
 
 love.update = function (dt)
+  if not initialised then
+    init()
+  end
   local dt = dt * gGameSpeed
   entity.update(dt)
   input.update(dt)
