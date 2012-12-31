@@ -1179,6 +1179,15 @@ local addFollowGoal = function (self, target, type)
       if goal.room then
         self.followDist = self.followDist - self.move*dt
       end
+      if self.targetOld and (targetPos.roomNum == self.targetOld.roomNum and targetPos.floorNum == self.targetOld.floorNum) and
+          (#self.targetHist == 0 or
+           math.abs(myPos.roomNum - targetPos.roomNum) + math.abs(myPos.floorNum - targetPos.floorNum) < self.followDist) then
+        event.notify("sprite.play", self.component.entity, "idle")
+      end
+      self.targetOld = {
+        roomNum = targetPos.roomNum,
+        floorNum = targetPos.floorNum,
+      }
       while #self.targetHist > 0 and
           math.abs(myPos.roomNum - targetPos.roomNum) + math.abs(myPos.floorNum - targetPos.floorNum) >= self.followDist do
         local next = table.remove(self.targetHist, 1)
