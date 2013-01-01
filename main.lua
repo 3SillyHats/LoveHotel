@@ -1213,6 +1213,7 @@ local reset = function ()
   floors = {floors[GROUND_FLOOR]}
   event.notify("entity.move", roof, {roomNum=.5, floorNum=GROUND_FLOOR})
   
+  event.notify("state.enter", 0, STATE_PLAY)
   entity.update(0)
   
   initialised = false
@@ -1231,8 +1232,7 @@ local pauseCom = entity.newComponent({
     {
       text = "Restart",
       onPress = function ()
-        event.notify("state.enter", 0, STATE_PLAY)
-        reset()
+        decision.confirm("Are you sure you want to restart? You will lose all progress!", reset)
       end,
     },
     {
@@ -1244,9 +1244,11 @@ local pauseCom = entity.newComponent({
     {
       text = "Quit",
       onPress = function ()
-        -- actually cause the app to quit
-        love.event.push("quit")
-        love.event.push("q")
+        decision.confirm("Are you sure you want to quit? You will lose all progress!", function ()
+          -- actually cause the app to quit
+          love.event.push("quit")
+          love.event.push("q")
+        end)
       end,
     },
   },

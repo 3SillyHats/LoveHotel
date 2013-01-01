@@ -145,6 +145,25 @@ event.subscribe("decision.prompt", 0, function (e)
   M.prompt(e.decision)
 end)
 
+M.confirm = function (prompt, action)
+  decisionCom.decision = {
+    prompt = prompt,
+    options = {
+      {
+        text = "Yes",
+        func = action,
+      },
+      {
+        text = "No",
+        func = nil,
+      },
+    },
+  }
+  decisionCom.selected = 1
+  decisionCom.result = nil
+  event.notify("state.enter", 0, STATE_DECISION)
+end
+
 -- Handle input on decision screen
 event.subscribe("pressed", 0, function (button)
   if gState == STATE_DECISION then
