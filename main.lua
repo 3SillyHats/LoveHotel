@@ -1185,7 +1185,6 @@ local reset = function ()
   gBottomFloor = GROUND_FLOOR
   gScrollPos = GROUND_FLOOR
   event.notify("scroll", 0, gScrollPos)
-  gRoomNum = 1
   gMoney = MONEY_INITIAL
   gReputation = REP_INITIAL
   gStars = STARS_INITIAL
@@ -1289,6 +1288,7 @@ event.subscribe("pressed", 0, function (button)
   if gState == STATE_PAUSE then
     if button == "a" then
       pauseCom.options[pauseCom.selected].onPress()
+      return true
     elseif button == "up" then
       pauseCom.selected = math.max(1, pauseCom.selected - 1)
     elseif button == "down" then
