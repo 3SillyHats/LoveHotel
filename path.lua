@@ -38,15 +38,17 @@ local pathMap = { -- initial, special nodes
 }
 
 local pos2loc = function (roomNum, floorNum)
+  floorNum = math.floor(floorNum+.5)
+  roomNum = math.floor(roomNum*2)
   if floorNum == 0 then
-    if roomNum == -.5 then
+    if roomNum == -1 then
       return 3
-    elseif roomNum == .5 then
+    elseif roomNum == 1 then
       return 4
     end
   elseif floorNum < 0 then floorNum = 100 - floorNum end
   -- Assumes roomNum is integer or integer + 1/2, floorNum is integer
-  return math.floor(roomNum*2+2) + 17*math.floor(floorNum+.5) + 4
+  return roomNum + 17*floorNum + 6
 end
 
 M.addNode = function (pos)
@@ -117,21 +119,23 @@ M.removeNode = function (pos)
 end
 
 M.get = function (src, dst)
-  if src.floorNum == dst.floorNum then
+  local srcFloor = math.floor(src.floorNum+.5)
+  local dstFloor = math.floor(dst.floorNum+.5)
+  if srcFloor == dstFloor then
     return {dst, src}, math.abs(src.roomNum - dst.roomNum)/PERSON_MOVE
   end
   -- Add src and dst nodes
   pathMap[SRC_LOC].roomNum = src.roomNum
-  pathMap[SRC_LOC].floorNum = src.floorNum
+  pathMap[SRC_LOC].floorNum = srcFloor
   pathMap[DST_LOC].roomNum = dst.roomNum
-  pathMap[DST_LOC].floorNum = dst.floorNum
+  pathMap[DST_LOC].floorNum = dstFloor
   for roomNum = .5, 7, .5 do
-    local src_n = pathMap[pos2loc(roomNum, src.floorNum)]
+    local src_n = pathMap[pos2loc(roomNum, pathMap[SRC_LOC].floorNum)]
     if src_n then
       table.insert(pathMap[SRC_LOC].neighbors, src_n.pathLoc)
       table.insert(pathMap[SRC_LOC].distance, math.abs(src.roomNum - src_n.roomNum)/PERSON_MOVE)
     end
-    local dst_n = pathMap[pos2loc(roomNum, dst.floorNum)]
+    local dst_n = pathMap[pos2loc(roomNum, pathMap[DST_LOC].floorNum)]
     if dst_n then
       table.insert(dst_n.neighbors, DST_LOC)
       table.insert(dst_n.distance, math.abs(dst.roomNum - dst_n.roomNum)/PERSON_MOVE)
@@ -143,7 +147,7 @@ M.get = function (src, dst)
     node.closed = nil
     node.open = nil
     node.hScore = math.abs(node.roomNum - dst.roomNum)/PERSON_MOVE +
-      math.abs(node.floorNum - dst.floorNum)/ELEVATOR_MOVE
+      math.abs(node.floorNum - dstFloor)/ELEVATOR_MOVE
   end
 
   local p, c = startPathing(pathMap, SRC_LOC, DST_LOC)
@@ -152,7 +156,7 @@ M.get = function (src, dst)
   pathMap[SRC_LOC].neighbors = {}
   pathMap[SRC_LOC].distance = {}
   for roomNum = .5, 7, .5 do
-    local dst_n = pathMap[pos2loc(roomNum, dst.floorNum)]
+    local dst_n = pathMap[pos2loc(roomNum, pathMap[DST_LOC].floorNum)]
     if dst_n then
       table.remove(dst_n.neighbors)
       table.remove(dst_n.distance)
@@ -168,13 +172,13 @@ M.getCost = function (src, dst)
   if path then
     return cost
   end
-  if src.floorNum == 1 and dst.floorNum == 1 then
-    for i,j in pairs(pathMap) do
-      for k,l in ipairs(j.neighbors) do
-        print(string.format("%u -> %u (%f)", i, l, j.distance[k]))
-      end
-    end
-  end
+  -- if src.floorNum == 1 and dst.floorNum == 1 then
+  --   for i,j in pairs(pathMap) do
+  --     for k,l in ipairs(j.neighbors) do
+  --       print(string.format("%u -> %u (%f)", i, l, j.distance[k]))
+  --     end
+  --   end
+  -- end
   return -1
 end
 

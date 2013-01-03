@@ -295,6 +295,10 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
   end
   local old_terminate = goal.terminate
   goal.terminate = function (self)
+    local pos = transform.getPos(self.component.entity)
+    if pos.floorNum ~= math.floor(pos.floorNum+.5) then
+      event.notify("entity.move", self.component.entity, {roomNum = pos.roomNum, floorNum = math.floor(pos.floorNum+.5)})
+    end
     event.notify("sprite.play", self.component.entity, "idle")
     event.notify("sprite.hide", self.component.entity, false)
     event.unsubscribe("sprite.onAnimationEnd", self.fromRoom, enter)
