@@ -1156,25 +1156,25 @@ local init = function ()
   event.notify("menu.info", 0, {selected = "infrastructure"})
   local id, pos
   
-  pos = {roomNum = 1, floorNum = 0}
-  id = room.new(STATE_PLAY, "elevator", pos)
-  event.notify("build", 0, {id=id, pos=pos, type="elevator"})
-  
   pos = {roomNum = 2, floorNum = 0}
   id = room.new(STATE_PLAY, "reception", pos)
   event.notify("build", 0, {id=id, pos=pos, type="reception"})
   
-  pos = {roomNum = 1, floorNum = 1}
+  pos = {roomNum = 7, floorNum = 0}
   id = room.new(STATE_PLAY, "elevator", pos)
   event.notify("build", 0, {id=id, pos=pos, type="elevator"})
   
-  pos = {roomNum = 2, floorNum = 1}
-  id = room.new(STATE_PLAY, "utility", pos)
-  event.notify("build", 0, {id=id, pos=pos, type="utility"})
-  
-  pos = {roomNum = 3, floorNum = 1}
+  pos = {roomNum = 4, floorNum = 1}
   id = room.new(STATE_PLAY, "missionary", pos)
   event.notify("build", 0, {id=id, pos=pos, type="missionary"})
+  
+  pos = {roomNum = 6, floorNum = 1}
+  id = room.new(STATE_PLAY, "utility", pos)
+  event.notify("build", 0, {id=id, pos=pos, type="utility"})
+
+  pos = {roomNum = 7, floorNum = 1}
+  id = room.new(STATE_PLAY, "elevator", pos)
+  event.notify("build", 0, {id=id, pos=pos, type="elevator"})
 
   initialised = true
 end
