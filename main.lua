@@ -1066,10 +1066,10 @@ event.subscribe("money.change", 0, function (e)
       local str = ""
       if self.amount > 0 then
         colors[2] = {0, 184, 0}
-        str = "+"..thousandify(tostring(self.amount))
+        str = "+$"..thousandify(tostring(self.amount))
       elseif self.amount < 0 then
         colors[2] = {172, 16, 0}
-        str = thousandify(tostring(self.amount))
+        str = "-$" .. thousandify(tostring(math.abs(self.amount)))
       end
       for i = 1, #colors do
         love.graphics.setColor(colors[i])
