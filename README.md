@@ -3,9 +3,11 @@ Love Hotel
 
 A jam game for MiniLD #38 - NES
 
-Build your love hotel from the ground up, and hire staff to clean up after all your guests! 
+Build your love hotel from the ground up, and hire staff to clean up after all
+your guests! 
 
-Setup the controls when the game starts. Supports keyboard and gamepads. If you make a mistake, press F1 to go back to the control setup screen. 
+Setup the controls when the game starts. Supports keyboard and gamepads. If you
+make a mistake, press F1 to go back to the control setup screen. 
 
 Credits
 -------
@@ -16,3 +18,8 @@ Credits
 * Finn Stokes - *Programmer*
 * Special Thanks to Colin Capurso for Sprite Hair Compositing
 * In-game font is Proggy Tiny <http://proggyfonts.com/>
+
+Known Issues
+------------
+* On some machines running Ubuntu 12.10, there is either no audio or each sample
+only plays once.
