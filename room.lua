@@ -222,8 +222,7 @@ local infoComponent = function (id, info, pos)
 
   local use = function ()
     if component.stock then
-      component.stock = component.stock - 1
-      event.notify("sprite.play", id, "stocked" .. component.stock)
+      setStock(component.stock - 1)
     end
     if info.breakable then
       setIntegrity(component.integrity - 1)
