@@ -653,6 +653,45 @@ menu.addButton(gui, menu.newButton("suites", function ()
   end)
 end))
 
+--Services button
+menu.addButton(gui, menu.newButton("services", function ()
+  menu.disable(gui)
+
+  --Create the services menu
+  local submenu = menu.new(STATE_PLAY, subMenuY)
+
+  --Utility
+  menu.addButton(submenu, menu.newButton("utility", function ()
+    buildRoom("utility", submenu)
+  end))
+  --Reception
+  menu.addButton(submenu, menu.newButton("reception", function ()
+    buildRoom("reception", submenu)
+  end))
+  if gStars >= 2 then
+    --Condom machine
+    menu.addButton(submenu, menu.newButton("condom", function ()
+      buildRoom("condom", submenu)
+    end))
+  else
+    addLockButton(submenu)
+  end
+  if gStars >= 5 then
+    --Spa room
+    menu.addButton(submenu, menu.newButton("spa", function ()
+      buildRoom("spa", submenu)
+    end))
+  else
+    addLockButton(submenu)
+  end
+
+   --The back button deletes the submenu
+  menu.setBack(submenu, function ()
+    entity.delete(submenu)
+    menu.enable(gui)
+  end)
+end))
+
 --Food button
 menu.addButton(gui, menu.newButton("food", function ()
   menu.disable(gui)
@@ -690,45 +729,6 @@ menu.addButton(gui, menu.newButton("food", function ()
 
 
   --The back button deletes the submenu
-  menu.setBack(submenu, function ()
-    entity.delete(submenu)
-    menu.enable(gui)
-  end)
-end))
-
---Services button
-menu.addButton(gui, menu.newButton("services", function ()
-  menu.disable(gui)
-
-  --Create the services menu
-  local submenu = menu.new(STATE_PLAY, subMenuY)
-
-  --Utility
-  menu.addButton(submenu, menu.newButton("utility", function ()
-    buildRoom("utility", submenu)
-  end))
-  --Reception
-  menu.addButton(submenu, menu.newButton("reception", function ()
-    buildRoom("reception", submenu)
-  end))
-  if gStars >= 2 then
-    --Condom machine
-    menu.addButton(submenu, menu.newButton("condom", function ()
-      buildRoom("condom", submenu)
-    end))
-  else
-    addLockButton(submenu)
-  end
-  if gStars >= 5 then
-    --Spa room
-    menu.addButton(submenu, menu.newButton("spa", function ()
-      buildRoom("spa", submenu)
-    end))
-  else
-    addLockButton(submenu)
-  end
-
-   --The back button deletes the submenu
   menu.setBack(submenu, function ()
     entity.delete(submenu)
     menu.enable(gui)
