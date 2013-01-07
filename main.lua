@@ -179,9 +179,11 @@ gMoney = MONEY_INITIAL
 gReputation = REP_INITIAL
 gStars = STARS_INITIAL
 
+local moneySnd = resource.get("snd/coin.wav")
 moneyChange = function (c, pos)
   gMoney = math.max(0, math.min(MONEY_MAX, gMoney + c))
-
+  love.audio.rewind(moneySnd)
+  love.audio.play(moneySnd)
   if pos then
     event.notify("money.change", 0, {
       amount = c,
@@ -784,6 +786,7 @@ end))
 event.subscribe("state.enter", 0, function (state)
   local bgm = resource.get("snd/gettingfreaky.ogg")
   if state == STATE_PLAY then
+    bgm:setVolume(0.5)
     love.audio.play(bgm)
   else
     love.audio.pause(bgm)

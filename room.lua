@@ -70,6 +70,11 @@ local infoComponent = function (id, info, pos)
   local setStock = function (stock)
     component.stock = stock
     event.notify("sprite.play", id, "stocked" .. stock)
+    if stock == 0 then
+      local snd = resource.get("snd/empty.wav")
+      love.audio.rewind(snd)
+      love.audio.play(snd)
+    end
   end
 
   local assign = function (e)
@@ -195,6 +200,9 @@ local infoComponent = function (id, info, pos)
           id = id,
           pos = pos,
         })
+        local snd = resource.get("snd/break.wav")
+        love.audio.rewind(snd)
+        love.audio.play(snd)
       end
       component.integrity = integrity
       event.notify("room.integrityChange", 0, {
