@@ -182,8 +182,10 @@ gStars = STARS_INITIAL
 local moneySnd = resource.get("snd/coin.wav")
 moneyChange = function (c, pos)
   gMoney = math.max(0, math.min(MONEY_MAX, gMoney + c))
-  love.audio.rewind(moneySnd)
-  love.audio.play(moneySnd)
+  if c > 0 then
+    love.audio.rewind(moneySnd)
+    love.audio.play(moneySnd)
+  end
   if pos then
     event.notify("money.change", 0, {
       amount = c,
