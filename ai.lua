@@ -1537,13 +1537,15 @@ local newRestockGoal = function (self, target)
   goal.terminate = function (self)
     room.exit(self.target)
 
-    local myPos = transform.getPos(self.component.entity)
     local info = room.getInfo(self.target)
-    room.setStock(self.target, 8)
-    moneyChange(-info.restockCost, {
-      roomNum = myPos.roomNum,
-      floorNum = myPos.floorNum,
-    })
+    if info.restockCost <= gMoney then
+      local myPos = transform.getPos(self.component.entity)
+      room.setStock(self.target, 8)
+      moneyChange(-info.restockCost, {
+        roomNum = myPos.roomNum,
+        floorNum = myPos.floorNum,
+      })
+    end
 
     event.notify("sprite.play", self.target, "closing")
     event.notify("sprite.play", self.component.entity, "idle")
