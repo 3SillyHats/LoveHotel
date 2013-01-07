@@ -8,7 +8,8 @@ local M = {}
 
 local decisions = {
   skySpawn = {
-    prompt = "Sky travellers can now reach Love Hotel, and they want to join the mile high club.",
+    prompt = "Skyfarers are arriving at Love Hotel!" ..
+    "\nThey are highly influential so show them a good time.",
     options = {
       {
         text = "Okay",
@@ -17,7 +18,8 @@ local decisions = {
     },
   },
   groundSpawn = {
-    prompt = "The cave seems to be letting in other-worldly demons... and they're horny!",
+    prompt = "Devilspawn are arriving at Love Hotel!" ..
+    "\nThey didn't think to bring condoms but their all horney.",
     options = {
       {
         text = "Okay",
@@ -26,7 +28,8 @@ local decisions = {
     },
   },
   spaceSpawn = {
-    prompt = "Starfarers are arriving at Love Hotel - make sure that they spend all of that space cash!",
+    prompt = "Starfarers are arriving at Love Hotel!" ..
+    "\nThey have tons of space cash, so lighten their return trip by taking.",
     options = {
       {
         text = "Okay",
@@ -35,9 +38,9 @@ local decisions = {
     },
   },
   star1 = {
-    prompt = "You are the manager of Love Hotel. To turn it into the best romantic" ..
-    " hotel in the world, you will need to earn money and gain all five stars by satisfying" ..
-    " your clients needs.",
+    prompt = "Love Hotel is a luxury hotel for couples. Grow your business " ..
+    "by satisfying clients to earn money and reputation. Become the best " ..
+    "romantic hotel in the world!",
     options = {
       {
         text = "Okay",
@@ -46,8 +49,8 @@ local decisions = {
     },
   },
   star2 = {
-    prompt = "Love Hotel is now a two star establishment! You can now buy" ..
-    " condom machines and build a new themed suite.",
+    prompt = "Good job - 2 stars!\nYou can now build " ..
+    "Condom Machines, Spoon suites and Balloon suites.",
     options = {
       {
         text = "Okay",
@@ -56,9 +59,9 @@ local decisions = {
     },
   },
   star3 = {
-    prompt = "Good work reaching three stars! You can now buy" ..
-    " dining rooms and kitchens, hire cooks, and build a new themed suite." ..
-    " But people will be upset if they run out of condoms!",
+    prompt = "Nice work - 3 stars!\nYou can now hire Cooks and build " ..
+    "Dining Rooms, Kitchens and Chocolate Moustache suites." ..
+    "\nBut now people will be upset if they run out of condoms!",
     options = {
       {
         text = "Okay",
@@ -67,9 +70,9 @@ local decisions = {
     },
   },
   star4 = {
-    prompt = "Four stars - you're nearly there! You can now hire a stocker, " ..
-    "buy a freezer, andbuild a new themed suite." ..
-    " People expect food and will be upset if they leave hungry!",
+    prompt = "Excellent - 4 stars!\nYou can now hire Stockers and build " ..
+    "Freezers and Torture suites." ..
+    "\nBut now people will be upset if they get too hungry!",
     options = {
       {
         text = "Okay",
@@ -78,9 +81,9 @@ local decisions = {
     },
   },
   star5 = {
-    prompt = "Congratulations! Love Hotel is now a five-star resort." ..
-    " You can now build spas and the final themed suite, but you have already" ..
-    " won so you shouldn't feel bad if you just leave now. Have a lovely day.",
+    prompt = "Amazing - 5 stars!\nYou can now build " ..
+    "Spas and Nazi Furry suites." ..
+    "\nGet to 6 stars to become the best love hotel in the world!",
     options = {
       {
         text = "Okay",
