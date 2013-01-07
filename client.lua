@@ -133,44 +133,36 @@ M.new = function (t)
           last = 0,
           speed = 1,
         },
-        thoughtHappy = {
-          first = 1,
-          last = 1,
+        thoughtBroke = {
+          frames = {1, 3},
           speed = 1,
         },
-        thoughtBroke = {
-          first = 2,
-          last = 2,
+        thoughtLove = {
+          frames = {1, 4},
           speed = 1,
         },
         thoughtHungryGood = {
-          first = 3,
-          last = 3,
+          frames = {1, 5},
           speed = 1,
         },
         thoughtHungryBad = {
-          first = 4,
-          last = 4,
+          frames = {2, 6},
           speed = 1,
         },
         thoughtCondomlessGood = {
-          first = 5,
-          last = 5,
+          frames = {1, 7},
           speed = 1,
         },
         thoughtCondomlessBad = {
-          first = 6,
-          last = 6,
-          speed = 1,
-        },
-        thoughtRoomless = {
-          first = 7,
-          last = 7,
+          frames = {2, 8},
           speed = 1,
         },
         thoughtImpatient = {
-          first = 8,
-          last = 8,
+          frames = {2, 9},
+          speed = 1,
+        },
+        thoughtRoomless = {
+          frames = {2, 10},
           speed = 1,
         },
       },

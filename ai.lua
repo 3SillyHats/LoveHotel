@@ -1281,7 +1281,7 @@ local addExitGoal = function (self)
       self.rep = nil -- reset incase we started exiting last time
       local info = resource.get("scr/people/" .. self.component.category .. ".lua")
       if self.component.needs.horniness < SEX_HORNINESS then
-        event.notify("sprite.play", self.component.entity, "thoughtHappy")
+        event.notify("sprite.play", self.component.entity, "thoughtLove")
       elseif self.component.money < missionaryInfo.profit then
         event.notify("sprite.play", self.component.entity, "thoughtBroke")
       else
