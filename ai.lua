@@ -909,6 +909,7 @@ local newWaitForReceptionGoal = function (com, target)
       event.notify("room.all", 0, function (id, type)
         local roomInfo = room.getInfo(id)
         if roomInfo.visitable and
+            (roomInfo.stock == nil or roomInfo.stock <= 0 or room.getStock(id) > 0) and
             self.component.money >= roomInfo.profit and
             not room.isDirty(id) and
             room.reservations(id) == 0 and
