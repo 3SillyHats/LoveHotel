@@ -89,8 +89,8 @@ M.new = function (id, t)
     playing = t.playing or nil,
     frame = 0,
     timer = 0,
-    flipped = false,
-    hidden = false,
+    flipped = t.flipped or false,
+    hidden = t.hidden or false,
     quad = love.graphics.newQuad(
       0, 0,
       t.width, t.height,

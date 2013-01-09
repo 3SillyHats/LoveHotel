@@ -42,38 +42,89 @@ M.new = function (state)
       playing = "idle",
       originX = 12-16,
       originY = 24-32+24,
+      hidden = true,
     }
   ))
-  entity.addComponent(id, transform.new(id, {roomNum = gRoomNum, floorNum = gScrollPos}))
+  
   --Add position component
   entity.addComponent(id, transform.new(id, {roomNum = gRoomNum, floorNum = gScrollPos}))
+
+  local unselectedInfo = {
+    name = "Inspect",
+    desc = "Select client",
+  }
+  event.notify("menu.info", 0, unselectedInfo)
+
+  local getNext = function (self, scale)
+    local clients = client.getLeaders()
+    local minPosA = 20
+    local minEntA = nil
+    local minPosB = 20
+    local minEntB = nil
+    local cutoff = 20
+    if self.target then
+      local pos = transform.getPos(self.target.id)
+      if pos then
+        cutoff = pos.roomNum*scale
+      end
+    end
+    for _,c in ipairs(clients) do
+      local pos = transform.getPos(c.id)
+      if pos and math.floor(pos.floorNum+0.5) == self.floor then
+        if (not self.target or c.id ~= self.target.id) and
+            pos.roomNum*scale < minPosA and pos.roomNum*scale >= cutoff then
+          minPosA = pos.roomNum*scale
+          minEntA = c
+        end
+        if pos.roomNum*scale < minPosB then
+          minPosB = pos.roomNum*scale
+          minEntB = c
+        end
+      end
+    end
+    if minEntA then
+      return minEntA
+    else
+      return minEntB
+    end
+  end
 
   --Add inspector component
   inspectorUtility = entity.newComponent({
     entity = id,
-    selected = 1,
+    hidden = true,
+    target = nil,
+    floor = gScrollPos,
     update = function (self, dt)
-      local clients = client.getLeaders()
-      if #clients > 0 then
-        local max = #clients
-        while self.selected < 1 or self.selected > max do
-          if self.selected < 1 then
-            max = #clients
-            self.selected = max
-          elseif self.selected > max then
-            max = #clients
-            self.selected = 1
-          end
+      if not self.target or not entity.get(self.target.id) then
+        self.target = getNext(self, 1)
+      end
+      
+      if not self.target or not entity.get(self.target.id) then
+        if not self.hidden then
+          event.notify("sprite.hide", self.entity, true)
+          self.hidden = true
+          event.notify("menu.info", 0, unselectedInfo)
         end
-        local target = clients[self.selected]
-        local pos = transform.getPos(target.id)
+      else
+        if self.hidden then
+          event.notify("sprite.hide", self.entity, false)
+          self.hidden = false
+        end
+        local pos = transform.getPos(self.target.id)
         event.notify("entity.move", self.entity, pos)
 
-        info.condoms = target.ai.supply
-        info.money = target.ai.money / target.ai.info.maxMoney
-        info.patience = target.ai.patience / 100
-        info.horniness = target.ai.needs.horniness / 100
-        info.hunger = math.max((100 - target.ai.needs.hunger) / 100, 0)
+        local floor = math.floor(pos.floorNum+0.5)
+        if floor ~= self.floor then
+          self.floor = floor
+          event.notify("scroll", 0, floor)
+        end
+
+        info.condoms = self.target.ai.supply
+        info.money = self.target.ai.money / self.target.ai.info.maxMoney
+        info.patience = self.target.ai.patience / 100
+        info.horniness = self.target.ai.needs.horniness / 100
+        info.hunger = math.max(0, (100 - self.target.ai.needs.hunger) / 100)
 
         event.notify("menu.info", 0, {
           inspector = info,
@@ -87,21 +138,29 @@ M.new = function (state)
   local pressed = function (key)
     if gState == STATE_PLAY then
       if key == "left" then
-        inspectorUtility.selected = inspectorUtility.selected - 1
+        inspectorUtility.target = getNext(inspectorUtility, -1)
       elseif key == "right" then
-        inspectorUtility.selected = inspectorUtility.selected + 1
+        inspectorUtility.target = getNext(inspectorUtility,  1)
       end
     end
   end
 
+  local scroll = function (floor)
+    if floor ~= inspectorUtility.floor then
+      inspectorUtility.floor = floor
+      inspectorUtility.target = getNext(inspectorUtility,  1)
+    end
+  end
 
   local delete
   delete = function ()
     event.unsubscribe("pressed", 0, pressed)
+    event.unsubscribe("scroll", 0, scroll)
     event.unsubscribe("delete", id, delete)
   end
 
   event.subscribe("pressed", 0, pressed)
+  event.subscribe("scroll", 0, scroll)
   event.subscribe("delete", id, delete)
   --Function returns the rooms id
   return id
