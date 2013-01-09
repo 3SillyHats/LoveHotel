@@ -19,7 +19,7 @@ local decisions = {
   },
   groundSpawn = {
     prompt = "Devilspawn are arriving at Love Hotel!" ..
-    "\nThey didn't think to bring condoms but their all horney.",
+    "\nThey didn't think to bring condoms but they're all horny.",
     options = {
       {
         text = "Okay",
@@ -71,7 +71,7 @@ local decisions = {
   },
   star4 = {
     prompt = "Excellent - 4 stars!\nYou can now hire Stockers and build " ..
-    "Freezers and Torture suites." ..
+    "Torture suites and Freezers to speed up cooking time." ..
     "\nBut now people will be upset if they get too hungry!",
     options = {
       {
@@ -82,7 +82,7 @@ local decisions = {
   },
   star5 = {
     prompt = "Amazing - 5 stars!\nYou can now build " ..
-    "Spas and Nazi Furry suites." ..
+    "Nazi Furry suites and Spas so people can have a good time." ..
     "\nGet to 6 stars to become the best love hotel in the world!",
     options = {
       {
