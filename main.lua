@@ -58,7 +58,7 @@ FLOOR_COSTS = {
   7000,
   11000,
   17000,
-  25000, -- 8
+  25000, -- 8th floor
   36000,
   49000,
   65000,
@@ -66,10 +66,10 @@ FLOOR_COSTS = {
   105000,
   130000,
   160000,
-  200000, -- 16
+  200000, -- 16th floor
 }
 
-MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 2000
+MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 200000
 MONEY_MAX = 999999
 REP_INITIAL = 10
 REP_MAX = 3000
@@ -963,6 +963,7 @@ local hudCom = entity.newComponent()
 hudCom.name = ""
 hudCom.desc = ""
 hudCom.draw = function (self)
+  love.graphics.setColor(255, 255, 255)
   love.graphics.drawq(
     resource.get("img/hud.png"), hudQuad,
     0, CANVAS_HEIGHT - 32,
@@ -1058,7 +1059,7 @@ event.subscribe("money.change", 0, function (e)
   -- Create in-world gMoney popup
   if e.pos then
     local id = entity.new(STATE_PLAY)
-    entity.setOrder(id, 100)
+    entity.setOrder(id, 80)
     entity.addComponent(id, transform.new(
       id, e.pos, {x = 0, y = 0}
     ))
