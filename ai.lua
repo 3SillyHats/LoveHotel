@@ -1385,6 +1385,30 @@ local addExitGoal = function (self)
   self.goalEvaluator:addSubgoal(goal)
 end
 
+local addFiredGoal = function (self)
+  local goal = M.newGoal(self)
+  goal.name = "fired"
+
+  local fired = false
+
+  local old_activate = goal.activate
+  goal.activate = function (self)
+    fired = true
+    goal:addSubgoal(newMoveToGoal(self.component, {roomNum = -.5, floorNum = 0}, PERSON_MOVE))
+    goal:addSubgoal(newDestroyGoal(self.component))
+    old_activate(self)
+  end
+
+  goal.getDesirability = function (self, t)
+    if fired or self.component.staffNum > gStaffTotals[self.component.type] then
+      return 1000
+    end
+    return -1
+  end
+
+  self.goalEvaluator:addSubgoal(goal)
+end
+
 local newFixGoal = function (self, target)
   local goal = M.newGoal(self)
   goal.target = target
@@ -2726,6 +2750,7 @@ M.new = function (id)
     addVisitGoal = addVisitGoal,
     addFollowGoal = addFollowGoal,
     addExitGoal = addExitGoal,
+    addFiredGoal = addFiredGoal,
     addEnterGoal = addEnterGoal,
     addSupplyGoal = addSupplyGoal,
     addCondomGoal = addCondomGoal,

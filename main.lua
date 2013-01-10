@@ -24,6 +24,13 @@ CLEANER_WAGE = 50
 MAINTENANCE_WAGE = 200
 COOK_WAGE = 1000
 STOCKER_WAGE = 500
+STAFF_MAX = {
+  bellhop = {2, 4, 8, 16, 32},
+  cleaner = {2, 4, 8, 16, 32},
+  maintenance = {1, 2, 3, 4, 5},
+  cook = {0, 0, 2, 3, 5},
+  stocker = {0, 0, 0, 1, 2},
+}
 
 SEX_HORNINESS = 20
 
@@ -62,7 +69,7 @@ FLOOR_COSTS = {
   200000, -- 16
 }
 
-MONEY_INITIAL = FLOOR_COSTS[1] + 2000
+MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 2000
 MONEY_MAX = 999999
 REP_INITIAL = 10
 REP_MAX = 3000
@@ -89,6 +96,7 @@ local builder = require("builder")
 local demolisher = require("demolisher")
 local stocker = require("stocker")
 local inspector = require("inspector")
+local staffer = require("staffer")
 local staff = require("staff")
 local client = require("client")
 local transform = require("transform")
@@ -192,6 +200,13 @@ gGameSpeed = 1
 gMoney = MONEY_INITIAL
 gReputation = REP_INITIAL
 gStars = STARS_INITIAL
+gStaffTotals = {
+  bellhop = 0,
+  cleaner = 0,
+  maintenance = 0,
+  cook = 0,
+  stocker = 0,
+}
 
 local moneySnd = resource.get("snd/coin.wav")
 moneyChange = function (c, pos)
@@ -422,6 +437,23 @@ local inspect = function (baseMenu)
       event.unsubscribe("pressed", 0, back)
       menu.enable(baseMenu)
       entity.delete(inspectUtility)
+    end
+  end
+
+  event.subscribe("pressed", 0, back)
+end
+
+local staffManage = function (type, baseMenu)
+  menu.disable(baseMenu)
+
+  local staffUtility = staffer.new(STATE_PLAY, type)
+
+  local back
+  back = function (key)
+    if gState == STATE_PLAY and key == "b" then
+      event.unsubscribe("pressed", 0, back)
+      menu.enable(baseMenu)
+      entity.delete(staffUtility)
     end
   end
 
@@ -731,24 +763,24 @@ menu.addButton(gui, menu.newButton("staff", function ()
 
   --Hire staff
   menu.addButton(submenu, menu.newButton("bellhop", function ()
-    staff.new("bellhop")
+    staffManage("bellhop", submenu)
   end))
   menu.addButton(submenu, menu.newButton("cleaner", function ()
-    staff.new("cleaner")
+    staffManage("cleaner", submenu)
   end))
   menu.addButton(submenu, menu.newButton("maintenance", function ()
-    staff.new("maintenance")
+    staffManage("maintenance", submenu)
   end))
   if gStars >= 3 then
     menu.addButton(submenu, menu.newButton("cook", function ()
-      staff.new("cook")
+      staffManage("cook", submenu)
     end))
   else
     addLockButton(submenu)
   end
   if gStars >= 4 then
     menu.addButton(submenu, menu.newButton("stocker", function ()
-      staff.new("stocker")
+      staffManage("stocker", submenu)
     end))
   else
     addLockButton(submenu)

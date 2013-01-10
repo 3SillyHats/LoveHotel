@@ -137,16 +137,12 @@ M.new = function (type)
     id, pos, {x = 16, y = 30}
   ))
   local payCom = entity.newComponent{
-    timer = PAY_PERIOD,
+    timer = 0,
     update = function (self,dt)
       self.timer = self.timer - dt
       if self.timer <= 0 then
-        gMoney = gMoney - self.wage
         local pos = transform.getPos(id)
-        event.notify("money.change", 0, {
-          amount = -self.wage,
-          pos = pos,
-        })
+        moneyChange(-self.wage, pos)
         self.timer = self.timer + PAY_PERIOD
       end
     end,
@@ -154,8 +150,13 @@ M.new = function (type)
   entity.addComponent(id, payCom)
 
   local aiComponent = ai.new(id)
+  aiComponent.type = type
+    
+  -- update global staff totals
+  gStaffTotals[type] = gStaffTotals[type] + 1
+  aiComponent.staffNum = gStaffTotals[type]
+  
   local addRoomGoal
-
   -- Type-specific initialisation
   if type == "cleaner" then
     payCom.wage = CLEANER_WAGE
@@ -228,6 +229,7 @@ M.new = function (type)
 
   aiComponent:addEnterGoal() -- First goal: enter building
   aiComponent:addWanderGoal()
+  aiComponent:addFiredGoal()
   entity.addComponent(id, aiComponent)
 
   local check = function (t)
