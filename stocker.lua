@@ -104,9 +104,6 @@ local stocker = function (id, cost, t)
             room.occupation(roomId) == 0 and
             gMoney > info.restockCost then
           
-          -- Notify the menu that we are done stocking
-          event.notify("stock", id, nil)
-          
           room.setStock(roomId, 8)
           moneyChange(-info.restockCost, {
             roomNum = gRoomNum,

@@ -88,7 +88,6 @@ local placer = function (id, type, width, cost, t)
             amount = -cost,
             pos = pos,
           })
-          event.notify("build", id, {id=roomId, pos=pos, type=type})
           event.notify("build", 0, {id=roomId, pos=pos, type=type})
           local snd = resource.get("snd/build.wav")
           love.audio.rewind(snd)

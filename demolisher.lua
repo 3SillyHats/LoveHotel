@@ -74,8 +74,6 @@ local demolisher = function (id, cost, t)
 
         if room.occupation(roomId) == 0 then
           entity.delete(roomId)
-          
-          event.notify("destroy", id, {id=roomId, pos=pos, type=type})
           event.notify("destroy", roomId, {id=roomId, pos=pos, type=type})
           event.notify("destroy", 0, {id=roomId, pos=pos, type=type})
 

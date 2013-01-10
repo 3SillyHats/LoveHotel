@@ -350,24 +350,15 @@ local buildRoom = function (type, baseMenu)
 
   local back = function () end
 
-  local function onBuild ()
-    event.unsubscribe("pressed", 0, back)
-    event.unsubscribe("build", buildUtility, onBuild)
-    menu.enable(baseMenu)
-    entity.delete(buildUtility)
-  end
-
   back = function (key)
     if gState == STATE_PLAY and key == "b" then
       event.unsubscribe("pressed", 0, back)
-      event.unsubscribe("build", buildUtility, onBuild)
       menu.enable(baseMenu)
       entity.delete(buildUtility)
     end
   end
 
   event.subscribe("pressed", 0, back)
-  event.subscribe("build", buildUtility, onBuild)
 end
 
 local demolishRoom = function (baseMenu)
@@ -377,24 +368,15 @@ local demolishRoom = function (baseMenu)
 
   local back = function () end
 
-  local function onDestroy ()
-    event.unsubscribe("pressed", 0, back)
-    event.unsubscribe("destroy", demolishUtility, onDestroy)
-    menu.enable(baseMenu)
-    entity.delete(demolishUtility)
-  end
-
   back = function (key)
     if gState == STATE_PLAY and key == "b" then
       event.unsubscribe("pressed", 0, back)
-      event.unsubscribe("destroy", demolishUtility, onDestroy)
       menu.enable(baseMenu)
       entity.delete(demolishUtility)
     end
   end
 
   event.subscribe("pressed", 0, back)
-  event.subscribe("destroy", demolishUtility, onDestroy)
 end
 
 local stockRoom = function (baseMenu)
@@ -404,24 +386,15 @@ local stockRoom = function (baseMenu)
 
   local back = function () end
 
-  local function onStock ()
-    event.unsubscribe("pressed", 0, back)
-    event.unsubscribe("stock", stockUtility, onStock)
-    menu.enable(baseMenu)
-    entity.delete(stockUtility)
-  end
-
   back = function (key)
     if gState == STATE_PLAY and key == "b" then
       event.unsubscribe("pressed", 0, back)
-      event.unsubscribe("stock", stockUtility, onStock)
       menu.enable(baseMenu)
       entity.delete(stockUtility)
     end
   end
 
   event.subscribe("pressed", 0, back)
-  event.subscribe("stock", stockUtility, onStock)
 end
 
 local inspect = function (baseMenu)
