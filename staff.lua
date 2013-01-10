@@ -142,10 +142,7 @@ M.new = function (type)
       self.timer = self.timer - dt
       if self.timer <= 0 then
         gMoney = gMoney - self.wage
-        local pos = nil
-        event.notify("entity.pos", id, function (e)
-          pos = e
-        end)
+        local pos = transform.getPos(id)
         event.notify("money.change", 0, {
           amount = -self.wage,
           pos = pos,
