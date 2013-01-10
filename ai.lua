@@ -1519,7 +1519,8 @@ local newRestockGoal = function (self, target)
       return
     end
 
-    if room.occupation(self.target) > 0 then
+    if room.occupation(self.target) > 0 or
+      room.isBroken(self.target) then
       self.status = "failed"
       return
     end
@@ -1539,7 +1540,8 @@ local newRestockGoal = function (self, target)
     room.exit(self.target)
 
     local info = room.getInfo(self.target)
-    if info.restockCost <= gMoney then
+    if info.restockCost <= gMoney and
+      not room.isBroken(self.target) then
       local myPos = transform.getPos(self.component.entity)
       room.setStock(self.target, 8)
       moneyChange(-info.restockCost, {
@@ -1598,6 +1600,7 @@ local addStockGoal = function (self, target)
     end
 
     if room.getStock(self.target) == 0 and
+        not room.isBroken(self.target) and
         room.occupation(self.target) == 0 and
         (room.reservations(self.target) == 0 or reserved)then
       local myPos = transform.getPos(self.component.entity)
