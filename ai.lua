@@ -752,6 +752,7 @@ local newWaitForWaiterGoal = function (com, target)
     end
 
     room.enter(self.target)
+    self.component.patience = 100
 
     event.subscribe("staff.queryServe", self.target, queryHandler)
     event.subscribe("staff.cook.serve", com.entity, serveHandler)
@@ -851,7 +852,6 @@ local addOrderMealGoal = function (self, target)
     goal:addSubgoal(newWaitForMealGoal(self.component, target))
     room.reserve(goal.target)
     reserved = true
-    self.component.patience = 100
 
     old_activate(self)
   end
