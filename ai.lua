@@ -1599,7 +1599,7 @@ local addStockGoal = function (self, target)
       return 1000
     end
 
-    if room.getStock(self.target) == 0 and
+    if room.getStock(self.target) <= 1 and
         not room.isBroken(self.target) and
         room.occupation(self.target) == 0 and
         (room.reservations(self.target) == 0 or reserved)then
