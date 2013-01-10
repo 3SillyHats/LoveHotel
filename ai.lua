@@ -210,8 +210,12 @@ local elevatorProcess = function  (self, dt)
     return "active"
   elseif not self.exiting then
     self.exiting = true
-    self.waitExit = true
-    event.notify("sprite.play", self.toRoom, "opening")
+    if not room.isBroken(self.toRoom) then
+      event.notify("sprite.play", self.toRoom, "opening")
+      self.waitExit = true
+    else
+      self.waitExit = false
+    end
     return "active"
   elseif not self.waitExit then
     event.notify("entity.move", self.component.entity, self.moveTo)
@@ -289,8 +293,12 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
     end
     event.subscribe("sprite.onAnimationEnd", self.fromRoom, enter)
     event.subscribe("sprite.onAnimationEnd", self.toRoom, exit)
-    event.notify("sprite.play", self.fromRoom, "opening")
-    self.waitEnter = true
+    if not room.isBroken(self.fromRoom) then
+      event.notify("sprite.play", self.fromRoom, "opening")
+      self.waitEnter = true
+    else
+      self.waitEnter = false
+    end
     old_activate(self)
   end
   local old_terminate = goal.terminate
