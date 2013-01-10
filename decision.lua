@@ -51,6 +51,14 @@ local decisions = {
     "\nGet to 6 stars to become the best love hotel in the world!",
     alert = true,
   },
+  treasure = {
+    prompt = "While digging out the new floor the construction crew " ..
+    "found a buried chest full of treasure. Even after giving the " ..
+    "crew a cut, you've earned $20,000!",
+    alert = function ()
+      moneyChange(20000)
+    end,
+  },
 }
 
 -- Create and reuse the same decision menu entity
@@ -141,6 +149,9 @@ event.subscribe("pressed", 0, function (button)
   if gState == STATE_DECISION then
     if decisionCom.decision.alert then
       if button == "start" then
+        if type(decisionCom.decision.alert) == "function" then
+          decisionCom.decision.alert()
+        end
         event.notify("state.enter", 0, STATE_PLAY)
       end
     elseif button == "a" then
@@ -174,7 +185,10 @@ event.subscribe("stars", 0, function (stars)
   end
 end)
 event.subscribe("floor.new", 0, function (level)
-  if level == SKY_SPAWN then
+  if level == -3 then
+    M.prompt("treasure")
+    return
+  elseif level == SKY_SPAWN then
     M.prompt("skySpawn")
     return
   elseif level == GROUND_SPAWN then
