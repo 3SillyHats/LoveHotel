@@ -139,7 +139,7 @@ M.confirm = function (prompt, action)
       },
     },
   }
-  decisionCom.selected = 1
+  decisionCom.selected = 2
   decisionCom.result = nil
   event.notify("state.enter", 0, STATE_DECISION)
 end
