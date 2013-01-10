@@ -1,6 +1,13 @@
 -- staffer.lua
 -- GUI element for managing staff
 
+local WAGES = {}
+WAGES["bellhop"] = BELLHOP_WAGE
+WAGES["cleaner"] = CLEANER_WAGE
+WAGES["maintenance"] = MAINTENANCE_WAGE
+WAGES["cook"] = COOK_WAGE
+WAGES["stocker"] = STOCKER_WAGE
+
 local entity = require("entity")
 local resource = require("resource")
 local event = require("event")
@@ -68,7 +75,7 @@ local staffer = function (id, type)
 
     if key == "left" and gStaffTotals[type] > 0 then
       gStaffTotals[type] = gStaffTotals[type] - 1
-    elseif key == "right" and
+    elseif key == "right" and gMoney >= WAGES[type] and
         gStaffTotals[type] < max[gStars] then
       staff.new(type)
     end

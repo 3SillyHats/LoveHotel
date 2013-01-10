@@ -42,6 +42,7 @@ EAT_TIME = 4
 FIX_TIME = 8
 COOK_TIME = 16
 RESTOCK_TIME = 4
+BROKE_TIME = 30
 
 SPAWN_MIN = 20
 SPAWN_MAX = 30
@@ -69,7 +70,7 @@ FLOOR_COSTS = {
   200000, -- 16th floor
 }
 
-MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 200000
+MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 2000
 MONEY_MAX = 999999
 REP_INITIAL = 10
 REP_MAX = 3000
@@ -208,12 +209,34 @@ gStaffTotals = {
   stocker = 0,
 }
 
+local brokeEntity = entity.new(STATE_PLAY)
+local brokeCom = entity.newComponent({
+  timer = -1,
+  update = function (self, dt)
+    if gMoney >= 0 then
+      self.timer = -1 -- stop timing
+    elseif self.timer > BROKE_TIME then
+      self.timer = 0 -- keep timing
+      gStaffTotals["bellhop"] = math.floor(gStaffTotals["bellhop"]/2)
+      gStaffTotals["cleaner"] = math.floor(gStaffTotals["cleaner"]/2)
+      gStaffTotals["maintenance"] = math.floor(gStaffTotals["maintenance"]/2)
+      gStaffTotals["cook"] = math.floor(gStaffTotals["cook"]/2)
+      gStaffTotals["stocker"] = math.floor(gStaffTotals["stocker"]/2)
+    elseif self.timer ~= -1 then
+      self.timer = self.timer + dt
+    end
+  end
+})
+entity.addComponent(brokeEntity, brokeCom)
+
 local moneySnd = resource.get("snd/coin.wav")
 moneyChange = function (c, pos)
-  gMoney = math.max(0, math.min(MONEY_MAX, gMoney + c))
+  gMoney = math.min(MONEY_MAX, gMoney + c)
   if c > 0 then
     love.audio.rewind(moneySnd)
     love.audio.play(moneySnd)
+  elseif gMoney < 0 and brokeCom.timer == -1 then
+    brokeCom.timer = BROKE_TIME
   end
   if pos then
     event.notify("money.change", 0, {
@@ -1033,12 +1056,17 @@ local moneyCom = entity.newComponent()
 moneyCom.change = 0
 moneyCom.changeTimer = 0
 moneyCom.draw = function (self)
-  local money = thousandify(tostring(gMoney))
-
+  local money 
+  if gMoney < 0 then
+    love.graphics.setColor(172, 16, 0)
+    money = "-$" .. thousandify(tostring(-gMoney))
+  else
+    love.graphics.setColor(255, 255, 255)
+    money = "$" .. thousandify(tostring(gMoney))
+  end
   love.graphics.setFont(gFont)
-  love.graphics.setColor(255, 255, 255)
   love.graphics.printf(
-    "$" .. money,
+    money,
     196, CANVAS_HEIGHT - 28,
     56,
     "right"
