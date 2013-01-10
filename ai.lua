@@ -299,6 +299,17 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
     if pos.floorNum ~= math.floor(pos.floorNum+.5) then
       event.notify("entity.move", self.component.entity, {roomNum = pos.roomNum, floorNum = math.floor(pos.floorNum+.5)})
     end
+
+    event.notify("room.check", 0, {
+      roomNum = pos.roomNum,
+      floorNum = pos.floorNum,
+      callback = function (id, roomType)
+        if roomType == "elevator" and not room.isBroken(id) then
+          room.use(id)
+        end
+      end,
+    })
+    
     event.notify("sprite.play", self.component.entity, "idle")
     event.notify("sprite.hide", self.component.entity, false)
     event.unsubscribe("sprite.onAnimationEnd", self.fromRoom, enter)
