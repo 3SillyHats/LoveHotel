@@ -42,9 +42,10 @@ local stocker = function (id, cost, t)
   
   local new = true
   local full = true
+  local broken = false
 
   component.draw = function (self)
-    if full then
+    if full or broken then
       love.graphics.setColor(172,16,0)
     else
       love.graphics.setColor(0,184,0)
@@ -60,7 +61,11 @@ local stocker = function (id, cost, t)
     if roomId ~= nil then
       local info = resource.get("scr/rooms/" .. string.lower(type) .. ".lua")
       if info.stock then
-        if room.getStock(roomId) < info.stock then
+        broken = false
+        if room.isBroken(roomId) then
+          broken = true
+          event.notify("menu.info", 0, {name = "Cost:", desc = "BROKEN"})
+        elseif room.getStock(roomId) < info.stock then
           full = false
           event.notify("menu.info", 0, {
             name = "Cost:",
