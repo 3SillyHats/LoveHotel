@@ -43,12 +43,26 @@ SKY_SPAWN = 8
 GROUND_SPAWN = -8
 SPACE_SPAWN = 16
 
-UP_FLOOR_BASE = 500
-UP_FLOOR_INC = 250
-DOWN_FLOOR_BASE = 1000
-DOWN_FLOOR_INC = 500
+FLOOR_COSTS = {
+  1000,
+  1500,
+  2000,
+  4000,
+  7000,
+  11000,
+  17000,
+  25000, -- 8
+  36000,
+  49000,
+  65000,
+  84000,
+  105000,
+  130000,
+  160000,
+  200000, -- 16
+}
 
-MONEY_INITIAL = UP_FLOOR_BASE + 2000
+MONEY_INITIAL = FLOOR_COSTS[1] + 2000
 MONEY_MAX = 999999
 REP_INITIAL = 10
 REP_MAX = 3000
@@ -128,11 +142,11 @@ conf = {
     -- Structure
     floorUp =  {
       name="Build Up",
-      desc="$" .. thousandify(tostring(UP_FLOOR_BASE)),
+      desc="$" .. thousandify(tostring(FLOOR_COSTS[1])),
     },
     floorDown =  {
       name="Build Down",
-      desc="$" .. thousandify(tostring(DOWN_FLOOR_BASE)),
+      desc="$" .. thousandify(tostring(FLOOR_COSTS[1]*2)),
     },
     destroy =  {
       name="Destroy",
@@ -467,14 +481,14 @@ newFloor(GROUND_FLOOR)
 
 local floorUp = function()
   if gTopFloor >= 16 then return end
-  local cost = UP_FLOOR_BASE + (gTopFloor * UP_FLOOR_INC)
+  local cost = FLOOR_COSTS[gTopFloor + 1]
   if gMoney >= cost then
     gMoney = gMoney - cost
     event.notify("money.change", 0, {
       amount = -cost,
     })
     gTopFloor = gTopFloor + 1
-    conf.menu["floorUp"].desc = "$" .. thousandify(tostring(UP_FLOOR_BASE + (gTopFloor * UP_FLOOR_INC)))
+    conf.menu["floorUp"].desc = "$" .. thousandify(tostring(FLOOR_COSTS[gTopFloor + 1]))
     if gTopFloor >= 16 then
       conf.menu["floorUp"].desc = "MAXED"
     end
@@ -489,14 +503,14 @@ end
 
 local floorDown = function()
   if gBottomFloor <= -8 then return end
-  local cost = DOWN_FLOOR_BASE + (-gBottomFloor * DOWN_FLOOR_INC)
+  local cost = FLOOR_COSTS[-gBottomFloor + 1] * 2
   if gMoney >= cost then
     gMoney = gMoney - cost
     event.notify("money.change", 0, {
       amount = -cost,
     })
     gBottomFloor = gBottomFloor - 1
-    conf.menu["floorDown"].desc = "$" .. thousandify(tostring(DOWN_FLOOR_BASE + (-gBottomFloor * DOWN_FLOOR_INC)))
+    conf.menu["floorDown"].desc = "$" .. thousandify(tostring(FLOOR_COSTS[-gBottomFloor + 1] * 2))
     if gBottomFloor <= -8 then
       conf.menu["floorDown"].desc = "MAXED"
     end
