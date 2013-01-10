@@ -92,6 +92,8 @@ local placer = function (id, type, width, cost, t)
           local snd = resource.get("snd/build.wav")
           love.audio.rewind(snd)
           love.audio.play(snd)
+          
+          clear = false
         else
           local snd = resource.get("snd/error.wav")
           love.audio.rewind(snd)
