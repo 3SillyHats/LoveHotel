@@ -523,6 +523,11 @@ local newSexGoal = function (com, target)
     self:addSubgoal(newPlayAnimationGoal(
       self.component,
       self.target,
+      "cleaning"
+    ))
+    self:addSubgoal(newPlayAnimationGoal(
+      self.component,
+      self.target,
       "dirty"
     ))
     self:addSubgoal(newWaitForAnimationGoal(
@@ -1671,7 +1676,6 @@ local newPerformCleanGoal = function (self, target)
 
     event.notify("sprite.hide", self.component.entity, true)
     event.notify("sprite.play", self.target, "closing")
-    event.notify("sprite.play", self.target, "cleaning")
 
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, CLEAN_TIME))
