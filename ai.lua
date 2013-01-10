@@ -698,14 +698,15 @@ local addSpaGoal = function (self, target)
     if t.needs.horniness < 100 then
       if self.relax then
         return 100 - t.needs.horniness
-      elseif room.occupation(self.target) == 0 and
+      elseif t.needs.horniness < 50 and
+          room.occupation(self.target) == 0 and
           not room.isBroken(self.target) then
         local myPos = transform.getPos(self.component.entity)
         local time = path.getCost(myPos, targetPos)
         if time == -1 then
           return -1
         end
-        return (100 - t.needs.horniness) / (1 + time)
+        return (50 - t.needs.horniness) / (1 + time)
       end
     end
     return -1
