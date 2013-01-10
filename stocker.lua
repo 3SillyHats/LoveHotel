@@ -41,26 +41,35 @@ local stocker = function (id, cost, t)
   })
   
   local new = true
+  local full = true
 
   component.draw = function (self)
-    love.graphics.setColor(228,96,24)
+    if full then
+      love.graphics.setColor(172,16,0)
+    else
+      love.graphics.setColor(0,184,0)
+    end
     love.graphics.setLine(1, "rough")
     love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
   end
     
   local updatePosition = function()
-    clear = true
-    support = 0
     event.notify("entity.move", id, {roomNum = gRoomNum, floorNum = gScrollPos})
     
     local roomId, type = getRoom()
     if roomId ~= nil then
       local info = resource.get("scr/rooms/" .. string.lower(type) .. ".lua")
       if info.stock then
-        event.notify("menu.info", 0, {
-          name = "Cost:",
-          desc = "$" .. info.restockCost,
-        })
+        if room.getStock(roomId) < info.stock then
+          full = false
+          event.notify("menu.info", 0, {
+            name = "Cost:",
+            desc = "$" .. info.restockCost,
+          })
+        else
+          full = true
+          event.notify("menu.info", 0, {name = "Cost:", desc = "FULL"})
+        end
       else
         event.notify("menu.info", 0, {name = "", desc = ""})
       end
@@ -109,6 +118,9 @@ local stocker = function (id, cost, t)
             roomNum = gRoomNum,
             floorNum = gScrollPos,
           })
+          
+          full = true
+          event.notify("menu.info", 0, {name = "Cost:", desc = "FULL"})
 
           local snd = resource.get("snd/select.wav")
           love.audio.rewind(snd)

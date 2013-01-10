@@ -29,8 +29,6 @@ local demolisher = function (id, cost, t)
   end
     
   local updatePosition = function()
-    clear = true
-    support = 0
     event.notify("entity.move", id, {roomNum = gRoomNum, floorNum = gScrollPos})
   end
 
