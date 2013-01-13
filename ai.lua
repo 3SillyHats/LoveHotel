@@ -724,8 +724,10 @@ local addSpaGoal = function (self, target)
   destroy = function (t)
     self.goalEvaluator:removeSubgoal(goal)
     event.unsubscribe("destroy", goal.target, destroy)
+    event.unsubscribe("delete", goal.component.entity, destroy, goal.name)
   end
   event.subscribe("destroy", goal.target, destroy)
+  event.subscribe("delete", goal.component.entity, destroy, goal.name)
 
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -899,8 +901,10 @@ local addOrderMealGoal = function (self, target)
   local function destroy (t)
     self.goalEvaluator:removeSubgoal(goal)
     event.unsubscribe("destroy", goal.target, destroy)
+    event.unsubscribe("delete", goal.component.entity, destroy, goal.name)
   end
   event.subscribe("destroy", goal.target, destroy)
+  event.subscribe("delete", goal.component.entity, destroy, goal.name)
 
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -1047,8 +1051,10 @@ local addCheckInGoal = function (self, target)
   local function destroy (t)
     self.goalEvaluator:removeSubgoal(goal)
     event.unsubscribe("destroy", goal.target, destroy)
+    event.unsubscribe("delete", goal.component.entity, destroy, goal.name)
   end
   event.subscribe("destroy", goal.target, destroy)
+  event.subscribe("delete", goal.component.entity, destroy, goal.name)
 
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -1176,6 +1182,25 @@ local addFollowGoal = function (self, target, type)
     goal.cancelled = true
   end
 
+  
+  local onDelete = function ()
+    goal:terminate()
+  end
+  
+  local subTarget = nil
+  
+  local unsubscribe = function (self)
+    if subTarget ~= nil then
+      event.unsubscribe("sprite.hide", self.target, onHide)
+      event.unsubscribe("sprite.play", self.target, onPlay)
+      event.unsubscribe("sprite.flip", self.target, onFlip)
+      event.unsubscribe("enterRoom", self.target, onEnter)
+      event.unsubscribe("reservation.cancelled", self.target, onCancel)
+      event.unsubscribe("delete", self.target, onDelete)
+      subTarget = nil
+    end
+  end
+
   local old_activate = goal.activate
   goal.activate = function (self)
     if self.type == "staff" then
@@ -1186,11 +1211,14 @@ local addFollowGoal = function (self, target, type)
     self.targetHist = {{
       pos = transform.getPos(self.target),
     }}
+    unsubscribe(self)
+    subTarget = self.target
     event.subscribe("sprite.hide", self.target, onHide)
     event.subscribe("sprite.play", self.target, onPlay)
     event.subscribe("sprite.flip", self.target, onFlip)
     event.subscribe("enterRoom", self.target, onEnter)
     event.subscribe("reservation.cancelled", self.target, onCancel)
+    event.subscribe("delete", self.target, onDelete)
     old_activate(self)
   end
 
@@ -1272,11 +1300,7 @@ local addFollowGoal = function (self, target, type)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
-    event.unsubscribe("sprite.hide", self.target, onHide)
-    event.unsubscribe("sprite.play", self.target, onPlay)
-    event.unsubscribe("sprite.flip", self.target, onFlip)
-    event.unsubscribe("enterRoom", self.target, onEnter)
-    event.unsubscribe("reservation.cancelled", self.target, onCancel)
+    unsubscribe(self)
     if self.type == "staff" then
       self.component.following = false
       self.component.goalEvaluator:removeSubgoal(self)
@@ -1534,8 +1558,10 @@ local addMaintenanceGoal = function (self, target)
   local function destroy (t)
     self.goalEvaluator:removeSubgoal(goal)
     event.unsubscribe("destroy", goal.target, destroy)
+    event.unsubscribe("delete", goal.component.entity, destroy, goal.name)
   end
   event.subscribe("destroy", goal.target, destroy)
+  event.subscribe("delete", goal.component.entity, destroy, goal.name)
 
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -1666,8 +1692,10 @@ local addStockGoal = function (self, target)
   local function destroy (t)
     self.goalEvaluator:removeSubgoal(goal)
     event.unsubscribe("destroy", goal.target, destroy)
+    event.unsubscribe("delete", goal.component.entity, destroy, goal.name)
   end
   event.subscribe("destroy", goal.target, destroy)
+  event.subscribe("delete", goal.component.entity, destroy, goal.name)
 
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -1796,8 +1824,10 @@ local addCleanGoal = function (self, target)
   local function destroy (t)
     self.goalEvaluator:removeSubgoal(goal)
     event.unsubscribe("destroy", goal.target, destroy)
+    event.unsubscribe("delete", goal.component.entity, destroy, goal.name)
   end
   event.subscribe("destroy", goal.target, destroy)
+  event.subscribe("delete", goal.component.entity, destroy, goal.name)
 
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -1931,8 +1961,10 @@ local addSupplyGoal = function (self, target)
   destroy = function (t)
     self.goalEvaluator:removeSubgoal(goal)
     event.unsubscribe("destroy", goal.target, destroy)
+    event.unsubscribe("delete", goal.component.entity, destroy, goal.name)
   end
   event.subscribe("destroy", goal.target, destroy)
+  event.subscribe("delete", goal.component.entity, destroy, goal.name)
 
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -2052,8 +2084,10 @@ local addCondomGoal = function (self, target)
   destroy = function (t)
     self.goalEvaluator:removeSubgoal(goal)
     event.unsubscribe("destroy", goal.target, destroy)
+    event.unsubscribe("delete", goal.component.entity, destroy, goal.name)
   end
   event.subscribe("destroy", goal.target, destroy)
+  event.subscribe("delete", goal.component.entity, destroy, goal.name)
 
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -2173,8 +2207,10 @@ local addSnackGoal = function (self, target)
   destroy = function (t)
     self.goalEvaluator:removeSubgoal(goal)
     event.unsubscribe("destroy", goal.target, destroy)
+    event.unsubscribe("delete", goal.component.entity, destroy, goal.name)
   end
   event.subscribe("destroy", goal.target, destroy)
+  event.subscribe("delete", goal.component.entity, destroy, goal.name)
 
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -2322,8 +2358,10 @@ local addBellhopGoal = function (self, target)
   local function destroy (t)
     self.goalEvaluator:removeSubgoal(goal)
     event.unsubscribe("destroy", goal.target, destroy)
+    event.unsubscribe("delete", goal.component.entity, destroy, goal.name)
   end
   event.subscribe("destroy", goal.target, destroy)
+  event.subscribe("delete", goal.component.entity, destroy, goal.name)
 
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -2496,8 +2534,10 @@ local addCookGoal = function (self, target)
   local function destroy (t)
     self.goalEvaluator:removeSubgoal(goal)
     event.unsubscribe("destroy", goal.target, destroy)
+    event.unsubscribe("delete", goal.component.entity, destroy, goal.name)
   end
   event.subscribe("destroy", goal.target, destroy)
+  event.subscribe("delete", goal.component.entity, destroy, goal.name)
 
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -2555,8 +2595,10 @@ local addIngredientsGoal = function (self, target)
   destroy = function (t)
     self.goalEvaluator:removeSubgoal(goal)
     event.unsubscribe("destroy", goal.target, destroy)
+    event.unsubscribe("delete", goal.component.entity, destroy, goal.name)
   end
   event.subscribe("destroy", goal.target, destroy)
+  event.subscribe("delete", goal.component.entity, destroy, goal.name)
 
   self.goalEvaluator:addSubgoal(goal)
 end
@@ -2677,8 +2719,10 @@ local addWaiterGoal = function (self, target)
   local function destroy (t)
     self.goalEvaluator:removeSubgoal(goal)
     event.unsubscribe("destroy", goal.target, destroy)
+    event.unsubscribe("delete", goal.component.entity, destroy, goal.name)
   end
   event.subscribe("destroy", goal.target, destroy)
+  event.subscribe("delete", goal.component.entity, destroy, goal.name)
 
   self.goalEvaluator:addSubgoal(goal)
 end

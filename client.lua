@@ -177,30 +177,31 @@ M.new = function (t)
   aiComponent.leader = t.leader
   aiComponent.category = t.category
 
-  local addRoomGoal = function (id)
-    local info = room.getInfo(id)
+  local addRoomGoal = function (roomId)
+    local info = room.getInfo(roomId)
     if info.reception then
-      aiComponent:addCheckInGoal(id)
+      aiComponent:addCheckInGoal(roomId)
     elseif info.condomSupplies then
-      aiComponent:addCondomGoal(id)
+      aiComponent:addCondomGoal(roomId)
     elseif info.foodSupplies then
-      aiComponent:addSnackGoal(id)
+      aiComponent:addSnackGoal(roomId)
     elseif info.id == "dining" then
-      aiComponent:addOrderMealGoal(id)
+      aiComponent:addOrderMealGoal(roomId)
     elseif info.id == "spa" then
-      aiComponent:addSpaGoal(id)
+      aiComponent:addSpaGoal(roomId)
     end
   end
 
+  local onBuild = function (e)
+    addRoomGoal(e.id)
+  end
   if t and t.target then
     aiComponent:addFollowGoal(t.target, "client")
   else
-    event.notify("room.all", 0, function (id,type)
-      addRoomGoal(id)
+    event.notify("room.all", 0, function (roomId,type)
+      addRoomGoal(roomId)
     end)
-    event.subscribe("build", 0, function (e)
-      addRoomGoal(e.id)
-    end)
+    event.subscribe("build", 0, onBuild)
     aiComponent:addVisitGoal()
   end
   entity.addComponent(id, aiComponent)
@@ -236,15 +237,17 @@ M.new = function (t)
     for k,v in ipairs(clients) do
       if v.id == id then
         table.remove(clients, k)
+        break
       end
     end
-    if t.leader then
-      for k,v in ipairs(leaders) do
-        if v.id == id then
-          table.remove(leaders, k)
-        end
+    for k,v in ipairs(leaders) do
+      if v.id == id then
+        table.remove(leaders, k)
+        break
       end
     end
+    old_update = nil
+    event.unsubscribe("build", 0, onBuild)
     event.unsubscribe("actor.check", 0, check)
     event.unsubscribe("delete", id, delete)
   end

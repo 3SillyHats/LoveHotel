@@ -223,9 +223,10 @@ M.new = function (type)
   event.notify("room.all", 0, function (id,type)
     addRoomGoal(id)
   end)
-  event.subscribe("build", 0, function (t)
+  local onBuild = function (t)
     addRoomGoal(t.id)
-  end)
+  end
+  event.subscribe("build", 0, onBuild)
 
   aiComponent:addEnterGoal() -- First goal: enter building
   aiComponent:addWanderGoal()
@@ -247,6 +248,7 @@ M.new = function (type)
         table.remove(staff,k)
       end
     end
+    event.unsubscribe("build", 0, onBuild)
     event.unsubscribe("actor.check", 0, check)
     event.unsubscribe("delete", id, delete)
   end
