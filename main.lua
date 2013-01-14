@@ -400,17 +400,26 @@ local buildRoom = function (type, baseMenu)
 
   local buildUtility = builder.new(STATE_PLAY, type)
 
-  local back = function () end
+  local back
+
+  local function onBuild ()
+    event.unsubscribe("pressed", 0, back)
+    event.unsubscribe("build", buildUtility, onBuild)
+    menu.enable(baseMenu)
+    entity.delete(buildUtility)
+  end
 
   back = function (key)
     if gState == STATE_PLAY and key == "b" then
       event.unsubscribe("pressed", 0, back)
+      event.unsubscribe("build", buildUtility, onBuild)
       menu.enable(baseMenu)
       entity.delete(buildUtility)
     end
   end
 
   event.subscribe("pressed", 0, back)
+  event.subscribe("build", buildUtility, onBuild)
 end
 
 local demolishRoom = function (baseMenu)
@@ -418,7 +427,7 @@ local demolishRoom = function (baseMenu)
 
   local demolishUtility = demolisher.new(2)
 
-  local back = function () end
+  local back
 
   back = function (key)
     if gState == STATE_PLAY and key == "b" then
@@ -436,7 +445,7 @@ local stockRoom = function (baseMenu)
 
   local stockUtility = stocker.new(STATE_PLAY)
 
-  local back = function () end
+  local back
 
   back = function (key)
     if gState == STATE_PLAY and key == "b" then
