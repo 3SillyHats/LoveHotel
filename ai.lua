@@ -1417,28 +1417,38 @@ local addExitGoal = function (self)
   self.goalEvaluator:addSubgoal(goal)
 end
 
-local addFiredGoal = function (self)
-  local goal = M.newGoal(self)
+local addFiredGoal = function (com)
+  local goal = M.newGoal(com)
   goal.name = "fired"
 
-  local fired = false
+  com.fired = false
 
   local old_activate = goal.activate
   goal.activate = function (self)
-    fired = true
+    com.fired = true
     goal:addSubgoal(newMoveToGoal(self.component, {roomNum = -.5, floorNum = 0}, PERSON_MOVE))
     goal:addSubgoal(newDestroyGoal(self.component))
     old_activate(self)
   end
 
+  local old_process = goal.process
+  goal.process = function (self, dt)
+    local result = old_process(self, dt)
+    if result == "failed" then
+      entity.delete(self.component.entity)
+      return "complete"
+    end
+    return result
+  end
+
   goal.getDesirability = function (self, t)
-    if fired or self.component.staffNum > gStaffTotals[self.component.type] then
+    if com.fired or self.component.staffNum > gStaffTotals[self.component.type] then
       return 1000
     end
     return -1
   end
 
-  self.goalEvaluator:addSubgoal(goal)
+  com.goalEvaluator:addSubgoal(goal)
 end
 
 local newFixGoal = function (self, target)
