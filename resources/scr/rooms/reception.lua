@@ -1,7 +1,7 @@
 return {
   id = "reception",
   name = "Reception",
-  cost = 1000,
+  cost = 10000,
   width = 3,
   reception = true,
 

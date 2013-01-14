@@ -706,14 +706,18 @@ menu.addButton(gui, menu.newButton("services", function ()
   menu.addButton(submenu, menu.newButton("utility", function ()
     buildRoom("utility", submenu)
   end))
-  --Reception
-  menu.addButton(submenu, menu.newButton("reception", function ()
-    buildRoom("reception", submenu)
-  end))
   if gStars >= 2 then
     --Condom machine
     menu.addButton(submenu, menu.newButton("condom", function ()
       buildRoom("condom", submenu)
+    end))
+  else
+    addLockButton(submenu)
+  end
+  if gStars >= 3 then
+    --Reception
+    menu.addButton(submenu, menu.newButton("reception", function ()
+      buildRoom("reception", submenu)
     end))
   else
     addLockButton(submenu)
@@ -1209,7 +1213,7 @@ local init = function ()
   event.notify("menu.info", 0, {selected = "infrastructure"})
   local id, pos
   
-  pos = {roomNum = 2, floorNum = 0}
+  pos = {roomNum = 1, floorNum = 0}
   id = room.new(STATE_PLAY, "reception", pos)
   event.notify("build", 0, {id=id, pos=pos, type="reception"})
   

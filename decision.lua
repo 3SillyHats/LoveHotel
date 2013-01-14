@@ -35,7 +35,7 @@ local decisions = {
   },
   star3 = {
     prompt = "Nice work - 3 stars!\nYou can now hire Cooks and build " ..
-    "Dining Rooms, Kitchens and Chocolate Moustache suites." ..
+    "Dining Rooms, Kitchens, Receptions and Chocolate Moustache suites." ..
     "\nBut now people will be upset if they run out of condoms!",
     alert = true,
   },

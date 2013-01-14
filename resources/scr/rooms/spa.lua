@@ -1,7 +1,7 @@
 return {
   id = "spa",
   name = "Spa Room",
-  cost = 20000,
+  cost = 30000,
   width = 2,
   breakable = true,
   integrity = 8,
