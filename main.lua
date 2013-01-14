@@ -921,6 +921,8 @@ end)
 
 event.subscribe("training.end", 0, function ()
   event.notify("state.enter", 0, 2)
+  -- Show starting title card
+  event.notify("stars", 0, 1)
 end)
 
 event.notify("training.begin", 0)
@@ -1394,9 +1396,6 @@ event.subscribe("pressed", 0, function (button)
     end
   end
 end)
-
--- Show starting title card
-event.notify("stars", 0, 1)
 
 love.draw = function ()
   -- Draw to canvas without scaling
