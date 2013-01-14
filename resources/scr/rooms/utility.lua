@@ -1,6 +1,6 @@
 return {
   id = "utility",
-  name = "Utility Room",
+  name = "Supply Closet",
   cost = 200,
   profit = 50,
   width = 1,

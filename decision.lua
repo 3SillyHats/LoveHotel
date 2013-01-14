@@ -24,7 +24,7 @@ local decisions = {
   },
   star1 = {
     prompt = "Love Hotel is a luxury hotel for couples. Grow your business " ..
-    "by satisfying clients to earn money and reputation. Become the best " ..
+    "by satisfying clients and keeping supplies in stock. Become the best " ..
     "romantic hotel in the world!",
     alert = true,
   },
