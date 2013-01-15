@@ -65,6 +65,9 @@ local demolisher = function (id, cost, t)
         })
         
         if roomId == -1 then
+          local snd = resource.get("snd/error.wav")
+          love.audio.rewind(snd)
+          love.audio.play(snd)
           return
         end
 
@@ -77,6 +80,10 @@ local demolisher = function (id, cost, t)
 
           local snd = resource.get("snd/destroy.wav")
           snd:setVolume(1)
+          love.audio.rewind(snd)
+          love.audio.play(snd)
+        else
+          local snd = resource.get("snd/error.wav")
           love.audio.rewind(snd)
           love.audio.play(snd)
         end
