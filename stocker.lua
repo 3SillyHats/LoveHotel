@@ -106,6 +106,9 @@ local stocker = function (id, cost, t)
         local roomId, type = getRoom()
 
         if roomId == nil then
+          local snd = resource.get("snd/error.wav")
+          love.audio.rewind(snd)
+          love.audio.play(snd)
           return
         end
 
