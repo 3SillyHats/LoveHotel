@@ -12,6 +12,7 @@ STATE_PLAY = 2
 STATE_PAUSE = 3
 STATE_DECISION = 4
 STATE_WIN = 5
+STATE_START = 6
 
 PERSON_MOVE = 1
 ELEVATOR_MOVE = 1.2
@@ -194,7 +195,7 @@ gRoomNum = 1
 event.subscribe("scroll", 0, function (scrollPos)
   gScrollPos = scrollPos
 end)
-gState = STATE_TRAIN
+gState = STATE_START
 event.subscribe("state.enter", 0, function (state)
   gState = state
 end)
@@ -923,6 +924,7 @@ entity.addComponent(trainArrow, sprite.new(
 ))
 local trainText = entity.new(STATE_TRAIN)
 trainTextCom = entity.newComponent({
+  text = "",
   draw = function (self)
     local desc = [[Controller Setup
 
@@ -957,13 +959,10 @@ event.subscribe("training.current", 0, function (current)
 end)
 
 event.subscribe("training.end", 0, function ()
-  event.notify("state.enter", 0, 2)
+  event.notify("state.enter", 0, STATE_PLAY)
   -- Show starting title card
   event.notify("stars", 0, 1)
 end)
-
-event.notify("training.begin", 0)
-event.notify("training.load", 0)
 
 local floorOccupation = 1
 
@@ -1425,6 +1424,26 @@ event.subscribe("pressed", 0, function (button)
     end
   end
 end)
+
+-- GAME START SCREEN
+local startScreen = entity.new(STATE_START)
+local startCom = entity.newComponent({
+  timer = 3,
+  draw = function (self)
+    -- Draw logo
+    local img = resource.get("img/logo.png")
+    love.graphics.draw(img, 0, 0)
+  end,
+  update = function (self, dt)
+    self.timer = self.timer - dt
+    if self.timer <= 0 then
+      event.notify("training.begin", 0)
+      event.notify("training.load", 0)
+    end
+  end,
+})
+entity.addComponent(startScreen, startCom)
+event.notify("state.enter", 0, STATE_START)
 
 love.draw = function ()
   -- Draw to canvas without scaling
