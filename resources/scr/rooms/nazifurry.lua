@@ -3,6 +3,7 @@ return {
   name = "Nazi Furry",
   cost = 66600,
   profit = 10000,
+  reputation = 2,
   width = 3,
   dirtyable = true,
   visitable = true,

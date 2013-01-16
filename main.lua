@@ -311,12 +311,21 @@ gFont = love.graphics.newImageFont(
 )
 
 -- Update menu tooltips (get names, costs of rooms)
+local bestRoom = resource.get("scr/rooms/nazifurry.lua")
+local maxProfit = math.sqrt(bestRoom.profit)
+local maxRep = bestRoom.reputation
 for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
   local room = resource.get("scr/rooms/" .. fname)
   conf.menu[room.id] = {
     name = room.name,
     desc = "$" .. thousandify(tostring(room.cost)),
   }
+  if room.profit then
+    conf.menu[room.id].profit = math.sqrt(room.profit) / maxProfit
+  end
+  if room.reputation then
+    conf.menu[room.id].rep = room.reputation / maxRep
+  end
 end
 
 -- Allow game fast-forwarding
@@ -1019,9 +1028,15 @@ local buttQuad = love.graphics.newQuad(
   resource.get("img/hud.png"):getWidth(),
   resource.get("img/hud.png"):getHeight()
 )
+local statsQuad = love.graphics.newQuad(
+  80, 176,
+  80, 32,
+  resource.get("img/hud.png"):getWidth(),
+  resource.get("img/hud.png"):getHeight()
+)
 local inspectorQuad = love.graphics.newQuad(
   0, 176,
-  81, 32,
+  80, 32,
   resource.get("img/hud.png"):getWidth(),
   resource.get("img/hud.png"):getHeight()
 )
@@ -1036,6 +1051,8 @@ entity.setOrder(hudBar, 90)
 local hudCom = entity.newComponent()
 hudCom.name = ""
 hudCom.desc = ""
+hudCom.profit = nil
+hudCom.rep = nil
 hudCom.draw = function (self)
   love.graphics.setColor(255, 255, 255)
   love.graphics.drawq(
@@ -1086,6 +1103,20 @@ hudCom.draw = function (self)
       "left"
     )
   end
+  -- draw stats bars
+  if self.profit or self.rep then
+    love.graphics.drawq(
+      resource.get("img/hud.png"), statsQuad,
+      112, CANVAS_HEIGHT - 32,
+      0
+    )
+    local profit = self.profit or 0
+    love.graphics.setColor(0, 114, 0)
+    love.graphics.rectangle("fill", 169, 210, profit * 20, 2)
+    local rep = self.rep or 0
+    love.graphics.setColor(252, 184, 0)
+    love.graphics.rectangle("fill", 169, 217, rep * 20, 2)
+  end
 end
 entity.addComponent(hudBar, hudCom)
 event.subscribe("menu.info", 0, function (e)
@@ -1093,9 +1124,13 @@ event.subscribe("menu.info", 0, function (e)
     local info = conf.menu[e.selected]
     hudCom.name = info.name
     hudCom.desc = info.desc
+    hudCom.profit = info.profit
+    hudCom.rep = info.rep
   else
     hudCom.name = e.name
     hudCom.desc = e.desc
+    hudCom.profit = e.profit
+    hudCom.rep = e.rep
   end
   hudCom.inspector = e.inspector
 end)

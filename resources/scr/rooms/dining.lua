@@ -4,6 +4,7 @@ return {
   cost = 5000,
   width = 3,
   profit = 2000,
+  reputation = 1,
 
   sprites = {
     {

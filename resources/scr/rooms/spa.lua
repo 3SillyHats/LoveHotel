@@ -5,6 +5,7 @@ return {
   width = 2,
   breakable = true,
   integrity = 8,
+  reputation = 1,
 
   sprites = {
     {
