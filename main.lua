@@ -572,6 +572,12 @@ local newFloor = function (level)
       playing = "idle",
     }))
   end
+
+  -- build default elevator on right hand side
+  local epos = {roomNum = 7, floorNum = level}
+  local eid = room.new(STATE_PLAY, "elevator", epos)
+  event.notify("build", 0, {id=eid, pos=epos, type="elevator"})
+  
   event.notify("floor.new", 0, level)
   local snd = resource.get("snd/build.wav")
   love.audio.rewind(snd)
@@ -648,14 +654,6 @@ menu.addButton(gui, menu.newButton("infrastructure", function ()
   --Create the infrastructure menu
   local submenu = menu.new(STATE_PLAY, subMenuY)
 
-  --[[Stairs
-  menu.addButton(submenu, menu.newButton("stairs", function ()
-    print("Stairs")
-  end))---]]
-  --Elevator
-  menu.addButton(submenu, menu.newButton("elevator", function ()
-    buildRoom("elevator", submenu)
-  end))
   --Build floor up
   menu.addButton(submenu, menu.newButton("floorUp", function ()
     floorUp()
@@ -1266,10 +1264,6 @@ local init = function ()
   id = room.new(STATE_PLAY, "reception", pos)
   event.notify("build", 0, {id=id, pos=pos, type="reception"})
   
-  pos = {roomNum = 7, floorNum = 0}
-  id = room.new(STATE_PLAY, "elevator", pos)
-  event.notify("build", 0, {id=id, pos=pos, type="elevator"})
-  
   pos = {roomNum = 4, floorNum = 1}
   id = room.new(STATE_PLAY, "missionary", pos)
   event.notify("build", 0, {id=id, pos=pos, type="missionary"})
@@ -1277,10 +1271,6 @@ local init = function ()
   pos = {roomNum = 6, floorNum = 1}
   id = room.new(STATE_PLAY, "utility", pos)
   event.notify("build", 0, {id=id, pos=pos, type="utility"})
-
-  pos = {roomNum = 7, floorNum = 1}
-  id = room.new(STATE_PLAY, "elevator", pos)
-  event.notify("build", 0, {id=id, pos=pos, type="elevator"})
 
   initialised = true
 end
