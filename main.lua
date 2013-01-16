@@ -189,6 +189,7 @@ conf = {
 gTopFloor = GROUND_FLOOR
 gBottomFloor = GROUND_FLOOR
 gScrollPos = GROUND_FLOOR
+gScrollable = true
 gRoomNum = 1
 event.subscribe("scroll", 0, function (scrollPos)
   gScrollPos = scrollPos
@@ -967,7 +968,7 @@ event.notify("training.load", 0)
 local floorOccupation = 1
 
 event.subscribe("pressed", 0, function (key)
-  if gState == STATE_PLAY then
+  if gState == STATE_PLAY and gScrollable then
     if key == "up" and gScrollPos < gTopFloor then
       event.notify("scroll", 0 , gScrollPos + 1)
     elseif key == "down" and gScrollPos > gBottomFloor then

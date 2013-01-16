@@ -16,18 +16,32 @@ local staff = require("staff")
 
 local M = {}
 
-local LArrowQuad = love.graphics.newQuad(
-  32, 160,
-  8, 16,
+local IconQuad = love.graphics.newQuad(
+  128, 64,
+  16, 16,
   resource.get("img/hud.png"):getWidth(),
   resource.get("img/hud.png"):getHeight()
 )
-local RArrowQuad = love.graphics.newQuad(
-  40, 160,
-  8, 16,
+local DArrowQuad = love.graphics.newQuad(
+  24, 168,
+  8, 8,
   resource.get("img/hud.png"):getWidth(),
   resource.get("img/hud.png"):getHeight()
 )
+local UArrowQuad = love.graphics.newQuad(
+  24, 160,
+  8, 8,
+  resource.get("img/hud.png"):getWidth(),
+  resource.get("img/hud.png"):getHeight()
+)
+
+local offsets = {
+  cleaner = 0,
+  bellhop = 16,
+  cook = 32,
+  maintenance = 48,
+  stocker = 62,
+}
 
 local staffer = function (id, type)
   local component = entity.newComponent()
@@ -35,29 +49,46 @@ local staffer = function (id, type)
   local max = STAFF_MAX[type]
   local new = true
 
+  gScrollable = false
+  
+  IconQuad:setViewport(128 + offsets[type], 64, 16, 16)
+
   component.draw = function (self)
     love.graphics.setColor(255, 255, 255)
-    
-    -- Draw current number and max
-    love.graphics.printf(
-      string.format("%u/%u", gStaffTotals[type], max[gStars]),
-      113, 209,
-      79,
-      "center"
+
+    -- Staff icon
+    love.graphics.drawq(
+      resource.get("img/hud.png"), IconQuad,
+      116, CANVAS_HEIGHT - 24,
+      0
     )
     
-    -- Draw arrows
+    -- Current staff number
+    love.graphics.printf(
+      tostring(gStaffTotals[type]),
+      136, 203,
+      16,
+      "center"
+    )
+
+    -- Max staff number
+    love.graphics.print(
+      string.format("max %u", max[gStars]),
+      152, 203
+    )
+    
+    -- Arrows
     if gStaffTotals[type] > 0 then
       love.graphics.drawq(
-        resource.get("img/hud.png"), LArrowQuad,
-        126, CANVAS_HEIGHT - 16,
+        resource.get("img/hud.png"), DArrowQuad,
+        140, CANVAS_HEIGHT - 10,
         0
       )
     end
     if gStaffTotals[type] < max[gStars] then
       love.graphics.drawq(
-        resource.get("img/hud.png"), RArrowQuad,
-        170, CANVAS_HEIGHT - 16,
+        resource.get("img/hud.png"), UArrowQuad,
+        140, CANVAS_HEIGHT - 26,
         0
       )
     end
@@ -65,7 +96,7 @@ local staffer = function (id, type)
   
   component.update = function (self, dt)
     if new then
-      event.notify("menu.info", 0, {name = conf.menu[type].name, desc = ""})
+      event.notify("menu.info", 0, {name = "", desc = ""})
       new = false
     end
   end
@@ -73,7 +104,7 @@ local staffer = function (id, type)
   local pressed = function (key)
     if gState ~= STATE_PLAY then return end
 
-    if key == "left" then
+    if key == "down" then
       if gStaffTotals[type] > 0 then
         gStaffTotals[type] = gStaffTotals[type] - 1
       else
@@ -81,7 +112,7 @@ local staffer = function (id, type)
         love.audio.rewind(snd)
         love.audio.play(snd)
       end
-    elseif key == "right" then
+    elseif key == "up" then
       if gStaffTotals[type] < max[gStars] and gMoney >= WAGES[type] then
         staff.new(type)
       else
@@ -98,6 +129,7 @@ local staffer = function (id, type)
   local function delete ()
     event.unsubscribe("pressed", 0, pressed)
     event.unsubscribe("delete", id, delete)
+    gScrollable = true
   end
   
   event.subscribe("pressed", 0, pressed)
