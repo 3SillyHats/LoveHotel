@@ -1372,6 +1372,8 @@ local addExitGoal = function (self)
           else
             event.notify("sprite.play", self.component.entity, "thoughtCondomlessGood")
           end
+        else
+          event.notify("sprite.play", self.component.entity, "thoughtBroke")
         end
       end
     end
