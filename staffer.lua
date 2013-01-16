@@ -73,11 +73,25 @@ local staffer = function (id, type)
   local pressed = function (key)
     if gState ~= STATE_PLAY then return end
 
-    if key == "left" and gStaffTotals[type] > 0 then
-      gStaffTotals[type] = gStaffTotals[type] - 1
-    elseif key == "right" and gMoney >= WAGES[type] and
-        gStaffTotals[type] < max[gStars] then
-      staff.new(type)
+    if key == "left" then
+      if gStaffTotals[type] > 0 then
+        gStaffTotals[type] = gStaffTotals[type] - 1
+      else
+        local snd = resource.get("snd/error.wav")
+        love.audio.rewind(snd)
+        love.audio.play(snd)
+      end
+    elseif key == "right" then
+      if gStaffTotals[type] < max[gStars] and gMoney >= WAGES[type] then
+        staff.new(type)
+      else
+        local snd = resource.get("snd/error.wav")
+        love.audio.rewind(snd)
+        love.audio.play(snd)
+        if WAGES[type] > gMoney then
+          alert("funds")
+        end
+      end
     end
   end
 

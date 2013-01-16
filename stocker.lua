@@ -137,6 +137,9 @@ local stocker = function (id, cost, t)
           local snd = resource.get("snd/error.wav")
           love.audio.rewind(snd)
           love.audio.play(snd)
+          if info.restockCost > gMoney then
+            alert("funds")
+          end
         end
       end
     end

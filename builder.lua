@@ -99,6 +99,9 @@ local placer = function (id, type, width, cost, t)
           local snd = resource.get("snd/error.wav")
           love.audio.rewind(snd)
           love.audio.play(snd)
+          if cost > gMoney then
+            alert("funds")
+          end
         end
       end
     end

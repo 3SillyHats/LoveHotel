@@ -209,19 +209,57 @@ gStaffTotals = {
   stocker = 0,
 }
 
+local alertEntity = entity.new(STATE_PLAY)
+entity.setOrder(alertEntity, 110)
+local alertCom = entity.newComponent({
+  alert = nil,
+  messages = {
+    broke = "Out of money - staff leaving",
+    funds = "Insufficient funds",
+  },
+  timer = 0,
+  update = function (self, dt)
+    if self.alert then
+      self.timer = self.timer - dt
+      if self.timer <= 0 then
+        self.alert = nil
+      end
+    end
+  end,
+  draw = function (self)
+    if self.alert then
+      love.graphics.setColor(0, 0, 0)
+      love.graphics.rectangle("fill", 0, 112, 256, 12)
+      love.graphics.setColor(255, 255, 255)
+      love.graphics.printf(
+        self.messages[self.alert], -- string
+        0, 114, -- x, y
+        256, -- width
+        "center" -- alignment
+      )
+    end
+  end,
+})
+entity.addComponent(alertEntity, alertCom)
+alert = function (msg)
+  alertCom.alert = msg
+  alertCom.timer = 2
+end
+
 local brokeEntity = entity.new(STATE_PLAY)
 local brokeCom = entity.newComponent({
   timer = -1,
   update = function (self, dt)
     if gMoney >= 0 then
       self.timer = -1 -- stop timing
-    elseif self.timer > BROKE_TIME then
+    elseif self.timer >= BROKE_TIME then
       self.timer = 0 -- keep timing
       gStaffTotals["bellhop"] = math.floor(gStaffTotals["bellhop"]/2)
       gStaffTotals["cleaner"] = math.floor(gStaffTotals["cleaner"]/2)
       gStaffTotals["maintenance"] = math.floor(gStaffTotals["maintenance"]/2)
       gStaffTotals["cook"] = math.floor(gStaffTotals["cook"]/2)
       gStaffTotals["stocker"] = math.floor(gStaffTotals["stocker"]/2)
+      alert("broke")
     elseif self.timer ~= -1 then
       self.timer = self.timer + dt
     end
