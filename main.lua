@@ -274,7 +274,7 @@ moneyChange = function (c, pos)
     love.audio.rewind(moneySnd)
     love.audio.play(moneySnd)
   elseif gMoney < 0 and brokeCom.timer == -1 then
-    brokeCom.timer = BROKE_TIME
+    brokeCom.timer = 0
   end
   if pos then
     event.notify("money.change", 0, {
