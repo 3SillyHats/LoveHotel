@@ -3,7 +3,7 @@ return {
   name = "Balloons",
   cost = 5000,
   profit = 1500,
-  reputation = 1,
+  reputation = 10,
   width = 3,
   dirtyable = true,
   visitable = true,

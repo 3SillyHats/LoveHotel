@@ -3,7 +3,7 @@ return {
   name = "Missionary",
   cost = 500,
   profit = 300,
-  reputation = 1,
+  reputation = 5,
   width = 2,
   dirtyable = true,
   visitable = true,

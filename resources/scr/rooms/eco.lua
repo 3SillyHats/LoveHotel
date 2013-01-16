@@ -3,7 +3,7 @@ return {
   name = "Eco Room",
   cost = 40000,
   profit = 8000,
-  reputation = 1.5,
+  reputation = 20,
   width = 5,
   dirtyable = true,
   visitable = true,

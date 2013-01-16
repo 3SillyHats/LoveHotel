@@ -2,10 +2,10 @@ return {
   id = "spa",
   name = "Spa Room",
   cost = 30000,
+  reputation = 25,
   width = 2,
   breakable = true,
   integrity = 8,
-  reputation = 1,
 
   sprites = {
     {

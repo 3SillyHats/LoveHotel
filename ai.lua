@@ -581,11 +581,7 @@ local newSexGoal = function (com, target)
 
       local clientInfo = resource.get("scr/people/" .. self.component.category .. ".lua")
       local roomInfo = room.getInfo(self.target)
-      if roomInfo.id == "utility" then
-        reputationChange(-clientInfo.influence/2)
-      else
-        reputationChange(clientInfo.influence)
-      end
+      reputationChange(roomInfo.reputation * clientInfo.influence)
     end
 
     self.component.beenServed = false
@@ -663,7 +659,8 @@ local newRelaxGoal = function (self, target)
     room.use(self.target)
 
     local clientInfo = resource.get("scr/people/" .. self.component.category .. ".lua")
-    reputationChange(clientInfo.influence)
+    local roomInfo = room.getInfo(self.target)
+    reputationChange(roomInfo.reputation * clientInfo.influence)
 
     old_terminate(self)
     self.subgoals = {}
@@ -807,7 +804,7 @@ local newWaitForMealGoal = function (com, target)
       goal.component.needs.hunger = 0
 
       local clientInfo = resource.get("scr/people/" .. goal.component.category .. ".lua")
-      reputationChange(clientInfo.influence)
+      reputationChange(info.reputation * clientInfo.influence)
     end
   end
 
@@ -1354,24 +1351,24 @@ local addExitGoal = function (self)
         end)
         if minCost == 9999999999 then
           event.notify("sprite.play", self.component.entity, "thoughtRoomless")
-          self.rep = -5*info.influence
+          self.rep = -1
         elseif self.component.money  < minCost then
           event.notify("sprite.play", self.component.entity, "thoughtBroke")
         elseif self.component.patience <= 0 then
           event.notify("sprite.play", self.component.entity, "thoughtImpatient")
-          self.rep = -5*info.influence
+          self.rep = -1
         elseif self.component.needs.hunger > 50 and
           self.component.needs.hunger > self.component.needs.horniness then
           if gStars >= 4 then
             event.notify("sprite.play", self.component.entity, "thoughtHungryBad")
-            self.rep = -5*info.influence
+            self.rep = -1
           else
             event.notify("sprite.play", self.component.entity, "thoughtHungryGood")
           end
         elseif self.component.supply <= 0 then
           if gStars >= 3 then
             event.notify("sprite.play", self.component.entity, "thoughtCondomlessBad")
-            self.rep = -5*info.influence
+            self.rep = -1
           else
             event.notify("sprite.play", self.component.entity, "thoughtCondomlessGood")
           end
@@ -1396,9 +1393,8 @@ local addExitGoal = function (self)
   local old_terminate = goal.terminate
   goal.terminate = function (self)
     event.notify("sprite.play", self.component.entity, "thoughtNone")
-    if self.component.leader and self.status == "complete" and
-        self.rep then
-      reputationChange(self.rep)
+    if self.component.leader and self.status == "complete" and self.rep then
+      reputationChange(3 * self.rep * gStars)
     end
 
     old_terminate(self)

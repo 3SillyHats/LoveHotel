@@ -9,7 +9,7 @@ return {
   maxSupply = 4,
   minMoney = 2000,
   maxMoney = 3000,
-  influence = 15,
+  influence = 2,
 
   desirability = {
     utility = 0,

@@ -73,17 +73,17 @@ FLOOR_COSTS = {
 
 MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 2000
 MONEY_MAX = 999999
-REP_INITIAL = 10
-REP_MAX = 3000
+REP_INITIAL = 20
+REP_MAX = 6000
 STARS_INITIAL = 1
 STARS_MAX = 5
 REP_THRESHOLDS = {
   0,
-  30,
-  120,
-  480,
-  1350,
-  3000,
+  60,
+  240,
+  960,
+  2700,
+  6000,
 }
 
 local event = require("event")
@@ -311,9 +311,8 @@ gFont = love.graphics.newImageFont(
 )
 
 -- Update menu tooltips (get names, costs of rooms)
-local bestRoom = resource.get("scr/rooms/nazifurry.lua")
-local maxProfit = math.sqrt(bestRoom.profit)
-local maxRep = bestRoom.reputation
+local maxProfit = math.sqrt(resource.get("scr/rooms/nazifurry.lua").profit)
+local maxRep = resource.get("scr/rooms/spa.lua").reputation
 for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
   local room = resource.get("scr/rooms/" .. fname)
   conf.menu[room.id] = {
@@ -324,7 +323,7 @@ for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
     conf.menu[room.id].profit = math.sqrt(room.profit) / maxProfit
   end
   if room.reputation then
-    conf.menu[room.id].rep = room.reputation / maxRep
+    conf.menu[room.id].rep = math.max(0, room.reputation) / maxRep
   end
 end
 
