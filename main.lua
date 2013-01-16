@@ -7,12 +7,16 @@ ROOM_INDENT = 32*0.5
 FLOOR_OFFSET = 32*2.5
 GROUND_FLOOR = 0
 
+FILE_SETTINGS = "settings"
+FILE_ACHIEVEMENTS = "achievements"
+
 STATE_TRAIN = 1
 STATE_PLAY = 2
 STATE_PAUSE = 3
 STATE_DECISION = 4
 STATE_WIN = 5
 STATE_START = 6
+STATE_ACHIEVMENTS = 7
 
 PERSON_MOVE = 1
 ELEVATOR_MOVE = 1.2
@@ -86,6 +90,37 @@ REP_THRESHOLDS = {
   6000,
 }
 
+ACHIEVEMENTS = {
+  {
+    name = "Test1",
+  },
+  {
+    name = "Test2",
+  },
+  {
+    name = "Test3",
+  },
+  {
+    name = "Test4",
+  },
+  {
+    name = "Test5",
+  },
+  {
+    name = "Test6",
+  },
+  {
+    name = "Test7",
+  },
+  {
+    name = "Test8",
+  },
+  {
+    name = "Test9",
+  },
+}
+
+local luatexts = require("luatexts")
 local event = require("event")
 local entity = require("entity")
 local input = require("input")
@@ -211,11 +246,29 @@ gStaffTotals = {
   stocker = 0,
 }
 
+-- Setup achievements
+gAchievements = {}
+if love.filesystem.exists(FILE_ACHIEVEMENTS) then
+  local success, result = luatexts.load(
+    love.filesystem.read(FILE_ACHIEVEMENTS)
+  )
+  if success then
+    gAchievements = result
+  end
+end
+achieve = function (t)
+  if gAchievements[t.id] ~= true then
+    gAchievements[t.id] = true
+    alert("achieve")
+  end
+end
+
 local alertEntity = entity.new(STATE_PLAY)
 entity.setOrder(alertEntity, 110)
 local alertCom = entity.newComponent({
   alert = nil,
   messages = {
+    achieve = "Achievement unlocked",
     broke = "Out of money - staff leaving",
     funds = "Insufficient funds",
   },
@@ -1366,6 +1419,12 @@ local pauseCom = entity.newComponent({
       end,
     },
     {
+      text = "Achievments",
+      onPress = function ()
+        event.notify("state.enter", 0, STATE_ACHIEVMENTS)
+      end,
+    },
+    {
       text = "Controls",
       onPress = function ()
         event.notify("training.begin", 0)
@@ -1375,6 +1434,12 @@ local pauseCom = entity.newComponent({
       text = "Quit",
       onPress = function ()
         decision.confirm("Are you sure you want to quit? You will lose all progress!", function ()
+          -- save achievements
+          love.filesystem.write(
+            FILE_ACHIEVEMENTS,
+            luatexts.save(gAchievements)
+          )
+          
           -- actually cause the app to quit
           love.event.push("quit")
           love.event.push("q")
@@ -1399,7 +1464,7 @@ local pauseCom = entity.newComponent({
       end
       love.graphics.printf(
         option.text,
-        0, 128 + (16 * i),
+        0, 112 + (16 * i),
         256,
         "center"
       )
@@ -1455,6 +1520,75 @@ event.subscribe("pressed", 0, function (button)
   if gState == STATE_WIN then
     if button == "start" then
       event.notify("state.enter", 0, STATE_PLAY)
+    end
+  end
+end)
+
+-- GAME ACHIEVEMENTS SCREEN
+local achieveCursorQuad = love.graphics.newQuad(
+  192, 160,
+  64, 64,
+  resource.get("img/hud.png"):getWidth(),
+  resource.get("img/hud.png"):getHeight()
+)
+local achieveIconQuad = love.graphics.newQuad(
+  0, 0,
+  48, 48,
+  resource.get("img/achievements.png"):getWidth(),
+  resource.get("img/achievements.png"):getHeight()
+)
+local achieveScreen = entity.new(STATE_ACHIEVMENTS)
+local achieveCom = entity.newComponent({
+  selected = 0,
+  draw = function (self)
+    love.graphics.setColor(255, 255, 255)
+    
+    -- icons
+    for i = 0, 8 do
+      local x = 48 + (i % 3) * 56
+      local y = 8 + math.floor(i / 3) * 56
+      local xoffset = 0
+      if gAchievements[i + 1] then xoffset = 48 end
+      achieveIconQuad:setViewport(
+        xoffset, 48 * i,
+        48, 48
+      )
+      love.graphics.drawq(
+        resource.get("img/achievements.png"), achieveIconQuad,
+        x, y
+      ) 
+    end
+
+    -- cursor
+    love.graphics.drawq(
+      resource.get("img/hud.png"),
+      achieveCursorQuad,
+      40 + (self.selected % 3) * 56, math.floor(self.selected / 3) * 56
+    )
+  
+    -- description
+    local current = ACHIEVEMENTS[self.selected + 1]
+    love.graphics.printf(
+      current.name,
+      0, CANVAS_HEIGHT - 32,
+      CANVAS_WIDTH,
+      "center"
+    )
+  end,
+})
+entity.addComponent(achieveScreen, achieveCom)
+event.subscribe("pressed", 0, function (button)
+  if gState == STATE_ACHIEVMENTS then
+    if button == "b" or button == "start" then
+      event.notify("state.enter", 0, STATE_PAUSE)
+    elseif button == "up" and achieveCom.selected > 2 then
+      achieveCom.selected = achieveCom.selected - 3
+    elseif button == "down" and achieveCom.selected < 6 then
+      achieveCom.selected = achieveCom.selected + 3
+    elseif button == "left" and (achieveCom.selected % 3) > 0 then
+      achieveCom.selected = achieveCom.selected - 1
+    elseif button == "right" and (achieveCom.selected % 3) < 2 then
+      achieveCom.selected = achieveCom.selected + 1
     end
   end
 end)
@@ -1544,6 +1678,8 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
       event.notify("state.enter", 0, STATE_PLAY)
     elseif gState == STATE_WIN then
       event.notify("state.enter", 0, STATE_PLAY)
+    elseif gState == STATE_ACHIEVMENTS then
+      event.notify("state.enter", 0, STATE_PAUSE)
     end
   elseif key == "f1" then
     event.notify("training.begin", 0)

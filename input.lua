@@ -37,10 +37,9 @@ event.subscribe("training.begin", 0, function ()
 end)
 
 event.subscribe("training.load", 0, function ()
-  local fname = "input_conf.lua"
-  if love.filesystem.exists(fname) then
+  if love.filesystem.exists(FILE_SETTINGS) then
     local success, result = luatexts.load(love.filesystem.read(
-      fname
+      FILE_SETTINGS
     ))
     if success then
       training = false
@@ -66,10 +65,9 @@ local trainNext = function ()
 end
 
 M.save = function ()
-  local fname = "input_conf.lua"
   local s = luatexts.save(map)
   love.filesystem.write(
-    fname,
+    FILE_SETTINGS,
     s
   )
 end
