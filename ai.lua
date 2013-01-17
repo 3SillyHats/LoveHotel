@@ -1957,8 +1957,7 @@ local addSupplyGoal = function (self, target)
       return -1
     end
     local stock = room.getStock(self.target)
-    local occupation = room.occupation(self.target)
-    if stock > 0 and occupation == 0 and self.component.supply == 0 then
+    if stock > 0 and self.component.supply == 0 then
       return 1 / time
     else
       return -1
