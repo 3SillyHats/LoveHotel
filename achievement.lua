@@ -29,12 +29,12 @@ local ACHIEVEMENTS = {
     desc = "Got an astronaut down to hell.",
   },
   {
-    name = "Full Contact Spa-ing",
-    desc = "Had 6 couples in spas at once.",
-  },
-  {
     name = "Frisky Business",
     desc = "Earned $100,000 before reaching 4 stars.",
+  },
+  {
+    name = "Full Contact Spa-ing",
+    desc = "Had 6 couples in spas at once.",
   },
   {
     name = "Mile High Club",
@@ -64,8 +64,8 @@ M.DEBT = 3
 M.FIX = 4
 M.SUITES = 5
 M.DOWN = 6
-M.SPA = 7
-M.RACE = 8
+M.RACE = 7
+M.SPA = 8
 M.SKY = 9
 M.GROUND = 10
 M.SPACE = 11
