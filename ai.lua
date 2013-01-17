@@ -2171,6 +2171,7 @@ local addSnackGoal = function (self, target)
   local info = room.getInfo(goal.target)
   local targetPos = room.getPos(goal.target)
   local food = nil
+  local reserved = nil
 
   local old_activate = goal.activate
   goal.activate = function (self)
@@ -2178,6 +2179,9 @@ local addSnackGoal = function (self, target)
       self.status = "failed"
       return
     end
+
+    room.reserve(self.target)
+    reserved = true
 
     self:addSubgoal(newMoveToGoal(self.component, targetPos, PERSON_MOVE))
     food = newGetSnackGoal(self.component, self.target)
@@ -2187,6 +2191,9 @@ local addSnackGoal = function (self, target)
 
   local old_terminate = goal.terminate
   goal.terminate = function (self)
+    room.release(self.target)
+    reserved = false
+  
     old_terminate(self)
     self.subgoals = {}
   end
@@ -2199,7 +2206,7 @@ local addSnackGoal = function (self, target)
     if not room.isBroken(self.target) and
         self.component.money >= info.profit and
         room.getStock(self.target) > 0 and
-        room.occupation(self.target) == 0 and
+        (reserved or room.reservations(self.target) == 0)and
         self.component.needs.hunger > self.component.needs.horniness then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
