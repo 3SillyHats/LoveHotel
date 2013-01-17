@@ -72,10 +72,14 @@ local staffer = function (id, type)
     )
 
     -- Max staff number
-    love.graphics.print(
-      string.format("max %u", max[gStars]),
-      152, 203
-    )
+    if gStaffTotals[type] == max[gStars] then
+      love.graphics.setColor(123, 126, 127)
+      love.graphics.print(
+        string.format("MAX"),
+        156, 203
+      )
+      love.graphics.setColor(255, 255, 255)
+    end
     
     -- Arrows
     if gStaffTotals[type] > 0 then
