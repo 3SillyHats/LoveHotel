@@ -2587,7 +2587,6 @@ local addIngredientsGoal = function (self, target)
     if self.component.cooking and
         self.component.supply == 0 and
         room.getStock(self.target) > 0 and
-        room.occupation(self.target) == 0 and
         not room.isBroken(self.target) then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
@@ -2708,18 +2707,22 @@ local addWaiterGoal = function (self, target)
     if self.component.cooking or self.component.hasMeal then
       return -1
     end
+    
     local myPos = transform.getPos(self.component.entity)
     local time = path.getCost(myPos, targetPos)
     if time == -1 then
       return -1
     end
 
-    -- Use exponential to map potentially negative desirability to wholly positive range while preserving orderng
     -- prioritise by (client pairs - cooks) then by distance
-    local desirability = room.reservations(self.target) + room.occupation(self.target) - room.assigned(self.target) + (1 / (1 + time))
+    local desirability = room.occupation(self.target) -
+      room.assigned(self.target) +
+      (1 / (1.1 + time))
     if self.component.assigned and self.component.assigned == self.target then
       desirability = desirability + 1
     end
+    
+    -- Use exponential to map potentially negative desirability to wholly positive range while preserving orderng
     return math.exp(desirability)
   end
 
