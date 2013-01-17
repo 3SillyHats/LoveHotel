@@ -55,6 +55,7 @@ SPAWN_FACTOR = 3
 SKY_SPAWN = 8
 GROUND_SPAWN = -8
 SPACE_SPAWN = 16
+TREASURE_LEVEL = -3
 
 FLOOR_COSTS = {
   1000,
@@ -77,7 +78,7 @@ FLOOR_COSTS = {
 
 MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 2000
 MONEY_MAX = 999999
-REP_INITIAL = 20
+REP_INITIAL = 10
 REP_MAX = 6000
 STARS_INITIAL = 1
 STARS_MAX = 5
@@ -90,37 +91,8 @@ REP_THRESHOLDS = {
   6000,
 }
 
-ACHIEVEMENTS = {
-  {
-    name = "Test1",
-  },
-  {
-    name = "Test2",
-  },
-  {
-    name = "Test3",
-  },
-  {
-    name = "Test4",
-  },
-  {
-    name = "Test5",
-  },
-  {
-    name = "Test6",
-  },
-  {
-    name = "Test7",
-  },
-  {
-    name = "Test8",
-  },
-  {
-    name = "Test9",
-  },
-}
-
 local luatexts = require("luatexts")
+local achievement = require("achievement")
 local event = require("event")
 local entity = require("entity")
 local input = require("input")
@@ -238,6 +210,7 @@ gGameSpeed = 1
 gMoney = MONEY_INITIAL
 gReputation = REP_INITIAL
 gStars = STARS_INITIAL
+gStarsBest = STARS_INITIAL
 gStaffTotals = {
   bellhop = 0,
   cleaner = 0,
@@ -245,23 +218,11 @@ gStaffTotals = {
   cook = 0,
   stocker = 0,
 }
-
--- Setup achievements
-gAchievements = {}
-if love.filesystem.exists(FILE_ACHIEVEMENTS) then
-  local success, result = luatexts.load(
-    love.filesystem.read(FILE_ACHIEVEMENTS)
-  )
-  if success then
-    gAchievements = result
-  end
-end
-achieve = function (t)
-  if gAchievements[t.id] ~= true then
-    gAchievements[t.id] = true
-    alert("achieve")
-  end
-end
+gCounts = {
+  fix = 0,
+  rooms = {},
+  spas = 0,
+}
 
 local alertEntity = entity.new(STATE_PLAY)
 entity.setOrder(alertEntity, 110)
@@ -328,8 +289,12 @@ moneyChange = function (c, pos)
   if c > 0 then
     love.audio.rewind(moneySnd)
     love.audio.play(moneySnd)
+    if gMoney >= 100000 and gStarsBest < 4 then
+      achievement.achieve(achievement.RACE)
+    end
   elseif gMoney < 0 and brokeCom.timer == -1 then
     brokeCom.timer = 0
+    achievement.achieve(achievement.DEBT)
   end
   if pos then
     event.notify("money.change", 0, {
@@ -353,6 +318,8 @@ reputationChange = function (c)
     won = true
     event.notify("win", 0)
   end
+  
+  gStarsBest = math.max(gStarsBest, gStars)
 end
 
 -- Font
@@ -1372,6 +1339,18 @@ local reset = function ()
   gMoney = MONEY_INITIAL
   gReputation = REP_INITIAL
   gStars = STARS_INITIAL
+  gStaffTotals = {
+    bellhop = 0,
+    cleaner = 0,
+    maintenance = 0,
+    cook = 0,
+    stocker = 0,
+  }
+  gCounts = {
+    fix = 0,
+    rooms = {},
+    spas = 0,
+  }
 
   event.notify("room.all", 0, function (roomId, type)
     local pos = transform.getPos(roomId)
@@ -1435,12 +1414,6 @@ local pauseCom = entity.newComponent({
       text = "Quit",
       onPress = function ()
         decision.confirm("Are you sure you want to quit? You will lose all progress!", function ()
-          -- save achievements
-          love.filesystem.write(
-            FILE_ACHIEVEMENTS,
-            luatexts.save(gAchievements)
-          )
-          
           -- actually cause the app to quit
           love.event.push("quit")
           love.event.push("q")
@@ -1545,11 +1518,11 @@ local achieveCom = entity.newComponent({
     love.graphics.setColor(255, 255, 255)
     
     -- icons
-    for i = 0, 8 do
-      local x = 48 + (i % 3) * 56
-      local y = 8 + math.floor(i / 3) * 56
+    for i = 0, 11 do
+      local x = 20 + (i % 4) * 56
+      local y = 8 + math.floor(i / 4) * 56
       local xoffset = 0
-      if gAchievements[i + 1] then xoffset = 48 end
+      if achievement.isDone(i + 1) then xoffset = 48 end
       achieveIconQuad:setViewport(
         xoffset, 48 * i,
         48, 48
@@ -1564,17 +1537,26 @@ local achieveCom = entity.newComponent({
     love.graphics.drawq(
       resource.get("img/hud.png"),
       achieveCursorQuad,
-      40 + (self.selected % 3) * 56, math.floor(self.selected / 3) * 56
+      12 + (self.selected % 4) * 56, math.floor(self.selected / 4) * 56
     )
   
-    -- description
-    local current = ACHIEVEMENTS[self.selected + 1]
+    -- name and description
+    local current = achievement.getInfo(self.selected + 1)
     love.graphics.printf(
       current.name,
-      0, CANVAS_HEIGHT - 32,
+      0, CANVAS_HEIGHT - 40,
       CANVAS_WIDTH,
       "center"
     )
+    if achievement.isDone(self.selected + 1) then
+      love.graphics.setColor(123, 126, 127)
+      love.graphics.printf(
+        current.desc,
+        0, CANVAS_HEIGHT - 28,
+        CANVAS_WIDTH,
+        "center"
+      )
+    end
   end,
 })
 entity.addComponent(achieveScreen, achieveCom)
@@ -1582,13 +1564,13 @@ event.subscribe("pressed", 0, function (button)
   if gState == STATE_ACHIEVMENTS then
     if button == "b" or button == "start" then
       event.notify("state.enter", 0, STATE_PAUSE)
-    elseif button == "up" and achieveCom.selected > 2 then
-      achieveCom.selected = achieveCom.selected - 3
-    elseif button == "down" and achieveCom.selected < 6 then
-      achieveCom.selected = achieveCom.selected + 3
-    elseif button == "left" and (achieveCom.selected % 3) > 0 then
+    elseif button == "up" and achieveCom.selected > 3 then
+      achieveCom.selected = achieveCom.selected - 4
+    elseif button == "down" and achieveCom.selected < 8 then
+      achieveCom.selected = achieveCom.selected + 4
+    elseif button == "left" and (achieveCom.selected % 4) > 0 then
       achieveCom.selected = achieveCom.selected - 1
-    elseif button == "right" and (achieveCom.selected % 3) < 2 then
+    elseif button == "right" and (achieveCom.selected % 4) < 3 then
       achieveCom.selected = achieveCom.selected + 1
     end
   end
@@ -1722,4 +1704,8 @@ end
 
 love.joystickreleased = function (joystick, button)
   input.joystickReleased(joystick, button)
+end
+
+love.quit = function ()
+  achievement.save()
 end

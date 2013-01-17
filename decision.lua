@@ -185,7 +185,7 @@ event.subscribe("stars", 0, function (stars)
   end
 end)
 event.subscribe("floor.new", 0, function (level)
-  if level == -3 then
+  if level == TREASURE_LEVEL then
     M.prompt("treasure")
     return
   elseif level == SKY_SPAWN then

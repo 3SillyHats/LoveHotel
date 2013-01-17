@@ -2,6 +2,7 @@
 
 local ARBITRATE_TICK = 1
 
+local achievement = require("achievement")
 local event = require("event")
 local entity = require("entity")
 local transform = require("transform")
@@ -301,6 +302,7 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
     end
     old_activate(self)
   end
+  
   local old_terminate = goal.terminate
   goal.terminate = function (self)
     local pos = transform.getPos(self.component.entity)
@@ -317,6 +319,12 @@ local newElevatorGoal = function (com, moveFrom, moveTo)
         end
       end,
     })
+    
+    -- check for achievement
+    if self.component.category == "space" and
+        pos.floorNum == GROUND_SPAWN then
+      achievement.achieve(achievement.DOWN)
+    end
     
     event.notify("sprite.play", self.component.entity, "idle")
     event.notify("sprite.hide", self.component.entity, false)
@@ -582,6 +590,10 @@ local newSexGoal = function (com, target)
       local clientInfo = resource.get("scr/people/" .. self.component.category .. ".lua")
       local roomInfo = room.getInfo(self.target)
       reputationChange(roomInfo.reputation * clientInfo.influence)
+      
+      if roomInfo.id == "utility" then
+        achievement.achieve(achievement.CLOSET)
+      end
     end
 
     self.component.beenServed = false
@@ -639,6 +651,11 @@ local newRelaxGoal = function (self, target)
     end
 
     room.enter(self.target)
+    
+    gCounts.spa = gCounts.spa + 1
+    if gCounts.spa >= 6 then
+      achievement.achieve(achievement.SPA)
+    end
 
     self.status = "active"
     old_activate(self)
@@ -661,6 +678,8 @@ local newRelaxGoal = function (self, target)
     local clientInfo = resource.get("scr/people/" .. self.component.category .. ".lua")
     local roomInfo = room.getInfo(self.target)
     reputationChange(roomInfo.reputation * clientInfo.influence)
+    
+    gCounts.spa = gCounts.spa - 1
 
     old_terminate(self)
     self.subgoals = {}
@@ -1485,6 +1504,11 @@ local newFixGoal = function (self, target)
     room.enter(self.target)
 
     event.notify("sprite.play", self.component.entity, "fixing")
+    
+    gCounts.fix = gCounts.fix + 1
+    if gCounts.fix >= 5 then
+      achievement.achieve(achievement.FIX)
+    end
 
     self.status = "active"
     self:addSubgoal(newSleepGoal(self.component, FIX_TIME))
@@ -1505,6 +1529,8 @@ local newFixGoal = function (self, target)
     room.fix(self.target, integrity)
 
     event.notify("sprite.play", self.component.entity, "idle")
+
+    gCounts.fix = gCounts.fix - 1
 
     self.target = nil
     old_terminate(self)

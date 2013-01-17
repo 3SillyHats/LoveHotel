@@ -1,6 +1,7 @@
 --The room "object" file
 
 --Load required files and such
+local achievement = require("achievement")
 local entity = require("entity")
 local resource = require("resource")
 local event = require("event")
@@ -310,7 +311,8 @@ local roomInfo = {}
 M.new = function (state, roomType, pos)
   --Create an entity and get the id for the new room
   local roomId = entity.new(state)
-  local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
+  local roomType = string.lower(roomType)
+  local room = resource.get("scr/rooms/" .. roomType .. ".lua")
   roomInfo[roomId] = room
   room.type = roomType
   local roomWidth = room.width*32
@@ -379,6 +381,35 @@ M.new = function (state, roomType, pos)
 
   --Add info component
   entity.addComponent(roomId, infoComponent(roomId, room, pos))
+  
+  -- Update room counts for achievement
+  if gCounts.rooms[roomType] then
+    gCounts.rooms[roomType] = gCounts.rooms[roomType] + 1
+  else
+    gCounts.rooms[roomType] = 1
+  end
+  
+  -- Check if achievement triggered
+  if gCounts.rooms["missionary"] and
+      gCounts.rooms["spoon"] and
+      gCounts.rooms["balloon"] and
+      gCounts.rooms["moustache"] and
+      gCounts.rooms["torture"] and
+      gCounts.rooms["eco"] and
+      gCounts.rooms["nazifurry"] then
+    achievement.achieve(achievement.SUITES)
+  end
+  
+  -- Cleanup rooms counts when room deleted
+  local onDelete
+  onDelete = function ()
+    event.unsubscribe("delete", roomId, onDelete)
+    gCounts.rooms[roomType] = gCounts.rooms[roomType] - 1
+    if gCounts.rooms[roomType] <= 0 then
+      gCounts.rooms[roomType] = nil
+    end
+  end
+  event.subscribe("delete", roomId, onDelete)
 
   --Function returns the rooms id
   return roomId
