@@ -583,7 +583,8 @@ local staffManage = function (type, baseMenu)
 
   local back
   back = function (key)
-    if gState == STATE_PLAY and key == "b" then
+    if gState == STATE_PLAY and
+        (key == "a" or key == "b") then
       event.unsubscribe("pressed", 0, back)
       menu.enable(baseMenu)
       entity.delete(staffUtility)
