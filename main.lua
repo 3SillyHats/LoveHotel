@@ -236,7 +236,7 @@ local alertCom = entity.newComponent({
   timer = 0,
   update = function (self, dt)
     if self.alert then
-      self.timer = self.timer - dt
+      self.timer = self.timer - (dt / gGameSpeed)
       if self.timer <= 0 then
         self.alert = nil
       end
