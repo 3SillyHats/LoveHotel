@@ -18,6 +18,7 @@ STATE_WIN = 5
 STATE_START = 6
 STATE_ACHIEVMENTS = 7
 STATE_LOSE = 8
+STATE_CREDITS = 9
 
 PERSON_MOVE = 1
 ELEVATOR_MOVE = 1.2
@@ -1396,7 +1397,7 @@ local pauseMenu = entity.new(STATE_PAUSE)
 local pauseCom = entity.newComponent({
   options = {
     {
-      text = "Resume",
+      text = "Continue",
       onPress = function ()
         event.notify("state.enter", 0, STATE_PLAY)
       end,
@@ -1408,7 +1409,7 @@ local pauseCom = entity.newComponent({
       end,
     },
     {
-      text = "Achievments",
+      text = "Achievements",
       onPress = function ()
         event.notify("state.enter", 0, STATE_ACHIEVMENTS)
       end,
@@ -1417,6 +1418,12 @@ local pauseCom = entity.newComponent({
       text = "Controls",
       onPress = function ()
         event.notify("training.begin", 0)
+      end,
+    },
+    {
+      text = "Credits",
+      onPress = function ()
+        event.notify("state.enter", 0, STATE_CREDITS)
       end,
     },
     {
@@ -1502,7 +1509,7 @@ end)
 event.subscribe("pressed", 0, function (button)
   if gState == STATE_WIN then
     if button == "start" then
-      event.notify("state.enter", 0, STATE_PLAY)
+      event.notify("state.enter", 0, STATE_CREDITS)
     end
   end
 end)
@@ -1535,6 +1542,22 @@ event.subscribe("pressed", 0, function (button)
       event.notify("state.enter", 0, STATE_PLAY)
       decision.confirm("Play again?", reset, true)
     end
+  end
+end)
+
+-- GAME CREDITS SCREEN
+local creditsScreen = entity.new(STATE_CREDITS)
+local creditsCom = entity.newComponent({
+  draw = function (self)
+    -- Draw credits screen
+    local img = resource.get("img/credits.png")
+    love.graphics.draw(img, 0, 0)
+  end
+})
+entity.addComponent(creditsScreen, creditsCom)
+event.subscribe("pressed", 0, function (button)
+  if gState == STATE_CREDITS then
+    event.notify("state.enter", 0, STATE_PAUSE)
   end
 end)
 
