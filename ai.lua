@@ -1,6 +1,7 @@
 -- ai.lua
 
 local ARBITRATE_TICK = 1
+local FLOOR_LIMIT = 4
 
 local achievement = require("achievement")
 local event = require("event")
@@ -720,7 +721,8 @@ local addSpaGoal = function (self, target)
           not room.isBroken(self.target) then
         local myPos = transform.getPos(self.component.entity)
         local time = path.getCost(myPos, targetPos)
-        if time == -1 then
+        local fd = math.abs(myPos.floorNum - targetPos.floorNum)
+        if time == -1 or fd > FLOOR_LIMIT then
           return -1
         end
         return (50 - t.needs.horniness) / (1 + time)
@@ -896,7 +898,8 @@ local addOrderMealGoal = function (self, target)
         (room.reservations(goal.target) < 3 or reserved) then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time ~= -1 then
+      local fd = math.abs(myPos.floorNum - targetPos.floorNum)
+      if time ~= -1  and fd <= FLOOR_LIMIT then
         local res = room.reservations(goal.target)
         if reserved then
           res = 0
@@ -1050,7 +1053,8 @@ local addCheckInGoal = function (self, target)
         self.component.supply > 0 then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time ~= -1 then
+      local fd = math.abs(myPos.floorNum - targetPos.floorNum)
+      if time ~= -1 and fd <= FLOOR_LIMIT then
         return 1/(1+time)
       end
     end
@@ -1112,7 +1116,8 @@ local addVisitGoal = function (self)
       local myPos = transform.getPos(self.component.entity)
       local targetPos = room.getPos(self.component.reserved)
       local time = path.getCost(myPos, targetPos)
-      if time == -1 then
+      local fd = math.abs(myPos.floorNum - targetPos.floorNum)
+      if time == -1 or fd > FLOOR_LIMIT then
         return -1
       end
       return 1/(1+time) + myInfo.desirability[roomInfo.id]
@@ -1374,7 +1379,9 @@ local addExitGoal = function (self)
             local available = true
             local myPos = transform.getPos(self.component.entity)
             local targetPos = transform.getPos(id)
-            if room.occupation(id) > 0 or
+            local fd = math.abs(myPos.floorNum - targetPos.floorNum)
+            if fd > FLOOR_LIMIT or
+                room.occupation(id) > 0 or
                 (info.dirtyable and room.isDirty(id)) or
                 path.getCost(myPos, targetPos) == -1 then
               available = false
@@ -2129,7 +2136,8 @@ local addCondomGoal = function (self, target)
         self.component.supply == 0 then
         local myPos = transform.getPos(self.component.entity)
         local time = path.getCost(myPos, targetPos)
-        if time ~= -1 then
+        local fd = math.abs(myPos.floorNum - targetPos.floorNum)
+        if time ~= -1  and fd <= FLOOR_LIMIT then
           return 1 / (1 + time)
         end
     end
@@ -2259,7 +2267,8 @@ local addSnackGoal = function (self, target)
         self.component.needs.hunger > self.component.needs.horniness then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
-      if time ~= -1 then
+      local fd = math.abs(myPos.floorNum - targetPos.floorNum)
+      if time ~= -1 and fd <= FLOOR_LIMIT then
         return self.component.needs.hunger / (1 + time)
       end
     end
