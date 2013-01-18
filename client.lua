@@ -176,6 +176,7 @@ M.new = function (t)
   local aiComponent = ai.new(id)
   aiComponent.leader = t.leader
   aiComponent.category = t.category
+  aiComponent.spent = 0
 
   local addRoomGoal = function (roomId)
     local info = room.getInfo(roomId)

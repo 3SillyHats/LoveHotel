@@ -574,17 +574,10 @@ local newSexGoal = function (com, target)
     end
 
     if self.status == "complete" and self.component.leader then
-      moneyChange(self.profit)
       local roomPos = room.getPos(self.target)
-      event.notify("money.change", 0, {
-        amount = self.profit,
-        pos = {
-          roomNum = roomPos.roomNum,
-          floorNum = roomPos.floorNum,
-        },
-      })
       self.component.needs.horniness = math.max(0, self.component.needs.horniness - SEX_HORNINESS)
       self.component.money = self.component.money - self.profit
+      self.component.spent = self.component.spent + self.profit
       self.component.supply = self.component.supply - 1
 
       local clientInfo = resource.get("scr/people/" .. self.component.category .. ".lua")
@@ -819,7 +812,7 @@ local newWaitForMealGoal = function (com, target)
     local info = room.getInfo(roomId)
     if goal.component.money >= info.profit then
       goal.component.money = goal.component.money - info.profit
-      moneyChange(info.profit, transform.getPos(goal.component.entity))
+      goal.component.spent = goal.component.spent + info.profit
       goal.component.needs.hunger = 0
 
       local clientInfo = resource.get("scr/people/" .. goal.component.category .. ".lua")
@@ -1335,16 +1328,39 @@ local addFollowGoal = function (self, target, type)
   self.goalEvaluator:addSubgoal(goal)
 end
 
+local newSpendGoal = function (com, happy)
+  local goal = M.newGoal(com)
+  goal.name = "spend"
+  goal.happy = happy
+
+  local old_activate = goal.activate
+  goal.activate = function(self)
+    local amount
+    if self.happy then
+      amount = com.spent
+    else
+      amount = math.floor(com.spent / 4)
+    end
+    local myPos = transform.getPos(self.component.entity)
+    moneyChange(amount, {roomNum = myPos.roomNum, floorNum = myPos.floorNum})
+    
+    old_activate(self)
+  end
+
+  return goal
+end
+
 local addExitGoal = function (self)
   local goal = M.newGoal(self)
   goal.name = "exit"
+  goal.happy = true
   local missionaryInfo = resource.get("scr/rooms/missionary.lua")
 
   local old_activate = goal.activate
   goal.activate = function (self)
     cancelReservation(self.component)
     if self.component.leader then
-      self.rep = nil -- reset incase we started exiting last time
+      self.happy = true -- reset incase we started exiting last time
       local info = resource.get("scr/people/" .. self.component.category .. ".lua")
       if self.component.needs.horniness < SEX_HORNINESS then
         event.notify("sprite.play", self.component.entity, "thoughtLove")
@@ -1370,24 +1386,24 @@ local addExitGoal = function (self)
         end)
         if minCost == 9999999999 then
           event.notify("sprite.play", self.component.entity, "thoughtRoomless")
-          self.rep = -1
+          self.happy = false
         elseif self.component.money  < minCost then
           event.notify("sprite.play", self.component.entity, "thoughtBroke")
         elseif self.component.patience <= 0 then
           event.notify("sprite.play", self.component.entity, "thoughtImpatient")
-          self.rep = -1
+          self.happy = false
         elseif self.component.needs.hunger > 50 and
           self.component.needs.hunger > self.component.needs.horniness then
           if gStars >= 4 then
             event.notify("sprite.play", self.component.entity, "thoughtHungryBad")
-            self.rep = -1
+            self.happy = false
           else
             event.notify("sprite.play", self.component.entity, "thoughtHungryGood")
           end
         elseif self.component.supply <= 0 then
           if gStars >= 3 then
             event.notify("sprite.play", self.component.entity, "thoughtCondomlessBad")
-            self.rep = -1
+            self.happy = false
           else
             event.notify("sprite.play", self.component.entity, "thoughtCondomlessGood")
           end
@@ -1406,6 +1422,11 @@ local addExitGoal = function (self)
       level = SPACE_SPAWN
     end
 
+    goal:addSubgoal(newMoveToGoal(self.component, {
+      roomNum = math.random(2, 6),
+      floorNum = level
+    }, PERSON_MOVE))
+    goal:addSubgoal(newSpendGoal(self.component, self.happy))
     goal:addSubgoal(newMoveToGoal(self.component, {roomNum = -.5, floorNum = level}, PERSON_MOVE))
     goal:addSubgoal(newDestroyGoal(self.component))
     old_activate(self)
@@ -1414,8 +1435,10 @@ local addExitGoal = function (self)
   local old_terminate = goal.terminate
   goal.terminate = function (self)
     event.notify("sprite.play", self.component.entity, "thoughtNone")
-    if self.component.leader and self.status == "complete" and self.rep then
-      reputationChange(3 * self.rep * gStars)
+    if self.component.leader and self.status == "complete" then
+      if not self.happy then
+        reputationChange(-3 * gStars)
+      end
     end
 
     old_terminate(self)
@@ -2055,7 +2078,7 @@ local newGetCondomGoal = function (self, target)
     if self.component.money >= info.profit then
       self.component.supply = self.component.supply + 1
       self.component.money = self.component.money - info.profit
-      moneyChange(info.profit, transform.getPos(self.component.entity))
+      goal.component.spent = goal.component.spent + info.profit
       room.use(self.target)
     end
 
@@ -2177,7 +2200,7 @@ local newGetSnackGoal = function (self, target)
 
     if self.component.money >= info.profit then
       self.component.money = self.component.money - info.profit
-      moneyChange(info.profit, transform.getPos(self.component.entity))
+      goal.component.spent = goal.component.spent + info.profit
       self.component.needs.hunger = math.max(0, self.component.needs.hunger - 50)
       room.use(self.target)
     end
