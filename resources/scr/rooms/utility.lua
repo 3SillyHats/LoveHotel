@@ -10,6 +10,7 @@ return {
   cleaningSupplies = true,
   stock = 8,
   restockCost = 100,
+  upkeep = 20,
   
   sprites = {
     {

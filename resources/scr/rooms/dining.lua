@@ -5,6 +5,7 @@ return {
   profit = 2000,
   reputation = 10,
   width = 3,
+  upkeep = 500,
 
   sprites = {
     {

@@ -25,6 +25,8 @@ ELEVATOR_MOVE = 1.2
 BELLHOP_DISTANCE = 0.8
 FOLLOW_DISTANCE = 0.4
 
+UPKEEP_PERIOD = 60
+
 PAY_PERIOD = 60
 BELLHOP_WAGE = 20
 CLEANER_WAGE = 50
@@ -230,10 +232,12 @@ local alertEntity = entity.new(STATE_PLAY)
 entity.setOrder(alertEntity, 110)
 local alertCom = entity.newComponent({
   alert = nil,
+  arg = nil,
   messages = {
     achieve = "Achievement unlocked",
     broke = "Out of money - staff leaving",
     funds = "Insufficient funds",
+    upkeep = "Electricity bill: $%u",
   },
   timer = 0,
   update = function (self, dt)
@@ -250,7 +254,7 @@ local alertCom = entity.newComponent({
       love.graphics.rectangle("fill", 0, 112, 256, 12)
       love.graphics.setColor(255, 255, 255)
       love.graphics.printf(
-        self.messages[self.alert], -- string
+        string.format(self.messages[self.alert], self.arg), -- string
         0, 114, -- x, y
         256, -- width
         "center" -- alignment
@@ -259,10 +263,35 @@ local alertCom = entity.newComponent({
   end,
 })
 entity.addComponent(alertEntity, alertCom)
-alert = function (msg)
+alert = function (msg, arg)
   alertCom.alert = msg
+  alertCom.arg = arg
   alertCom.timer = 2
 end
+
+local upkeepEntity = entity.new(STATE_PLAY)
+local upkeepCom = entity.newComponent({
+  timer = 0,
+  update = function (self, dt)
+    self.timer = self.timer + dt
+    if self.timer >= UPKEEP_PERIOD then
+      self.timer = self.timer - UPKEEP_PERIOD
+      
+      -- charge upkeep
+      local upkeep = 0
+      for k,v in pairs(gCounts.rooms) do
+        local info = resource.get("scr/rooms/"..k..".lua")
+        if info.upkeep then
+          upkeep = upkeep + (v * info.upkeep)
+        end
+      end
+      
+      moneyChange(-upkeep)
+      alert("upkeep", upkeep)
+    end
+  end
+})
+entity.addComponent(upkeepEntity, upkeepCom)
 
 local brokeEntity = entity.new(STATE_PLAY)
 local brokeCom = entity.newComponent({

@@ -7,6 +7,7 @@ return {
   width = 2,
   dirtyable = true,
   visitable = true,
+  upkeep = 150,
 
   sprites = {
     {
