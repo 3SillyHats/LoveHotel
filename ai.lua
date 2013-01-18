@@ -652,8 +652,8 @@ local newRelaxGoal = function (self, target)
 
     room.enter(self.target)
     
-    gCounts.spa = gCounts.spa + 1
-    if gCounts.spa >= 6 then
+    gCounts.spas = gCounts.spas + 1
+    if gCounts.spas >= 6 then
       achievement.achieve(achievement.SPA)
     end
 
@@ -679,7 +679,7 @@ local newRelaxGoal = function (self, target)
     local roomInfo = room.getInfo(self.target)
     reputationChange(roomInfo.reputation * clientInfo.influence)
     
-    gCounts.spa = gCounts.spa - 1
+    gCounts.spas = gCounts.spas - 1
 
     old_terminate(self)
     self.subgoals = {}
