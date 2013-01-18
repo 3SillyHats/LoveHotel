@@ -13,13 +13,13 @@ return {
 
   desirability = {
     utility = 0,
-    missionary = 1,
-    spoon = 1,
-    balloon = 1,
-    moustache = 1,
-    eco = 50,
-    torture = 20,
-    nazifurry = 100,
+    missionary = 0,
+    spoon = 0,
+    balloon = 0,
+    moustache = 0,
+    eco = 1,
+    torture = 0,
+    nazifurry = 2,
   },
 
   spawnChance = {
