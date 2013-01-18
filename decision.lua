@@ -125,7 +125,8 @@ event.subscribe("decision.prompt", 0, function (e)
   M.prompt(e.decision)
 end)
 
-M.confirm = function (prompt, action)
+M.confirm = function (prompt, action, defaultYes)
+  defaultYes = defaultYes or false
   decisionCom.decision = {
     prompt = prompt,
     options = {
@@ -139,7 +140,11 @@ M.confirm = function (prompt, action)
       },
     },
   }
-  decisionCom.selected = 2
+  if defaultYes then
+    decisionCom.selected = 1
+  else
+    decisionCom.selected = 2
+  end
   decisionCom.result = nil
   event.notify("state.enter", 0, STATE_DECISION)
 end

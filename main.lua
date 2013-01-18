@@ -17,6 +17,7 @@ STATE_DECISION = 4
 STATE_WIN = 5
 STATE_START = 6
 STATE_ACHIEVMENTS = 7
+STATE_LOSE = 8
 
 PERSON_MOVE = 1
 ELEVATOR_MOVE = 1.2
@@ -275,7 +276,15 @@ local brokeCom = entity.newComponent({
       gStaffTotals["maintenance"] = math.floor(gStaffTotals["maintenance"]/2)
       gStaffTotals["cook"] = math.floor(gStaffTotals["cook"]/2)
       gStaffTotals["stocker"] = math.floor(gStaffTotals["stocker"]/2)
-      alert("broke")
+      if gStaffTotals["bellhop"] <= 0 and
+          gStaffTotals["cleaner"] <= 0 and
+          gStaffTotals["maintenance"] <= 0 and
+          gStaffTotals["cook"] <= 0 and
+          gStaffTotals["stocker"] <= 0 then
+        event.notify("lose", 0, nil)
+      else
+        alert("broke")
+      end
     elseif self.timer ~= -1 then
       self.timer = self.timer + dt
     end
@@ -1494,6 +1503,37 @@ event.subscribe("pressed", 0, function (button)
   if gState == STATE_WIN then
     if button == "start" then
       event.notify("state.enter", 0, STATE_PLAY)
+    end
+  end
+end)
+
+-- GAME LOSE SCREEN
+local loseScreen = entity.new(STATE_LOSE)
+local loseCom = entity.newComponent({
+  draw = function (self)
+    -- Draw lose screen
+    local img = resource.get("img/lose.png")
+    love.graphics.draw(img, 0, 0)
+
+    love.graphics.setFont(gFont)
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.printf(
+      "Press START",
+      0, CANVAS_HEIGHT - 9,
+      CANVAS_WIDTH,
+      "center"
+    )
+  end
+})
+entity.addComponent(loseScreen, loseCom)
+event.subscribe("lose", 0, function ()
+  event.notify("state.enter", 0, STATE_LOSE)
+end)
+event.subscribe("pressed", 0, function (button)
+  if gState == STATE_LOSE then
+    if button == "start" then
+      event.notify("state.enter", 0, STATE_PLAY)
+      decision.confirm("Play again?", reset, true)
     end
   end
 end)

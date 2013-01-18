@@ -404,9 +404,11 @@ M.new = function (state, roomType, pos)
   local onDelete
   onDelete = function ()
     event.unsubscribe("delete", roomId, onDelete)
-    gCounts.rooms[roomType] = gCounts.rooms[roomType] - 1
-    if gCounts.rooms[roomType] <= 0 then
-      gCounts.rooms[roomType] = nil
+    if gCounts.rooms[roomType] then
+      gCounts.rooms[roomType] = gCounts.rooms[roomType] - 1
+      if gCounts.rooms[roomType] <= 0 then
+        gCounts.rooms[roomType] = nil
+      end
     end
   end
   event.subscribe("delete", roomId, onDelete)
