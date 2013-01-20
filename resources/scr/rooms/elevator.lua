@@ -6,7 +6,7 @@ return {
   dirtyable = false,
   breakable = true,
   integrity = 32,
-  upkeep = 100,
+  upkeep = 0,
 
   sprites = {
     {
