@@ -1,13 +1,13 @@
 return {
   id = "missionary",
   name = "Missionary",
-  cost = 500,
-  profit = 300,
-  reputation = 5,
+  cost = 1000,
+  profit = 500,
+  reputation = 10,
   width = 2,
   dirtyable = true,
   visitable = true,
-  upkeep = 25,
+  upkeep = 50,
 
   sprites = {
     {
