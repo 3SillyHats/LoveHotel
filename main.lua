@@ -655,7 +655,6 @@ local newFloor = function (level)
   floors[level] = id
   return id
 end
-newFloor(GROUND_FLOOR)
 
 local floorUp = function()
   if gTopFloor >= 16 then return end
@@ -1348,7 +1347,9 @@ local initialised = false
 
 -- Create default rooms and staff
 local init = function ()
+  newFloor(GROUND_FLOOR)
   floorUp()
+  
   staff.new("bellhop")
   staff.new("cleaner")
   event.notify("menu.info", 0, {selected = "infrastructure"})
