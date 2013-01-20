@@ -1128,8 +1128,8 @@ local addVisitGoal = function (self)
   self.goalEvaluator:addSubgoal(goal)
 end
 
-local addFollowGoal = function (self, target, type)
-  local goal = M.newGoal(self)
+local addFollowGoal = function (com, target, type)
+  local goal = M.newGoal(com)
   goal.target = target
   goal.type = type
   goal.room = nil
@@ -1199,6 +1199,7 @@ local addFollowGoal = function (self, target, type)
   
   local onDelete = function ()
     goal:terminate()
+    entity.delete(com.entity)
   end
   
   local subTarget = nil
@@ -1330,7 +1331,7 @@ local addFollowGoal = function (self, target, type)
     return -1
   end
 
-  self.goalEvaluator:addSubgoal(goal)
+  com.goalEvaluator:addSubgoal(goal)
 end
 
 local newSpendGoal = function (com, happy)
