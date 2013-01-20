@@ -4,7 +4,7 @@ return {
   cost = 10000,
   width = 3,
   reception = true,
-  upkeep = 100,
+  upkeep = 50,
 
   sprites = {
     {

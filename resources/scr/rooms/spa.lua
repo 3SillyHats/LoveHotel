@@ -6,7 +6,7 @@ return {
   width = 2,
   breakable = true,
   integrity = 8,
-  upkeep = 3000,
+  upkeep = 1500,
 
   sprites = {
     {
