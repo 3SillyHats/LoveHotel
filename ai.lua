@@ -1431,7 +1431,7 @@ local addExitGoal = function (self)
     end
 
     goal:addSubgoal(newMoveToGoal(self.component, {
-      roomNum = math.random(2, 6),
+      roomNum = 1,
       floorNum = level
     }, PERSON_MOVE))
     goal:addSubgoal(newSpendGoal(self.component, self.happy))
