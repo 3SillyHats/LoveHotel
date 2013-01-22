@@ -1742,9 +1742,9 @@ local addStockGoal = function (self, target)
     end
 
     if room.getStock(self.target) <= 1 and
-        not room.isBroken(self.target) and
+        room.isBroken(self.target) == false and
         room.occupation(self.target) == 0 and
-        (room.reservations(self.target) == 0 or reserved)then
+        (room.reservations(self.target) == 0 or reserved) then
       local myPos = transform.getPos(self.component.entity)
       local time = path.getCost(myPos, targetPos)
       if time == -1 then
