@@ -1360,6 +1360,7 @@ local addExitGoal = function (self)
   local goal = M.newGoal(self)
   goal.name = "exit"
   goal.happy = true
+  goal.triggered = false
   local missionaryInfo = resource.get("scr/rooms/missionary.lua")
 
   local old_activate = goal.activate
@@ -1429,6 +1430,8 @@ local addExitGoal = function (self)
     elseif self.component.category == "space" then
       level = SPACE_SPAWN
     end
+    
+    self.triggered = true
 
     goal:addSubgoal(newMoveToGoal(self.component, {
       roomNum = 1,
@@ -1454,7 +1457,8 @@ local addExitGoal = function (self)
   end
 
   goal.getDesirability = function (self, t)
-    if self.component.money < missionaryInfo.profit or
+    if self.triggered or
+        self.component.money < missionaryInfo.profit or
         self.component.patience <= 0 or
         self.component.needs.horniness < SEX_HORNINESS then
       return 1000
