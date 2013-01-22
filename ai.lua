@@ -2263,7 +2263,8 @@ local addSnackGoal = function (self, target)
       return 1000
     end
 
-    if not room.isBroken(self.target) and
+    if transform.getPos(self.target) and -- checks if room exists
+        not room.isBroken(self.target) and
         self.component.money >= info.profit and
         room.getStock(self.target) > 0 and
         (reserved or room.reservations(self.target) == 0)and
