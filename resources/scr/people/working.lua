@@ -7,8 +7,8 @@ return {
   maxHunger = 20,
   minSupply = 1,
   maxSupply = 2,
-  minMoney = 10000,
-  maxMoney = 15000,
+  minMoney = 20000,
+  maxMoney = 30000,
   influence = 1,
 
   desirability = {

@@ -3,7 +3,7 @@ return {
   name = "Vending Mach.",
   cost = 500,
   width = 1,
-  profit = 50,
+  profit = 100,
   foodSupplies = true,
   stock = 8,
   restockCost = 200,

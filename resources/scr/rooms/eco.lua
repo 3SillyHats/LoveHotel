@@ -2,7 +2,7 @@ return {
   id = "eco",
   name = "Eco Room",
   cost = 40000,
-  profit = 8000,
+  profit = 16000,
   reputation = 20,
   width = 5,
   dirtyable = true,

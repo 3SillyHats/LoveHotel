@@ -2,7 +2,7 @@ return {
   id = "dining",
   name = "Dining Room",
   cost = 5000,
-  profit = 2000,
+  profit = 4000,
   reputation = 10,
   width = 3,
   upkeep = 250,

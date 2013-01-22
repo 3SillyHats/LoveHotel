@@ -2,7 +2,7 @@ return {
   id = "spoon",
   name = "Spooning",
   cost = 2500,
-  profit = 1000,
+  profit = 2000,
   reputation = 5,
   width = 2,
   dirtyable = true,

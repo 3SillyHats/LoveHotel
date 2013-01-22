@@ -2,7 +2,7 @@ return {
   id = "nazifurry",
   name = "Nazi Furry",
   cost = 66600,
-  profit = 10000,
+  profit = 20000,
   reputation = 17,
   width = 3,
   dirtyable = true,

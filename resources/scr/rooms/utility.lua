@@ -2,7 +2,7 @@ return {
   id = "utility",
   name = "Supply Closet",
   cost = 200,
-  profit = 50,
+  profit = 100,
   reputation = -2,
   width = 1,
   dirtyable = false,
