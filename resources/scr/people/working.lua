@@ -6,7 +6,7 @@ return {
   minHunger = 10,
   maxHunger = 20,
   minSupply = 1,
-  maxSupply = 2,
+  maxSupply = 1,
   minMoney = 20000,
   maxMoney = 30000,
   influence = 1,
