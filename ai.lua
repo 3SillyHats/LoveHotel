@@ -1446,7 +1446,7 @@ local addExitGoal = function (self)
     event.notify("sprite.play", self.component.entity, "thoughtNone")
     if self.component.leader and self.status == "complete" then
       if not self.happy then
-        reputationChange(-3 * gStars)
+        reputationChange(-5 * gStars)
       end
     end
 
