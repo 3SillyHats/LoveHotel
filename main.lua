@@ -34,11 +34,11 @@ MAINTENANCE_WAGE = 200
 COOK_WAGE = 1000
 STOCKER_WAGE = 500
 STAFF_MAX = {
-  bellhop = {2, 4, 8, 16, 32},
-  cleaner = {2, 4, 8, 16, 32},
-  maintenance = {1, 2, 3, 4, 5},
-  cook = {0, 0, 2, 3, 5},
-  stocker = {0, 0, 0, 1, 2},
+  bellhop = {2, 5, 10, 20, 30},
+  cleaner = {2, 5, 10, 20, 30},
+  maintenance = {1, 2, 3, 4, 6},
+  cook = {0, 0, 2, 3, 6},
+  stocker = {0, 0, 0, 2, 4},
 }
 
 SEX_HORNINESS = 20
