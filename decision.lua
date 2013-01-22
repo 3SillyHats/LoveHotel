@@ -9,17 +9,20 @@ local M = {}
 local decisions = {
   skySpawn = {
     prompt = "Skyfarers are arriving at Love Hotel!" ..
-    "\nThey are highly influential so show them a good time.",
+    "\nThey will only use Missionary and Balloon rooms, and " ..
+    "they are highly influential so show them a good time.",
     alert = true,
   },
   groundSpawn = {
     prompt = "Devilspawn are arriving at Love Hotel!" ..
-    "\nThey didn't think to bring condoms but they're all horny.",
+    "\nThey will only use Moustache and Torture rooms, and " ..
+    "\nthey didn't think to bring condoms but they're all horny.",
     alert = true,
   },
   spaceSpawn = {
-    prompt = "Starfarers are arriving at Love Hotel!" ..
-    "\nThey have tons of space cash, so lighten their return trip by taking.",
+    prompt = "Astronauts are arriving at Love Hotel!" ..
+    "\nThey will only use Eco and Nazi Furry rooms, and " ..
+    "\nthey have tons of space cash, so lighten their return trip by taking it all.",
     alert = true,
   },
   star1 = {
