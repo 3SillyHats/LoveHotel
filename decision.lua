@@ -128,18 +128,18 @@ event.subscribe("decision.prompt", 0, function (e)
   M.prompt(e.decision)
 end)
 
-M.confirm = function (prompt, action, defaultYes)
+M.confirm = function (prompt, yesAction, noAction, defaultYes)
   defaultYes = defaultYes or false
   decisionCom.decision = {
     prompt = prompt,
     options = {
       {
         text = "Yes",
-        func = action,
+        func = yesAction,
       },
       {
         text = "No",
-        func = nil,
+        func = noAction,
       },
     },
   }

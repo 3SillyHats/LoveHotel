@@ -80,7 +80,7 @@ FLOOR_COSTS = {
   100000, -- 16th floor
 }
 
-MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 2000
+MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 0
 MONEY_MAX = 999999
 REP_INITIAL = 10
 REP_MAX = 6000
@@ -1425,6 +1425,12 @@ local reset = function ()
   initialised = false
 end
 
+local quit = function ()
+  -- actually cause the app to quit
+  love.event.push("quit")
+  love.event.push("q")
+end
+
 -- GAME PAUSE MENU
 local pauseMenu = entity.new(STATE_PAUSE)
 local pauseCom = entity.newComponent({
@@ -1463,9 +1469,7 @@ local pauseCom = entity.newComponent({
       text = "Quit",
       onPress = function ()
         decision.confirm("Are you sure you want to quit? You will lose all progress!", function ()
-          -- actually cause the app to quit
-          love.event.push("quit")
-          love.event.push("q")
+          quit()
         end)
       end,
     },
@@ -1572,8 +1576,7 @@ end)
 event.subscribe("pressed", 0, function (button)
   if gState == STATE_LOSE then
     if button == "start" then
-      event.notify("state.enter", 0, STATE_PLAY)
-      decision.confirm("Play again?", reset, true)
+      decision.confirm("Play again?", reset, quit, true)
     end
   end
 end)
