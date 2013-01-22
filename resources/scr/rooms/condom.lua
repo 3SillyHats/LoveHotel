@@ -9,7 +9,7 @@ return {
   restockCost = 300,
   breakable = true,
   integrity = 4,
-  upkeep = 50,
+  upkeep = 100,
 
   sprites = {
     {

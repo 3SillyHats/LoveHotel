@@ -3,7 +3,7 @@ return {
   name = "Kitchen",
   cost = 10000,
   width = 3,
-  upkeep = 500,
+  upkeep = 1000,
 
   sprites = {
     {
