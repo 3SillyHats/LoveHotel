@@ -297,6 +297,9 @@ local brokeEntity = entity.new(STATE_PLAY)
 local brokeCom = entity.newComponent({
   timer = -1,
   update = function (self, dt)
+    if gReputation == 0 then
+      event.notify("lose", 0, nil)
+    end
     if gMoney >= 0 then
       self.timer = -1 -- stop timing
     elseif self.timer >= BROKE_TIME then
