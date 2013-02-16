@@ -16,6 +16,7 @@ Credits
 * Joshua Douglass-Molloy - *Sound Designer*
 * Harriet Lloyd - *Pixel Artist*
 * Finn Stokes - *Programmer*
+* Travis Kowlessar - *Sound Designer*
 * Special Thanks to Colin Capurso for Sprite Hair Compositing
 * In-game font is Proggy Tiny <http://proggyfonts.com/>
 
