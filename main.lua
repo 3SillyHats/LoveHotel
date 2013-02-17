@@ -1394,6 +1394,8 @@ local reset = function ()
     rooms = {},
     spas = 0,
   }
+  upkeepCom.timer = 0 -- reset electricity bill timer
+  brokeCom.timer = -1 -- disable game over timer
 
   event.notify("room.all", 0, function (roomId, type)
     local pos = transform.getPos(roomId)
