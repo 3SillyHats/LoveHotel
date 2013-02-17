@@ -25,6 +25,12 @@ loadRes[".ogg"] = function (name)
   snd:setLooping(true)
   return snd
 end
+loadRes[".mp3"] = function (name)
+  local snd = love.audio.newSource(name, "stream")
+  snd:setVolume(0.2)
+  snd:setLooping(true)
+  return snd
+end
 loadRes[".glsl"] = function (name)
   pixelEffect = nil
   local success, result = pcall(function ()

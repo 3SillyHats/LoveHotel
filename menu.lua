@@ -141,6 +141,7 @@ end
 local M = {}
 
 local huds = {}
+setmetatable(huds, {__mode='v'})
 
 --Create a new hud menu
 M.new = function (state, pos)

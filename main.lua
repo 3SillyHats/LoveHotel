@@ -949,9 +949,9 @@ end))
 
 -- Background music
 event.subscribe("state.enter", 0, function (state)
-  local bgm = resource.get("snd/gettingfreaky.ogg")
+  local bgm = resource.get("snd/love-hotel.mp3")
   if state == STATE_PLAY then
-    bgm:setVolume(0.5)
+    bgm:setVolume(0.1)
     love.audio.play(bgm)
   else
     love.audio.pause(bgm)
