@@ -53,6 +53,7 @@ COOK_TIME = 16
 RESTOCK_TIME = 4
 BROKE_TIME = 30
 
+COUPLE_MAX = 3
 SPAWN_MIN = 20
 SPAWN_MAX = 30
 SPAWN_FACTOR = 5
@@ -1694,6 +1695,8 @@ local startCom = entity.newComponent({
 })
 entity.addComponent(startScreen, startCom)
 event.notify("state.enter", 0, STATE_START)
+
+client.populate(COUPLE_MAX)
 
 love.draw = function ()
   -- Draw to canvas without scaling

@@ -12,6 +12,7 @@ local M = {}
 
 local clients = {}
 local leaders = {}
+local followers = {}
 
 local categories = {}
 local totalChance = {0, 0, 0, 0, 0}
@@ -24,6 +25,7 @@ for _, fname in ipairs(files) do
   end
 end
 
+local defaultPos = {roomNum = -1, floorNum = 0}
 local bodyParts = {
   "nude",
   "bottom",
@@ -61,13 +63,11 @@ for i = 1, 4 do
   }
 end
 
-M.new = function (t)
-  local id = entity.new(STATE_PLAY)
-  entity.setOrder(id, 50)
+M.initialise = function (clientInfo, t)
   local isMale = math.random() < 0.5  --randomize male or female
   local hairColour = math.random(1, 4)
   local hatChance = 1
-
+  
   local prefix
   if isMale then
     prefix = "resources/img/people/man/"
@@ -78,10 +78,6 @@ M.new = function (t)
   if t.category == "poor" or t.category == "working" then
     hatChance = .125
   end
-  local spriteData = {
-    width = 24, height = 24,
-    originX = 8, originY = 24,
-  }
 
   for _,part in ipairs(bodyParts) do
     -- Everything but nude and hair parts are category-specific
@@ -101,23 +97,70 @@ M.new = function (t)
 
       -- Remove 'resources/' from the start of the filename for resource.get()
       fname = string.sub(fname, 10)
-
+      
       -- Prepare the sprite data based on body part type
-      spriteData.image = resource.get(fname)
+      clientInfo.sprite[part].image = resource.get(fname)
+      clientInfo.sprite[part].frame = 0                       --XXX hair wont work properly like this
       if part == "nude" or part == "bottom" then
-        spriteData.animations = bodyAnimations
-        spriteData.playing = "walking"
+        clientInfo.sprite[part].playing = "walking"
       elseif part == "hair" then
-        spriteData.animations = hairAnimations[hairColour]
-        spriteData.playing = "neat"
+        clientInfo.sprite[part].playing = "neat"
       else
-       spriteData.animations = nil
-       spriteData.playing = nil
+       clientInfo.sprite[part].playing = nil
       end
-
-      -- Add the body part image as a sprite to the client
-      entity.addComponent(id, sprite.new(id, spriteData))
+    else
+      clientInfo.sprite[part].image = nil
     end
+  end
+
+  clientInfo.ai.category = t.category
+  clientInfo.ai.spent = 0
+  clientInfo.ai.info = resource.get("scr/people/" .. t.category .. ".lua")
+  clientInfo.ai.needs = {
+    horniness = math.random(clientInfo.ai.info.minHorniness, clientInfo.ai.info.maxHorniness),
+    hunger = math.random(clientInfo.ai.info.minHunger, clientInfo.ai.info.maxHunger),
+  }
+  clientInfo.ai.supply = math.random(clientInfo.ai.info.minSupply, clientInfo.ai.info.maxSupply)
+  clientInfo.ai.money = math.random(clientInfo.ai.info.minMoney, clientInfo.ai.info.maxMoney)
+  clientInfo.ai.patience = 100
+
+  clientInfo.transform.pos = t.pos
+
+  clientInfo.ai.alive = true
+  
+  
+end
+
+M.new = function (t)
+  local id = entity.new(STATE_PLAY)
+  entity.setOrder(id, 50)
+  
+  local clientInfo = {
+	id = id,
+	sprite = {},
+  }
+
+  local spriteData = {
+    width = 24, height = 24,
+    originX = 8, originY = 24,
+    image = resource.get("img/people/man/nude/white.png")
+  }
+
+  for _,part in ipairs(bodyParts) do
+    
+	if part == "nude" or part == "bottom" then
+      spriteData.animations = bodyAnimations
+    elseif part == "hair" then
+	  spriteData.animations = hairAnimations[hairColour]
+    else
+     spriteData.animations = nil
+    end
+        
+    -- Add the body part image as a sprite to the client
+    local spriteCom = sprite.new(id, spriteData)
+    entity.addComponent(id, spriteCom)
+    clientInfo.sprite[part] = spriteCom
+
   end
 
   -- Add thought bubble sprite component if leader
@@ -170,13 +213,14 @@ M.new = function (t)
     }))
   end
 
-  entity.addComponent(id, transform.new(
+  clientInfo.transform = transform.new(
     id, t.pos, {x = 16, y = 30}
-  ))
+  )
+  entity.addComponent(id, clientInfo.transform)
   local aiComponent = ai.new(id)
+  clientInfo.ai = aiComponent
   aiComponent.leader = t.leader
-  aiComponent.category = t.category
-  aiComponent.spent = 0
+  aiComponent.alive = false
 
   local addRoomGoal = function (roomId)
     local info = room.getInfo(roomId)
@@ -208,21 +252,14 @@ M.new = function (t)
   entity.addComponent(id, aiComponent)
   aiComponent:addExitGoal()
 
-  aiComponent.info = resource.get("scr/people/" .. t.category .. ".lua")
-  aiComponent.needs = {
-    horniness = math.random(aiComponent.info.minHorniness, aiComponent.info.maxHorniness),
-    hunger = math.random(aiComponent.info.minHunger, aiComponent.info.maxHunger),
-  }
-  aiComponent.supply = math.random(aiComponent.info.minSupply, aiComponent.info.maxSupply)
-  aiComponent.money = math.random(aiComponent.info.minMoney, aiComponent.info.maxMoney)
-  aiComponent.patience = 100
-
   local old_update = aiComponent.update
   aiComponent.update = function (self, dt)
-    if not aiComponent.orderedMeal then
-      aiComponent.needs.hunger = aiComponent.needs.hunger + dt
+    if aiComponent.alive then
+      if not aiComponent.orderedMeal then
+        aiComponent.needs.hunger = aiComponent.needs.hunger + dt
+      end
+      old_update(self, dt)
     end
-    old_update(self, dt)
   end
 
   local check = function (t)
@@ -235,38 +272,19 @@ M.new = function (t)
   event.subscribe("actor.check", 0, check)
 
   local function delete (e)
-    for k,v in ipairs(clients) do
-      if v.id == id then
-        table.remove(clients, k)
-        break
-      end
-    end
-    for k,v in ipairs(leaders) do
-      if v.id == id then
-        table.remove(leaders, k)
-        break
-      end
-    end
-    old_update = nil
-    event.unsubscribe("build", 0, onBuild)
-    event.unsubscribe("actor.check", 0, check)
-    event.unsubscribe("delete", id, delete)
+    aiComponent.alive = false
   end
 
   event.subscribe("delete", id, delete)
 
-  table.insert(clients, {
-    id = id,
-    ai = aiComponent,
-  })
+  table.insert(clients, clientInfo)
   if t.leader then
-    table.insert(leaders, {
-      id = id,
-      ai = aiComponent,
-    })
+    table.insert(leaders, clientInfo)
+  else
+    table.insert(followers, clientInfo)
   end
 
-  return id
+  return clientInfo
 end
 
 -- SPAWNER
@@ -310,17 +328,29 @@ M.newSpawner = function (type, pos)
         local spawnMin = SPAWN_MIN - spawnAdjust
         local spawnMax = SPAWN_MAX - spawnAdjust
         self.timer = math.random(spawnMin, spawnMax)
-        self.target = M.new({
-          category = category,
-          pos = pos,
-          leader = true,
-        })
-        M.new({
-          target = self.target,
-          category = category,
-          pos = pos,
-          leader = false,
-        })
+        for _,leader in ipairs(leaders) do
+          if leader.ai.alive == false then
+            M.initialise(leader, {
+              category = category,
+              pos = pos,
+              leader = true,
+            })
+            self.target = leader.id
+            break
+          end
+        end
+        for _,follower in ipairs(followers) do
+          if follower.ai.alive == false then
+            M.initialise(follower, {
+              target = self.target,
+              category = category,
+              pos = pos,
+              leader = false,
+            })
+            break
+          end
+        end
+
       else
         self.timer = self.timer - dt
       end
@@ -345,6 +375,19 @@ event.subscribe("floor.new", 0, function (level)
     path.addNode(pos)
   end
 end)
+
+M.populate = function (num)
+  for i = 1,num do
+    M.new({
+      leader = true,
+      pos = defaultPos,
+    })
+    M.new({
+      leader = false,
+      pos = defaultPos,
+    })    
+  end
+end
 
 M.getAll = function ()
   return clients
