@@ -174,56 +174,11 @@ M.new = function (t)
     id, t.pos, {x = 16, y = 30}
   ))
   local aiComponent = ai.new(id)
-  aiComponent.leader = t.leader
-  aiComponent.category = t.category
-  aiComponent.spent = 0
 
-  local addRoomGoal = function (roomId)
-    local info = room.getInfo(roomId)
-    if info.reception then
-      aiComponent:addCheckInGoal(roomId)
-    elseif info.condomSupplies then
-      aiComponent:addCondomGoal(roomId)
-    elseif info.foodSupplies then
-      aiComponent:addSnackGoal(roomId)
-    elseif info.id == "dining" then
-      aiComponent:addOrderMealGoal(roomId)
-    elseif info.id == "spa" then
-      aiComponent:addSpaGoal(roomId)
-    end
-  end
-
-  local onBuild = function (e)
-    addRoomGoal(e.id)
-  end
-  if t and t.target then
-    aiComponent:addFollowGoal(t.target, "client")
-  else
-    event.notify("room.all", 0, function (roomId,type)
-      addRoomGoal(roomId)
-    end)
-    event.subscribe("build", 0, onBuild)
-    aiComponent:addVisitGoal()
-  end
-  entity.addComponent(id, aiComponent)
-  aiComponent:addExitGoal()
-
-  aiComponent.info = resource.get("scr/people/" .. t.category .. ".lua")
-  aiComponent.needs = {
-    horniness = math.random(aiComponent.info.minHorniness, aiComponent.info.maxHorniness),
-    hunger = math.random(aiComponent.info.minHunger, aiComponent.info.maxHunger),
-  }
-  aiComponent.supply = math.random(aiComponent.info.minSupply, aiComponent.info.maxSupply)
-  aiComponent.money = math.random(aiComponent.info.minMoney, aiComponent.info.maxMoney)
-  aiComponent.patience = 100
-
-  local old_update = aiComponent.update
-  aiComponent.update = function (self, dt)
-    if not aiComponent.orderedMeal then
-      aiComponent.needs.hunger = aiComponent.needs.hunger + dt
-    end
-    old_update(self, dt)
-  end
+  aiComponent.moveSpeed = 1 --
+  
+  aiComponent.target = {roomNum = 1, floorNum = 1}
+  aiComponent:push("moveTo")
 
   local check = function (t)
     local epos = transform.getPos(id)
@@ -328,7 +283,7 @@ M.newSpawner = function (type, pos)
   })
   entity.addComponent(spawner, com)
 end
-M.newSpawner(nil, {roomNum = -.5, floorNum = GROUND_FLOOR})
+M.newSpawner(nil, {roomNum = 1.5, floorNum = GROUND_FLOOR})
 
 event.subscribe("floor.new", 0, function (level)
   if level == SKY_SPAWN then
