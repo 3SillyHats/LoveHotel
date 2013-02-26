@@ -719,33 +719,6 @@ local gui = menu.new(STATE_PLAY, mainMenuY)
 menu.setBack(gui, function ()
 end)
 
---Infrastructure button
-menu.addButton(gui, menu.newButton("infrastructure", function ()
-  menu.disable(gui)
-
-  --Create the infrastructure menu
-  local submenu = menu.new(STATE_PLAY, subMenuY)
-
-  --Build floor up
-  menu.addButton(submenu, menu.newButton("floorUp", function ()
-    floorUp()
-  end))
-  --Build floor down
-  menu.addButton(submenu, menu.newButton("floorDown", function ()
-    floorDown()
-  end))
-  --Destroy tool
-  menu.addButton(submenu, menu.newButton("destroy", function ()
-    demolishRoom(submenu)
-  end))
-
-  --The back button deletes the submenu
-  menu.setBack(submenu, function ()
-    entity.delete(submenu)
-    menu.enable(gui)
-  end)
-end))
-
 --Suites button
 menu.addButton(gui, menu.newButton("suites", function ()
   menu.disable(gui)
@@ -811,6 +784,34 @@ menu.addButton(gui, menu.newButton("suites", function ()
     menu.enable(gui)
   end)
 end))
+
+--Infrastructure button
+menu.addButton(gui, menu.newButton("infrastructure", function ()
+  menu.disable(gui)
+
+  --Create the infrastructure menu
+  local submenu = menu.new(STATE_PLAY, subMenuY)
+
+  --Build floor up
+  menu.addButton(submenu, menu.newButton("floorUp", function ()
+    floorUp()
+  end))
+  --Build floor down
+  menu.addButton(submenu, menu.newButton("floorDown", function ()
+    floorDown()
+  end))
+  --Destroy tool
+  menu.addButton(submenu, menu.newButton("destroy", function ()
+    demolishRoom(submenu)
+  end))
+
+  --The back button deletes the submenu
+  menu.setBack(submenu, function ()
+    entity.delete(submenu)
+    menu.enable(gui)
+  end)
+end))
+
 
 --Services button
 menu.addButton(gui, menu.newButton("services", function ()
