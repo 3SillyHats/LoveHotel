@@ -147,13 +147,28 @@ M.new = function (type)
       end
     end,
   }
---  entity.addComponent(id, payCom)
+  entity.addComponent(id, payCom)
 
   local aiComponent = ai.new(id)
+  entity.addComponent(id, aiComponent)
+  aiComponent.moveRoom = 1
+  aiComponent.moveFloor = 0
+  aiComponent:push("moveTo")
     
   -- update global staff totals
   gStaffTotals[type] = gStaffTotals[type] + 1
   aiComponent.staffNum = gStaffTotals[type]
+  
+   -- Type-specific initialisation
+  if type == "cleaner" then
+    payCom.wage = CLEANER_WAGE
+  elseif type == "bellhop" then
+    payCom.wage = BELLHOP_WAGE
+  elseif type == "cook" then
+    payCom.wage = COOK_WAGE
+  elseif type == "maintenance" then
+    payCom.wage = MAINTENANCE_WAGE
+  end
   
   entity.addComponent(id, aiComponent)
 

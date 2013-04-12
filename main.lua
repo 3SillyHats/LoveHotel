@@ -1352,8 +1352,8 @@ local init = function ()
   newFloor(GROUND_FLOOR)
   floorUp()
   
-  --staff.new("bellhop")
-  --staff.new("cleaner")
+  staff.new("bellhop")
+  staff.new("cleaner")
   event.notify("menu.info", 0, {selected = "infrastructure"})
   local id, pos
   
