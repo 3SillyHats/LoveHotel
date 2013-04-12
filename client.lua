@@ -6,7 +6,6 @@ local resource = require("resource")
 local ai = require("ai")
 local transform = require("transform")
 local room = require("room")
-local path = require("path")
 
 local M = {}
 
@@ -170,14 +169,18 @@ M.new = function (t)
     }))
   end
 
+  local pos = {
+    roomNum = t.pos.roomNum,
+    floorNum = t.pos.floorNum,
+  }
   entity.addComponent(id, transform.new(
-    id, t.pos, {x = 16, y = 30}
+    id, pos, {x = 16, y = 30}
   ))
-  local aiComponent = ai.new(id)
-
-  aiComponent.moveSpeed = 1 --
   
-  aiComponent.target = {roomNum = 1, floorNum = 1}
+  local aiComponent = ai.new(id)
+  entity.addComponent(id, aiComponent)
+  aiComponent.moveRoom = 2
+  aiComponent.moveFloor = 1
   aiComponent:push("moveTo")
 
   local check = function (t)
@@ -244,7 +247,7 @@ end
 
 M.newSpawner = function (type, pos)
   local spawner = entity.new(STATE_PLAY)
-  local itime = SPAWN_MIN
+  local itime = 1 --SPAWN_MIN
 
   local com = entity.newComponent({
     timer = itime,
@@ -283,7 +286,7 @@ M.newSpawner = function (type, pos)
   })
   entity.addComponent(spawner, com)
 end
-M.newSpawner(nil, {roomNum = 1.5, floorNum = GROUND_FLOOR})
+M.newSpawner(nil, {roomNum = -0.5, floorNum = GROUND_FLOOR})
 
 event.subscribe("floor.new", 0, function (level)
   if level == SKY_SPAWN then

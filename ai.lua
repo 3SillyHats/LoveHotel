@@ -1,9 +1,11 @@
 
-local AI_TICK = 1
+local AI_TICK = 0.05
 
-local transform = require("transform")
 local entity = require("entity")
 local event = require("event")
+local room = require("room")
+local transform = require("transform")
+
 
 local M = {}
 
@@ -13,61 +15,90 @@ local states = {
     end,
     exit = function (com)
     end,
-    update = function (com,dt)
+    update = function (com, dt)
     end,
     transition = function (com)   --Do we want to transition states?
     end,
   },
   moveTo = {
     enter = function (com)
+    end,
+    exit = function (com)
+    end,
+    update = function (com, dt)
       local pos = transform.getPos(com.entity)
-      if pos.floorNum == com.target.floorNum then
-        com.moveRoom = com.target.roomNum
+      if pos.floorNum == com.moveFloor then
+        if pos.roomNum == com.moveRoom then
+          -- at destination
+          com:pop()
+        else
+          -- move to room
+          com:push("walk")
+        end
       else
-        com.moveRoom = 7
+        if pos.roomNum == 7 then
+          -- at elevator
+          com:push("elevatorEnter")
+        else
+          -- move to elevator
+          com:push("walk")
+        end
       end
-      if pos.roomNum < com.moveRoom then
-        event.notify("sprite.flip", com.entity, false)
+    end,
+    transition = function (com)
+    end,
+  },
+  walk = {
+    enter = function (com)
+      local pos = transform.getPos(com.entity)
+      local roomNum
+      if pos.floorNum == com.moveFloor then
+        roomNum = com.moveRoom
+        if pos.roomNum < com.moveRoom then
+          event.notify("sprite.flip", com.entity, false)
+        else
+          event.notify("sprite.flip", com.entity, true)
+        end
       else
-        event.notify("sprite.flip", com.entity, true)
+        roomNum = 7
+        event.notify("sprite.flip", com.entity, false)
       end
       event.notify("sprite.play", com.entity, "walking")
-      com.moveFloor = com.target.floorNum
-      com.moveDelta = com.moveRoom - pos.roomNum
-      com.moveLength = math.abs(com.moveDelta)/com.moveSpeed
+      com.moveDelta = roomNum - pos.roomNum
+      com.moveLength = math.abs(com.moveDelta)/PERSON_SPEED
       com.moveTime = 0
-      print("enter")
     end,
     exit = function (com)
       event.notify("sprite.play", com.entity, "idle")
-      com.moveRoom = nil
-      com.moveFloor = nil
       com.moveDelta = nil
       com.moveLength = nil
       com.moveTime = nil
     end,
-    update = function (com,dt)
+    update = function (com, dt)
       com.moveTime = com.moveTime + dt
-      local pos
+      local pos = transform.getPos(com.entity)
+      local roomNum
+      if pos.floorNum == com.moveFloor then
+        roomNum = com.moveRoom
+      else
+        roomNum = 7
+      end
+      local newPos
       if com.moveTime < com.moveLength then
-        pos = { 
-          roomNum = com.moveRoom - com.moveDelta*(com.moveLength - com.moveTime)/com.moveLength,
-          floorNum = com.moveFloor
+        newPos = { 
+          roomNum = roomNum - (com.moveDelta*(com.moveLength - com.moveTime)/com.moveLength),
+          floorNum = pos.floorNum,
         }
       else
-        pos = {roomNum = com.moveRoom, floorNum = com.moveFloor}
-      end
-      print(pos.roomNum)
-      event.notify("entity.move", com.entity, pos)
-      if pos.roomNum == com.target.roomNum and pos.floorNum == com.target.floorNum then
+        newPos = {
+          roomNum = roomNum,
+          floorNum = pos.floorNum,
+        }
         com:pop()
       end
+      event.notify("entity.move", com.entity, newPos)
     end,
-    transition = function (com)   --What state do we want to transition to?
-      local pos = transform.getPos(com.entity)
-      if pos.roomNum == 7 and pos.floorNum ~= com.target.floorNum then
-        return "elevatorEnter"
-      end
+    transition = function (com)
     end,
   },
   elevatorEnter = {
@@ -101,7 +132,7 @@ local states = {
       com.moveWait = nil
       com.moveHandler = nil
     end,
-    update = function (com,dt)
+    update = function (com, dt)
       local pos = transform.getPos(com.entity)
       event.notify("room.check",0,{
         roomNum = pos.roomNum,
@@ -122,44 +153,44 @@ local states = {
   elevatorRide = {
     enter = function (com)
       local pos = transform.getPos(com.entity)
-      com.moveRoom = pos.roomNum
-      com.moveFloor = com.target.floorNum
       com.moveDelta = com.moveFloor - pos.floorNum
-      com.moveLength = math.abs(com.moveDelta)/com.elevatorSpeed
+      com.moveLength = math.abs(com.moveDelta)/ELEVATOR_SPEED
       com.moveTime = 0
       event.notify("sprite.hide", com.entity, true)
     end,
     exit = function (com)
-      com.moveFloor = nil
       com.moveDelta = nil
       com.moveLength = nil
       com.moveTime = nil
     end,
-    update = function (com,dt)
-      --move
-      local pos
+    update = function (com, dt)
       com.moveTime = com.moveTime + dt
+      local pos
       if com.moveTime < com.moveLength then
         pos = { 
-          roomNum = com.moveRoom,
-          floorNum = com.moveFloor - com.moveDelta*(com.moveLength - com.moveTime)/com.moveLength,
+          roomNum = 7,
+          floorNum = com.moveFloor - (com.moveDelta*(com.moveLength - com.moveTime)/com.moveLength),
         }
       else
-        pos = {roomNum = com.moveRoom, floorNum = com.moveFloor}
+        pos = {
+          roomNum = 7,
+          floorNum = com.moveFloor
+        }
       end
       event.notify("entity.move", com.entity, pos)
-      --check broken elevator
-      event.notify("room.check",0,{
+      
+      --check if elevator is broken
+      event.notify("room.check", 0, {
         roomNum = pos.roomNum,
         floorNum = pos.floorNum,
-        callback = function (id,roomType)
+        callback = function (id, roomType)
           if roomType == "elevator" and room.isBroken(id) then
             com:push("elevatorBroken")
           end
         end
       })
     end,
-    transition = function (com)   --What state do we want to transition to?
+    transition = function (com)
       if com.moveTime >= com.moveLength then 
         return "elevatorExit"
       end
@@ -180,38 +211,44 @@ local states = {
       if com.moveTo == nil then 
         com:push("elevatorBroken")
       else
+        com.moveWait = true
         com.moveHandler = function (e)
           if e.animation == "opening" then 
             com.moveWait = false
           end
         end
-        com.moveWait = true
-        event.subscribe("sprite.onAnimationEnd",com.moveTo, com.moveHandler)
-        event.notify("sprite.play",com.moveTo, "opening")
+        event.subscribe("sprite.onAnimationEnd", com.moveTo, com.moveHandler)
+        event.notify("sprite.play", com.moveTo, "opening")
       end
     end,
     exit = function (com)
+      event.notify("sprite.flip", com.entity, true)
+      event.notify("sprite.hide", com.entity, false)
       event.unsubscribe("sprite.onAnimationEnd", com.moveTo, com.moveHandler)
       com.moveTo = nil
       com.moveWait = nil
       com.moveHandler = nil
     end,
-    update = function (com,dt)
+    update = function (com, dt)
+      -- check if elevator open
+      if com.moveWait == false then
+        com:pop()
+        return
+      end
+      
+      -- check if elevator is broken
       local pos = transform.getPos(com.entity)
-      event.notify("room.check",0,{
+      event.notify("room.check", 0, {
         roomNum = pos.roomNum,
         floorNum = pos.floorNum,
-        callback = function (id,roomType)
+        callback = function (id, roomType)
           if roomType == "elevator" and room.isBroken(id) then
             com:push("elevatorBroken")
           end
         end
       })
     end,
-    transition = function (com)   --What state do we want to transition to?
-      if com.moveWait == false then 
-        return "moveTo"
-      end
+    transition = function (com)
     end,
   },
   elevatorBroken = {
@@ -219,7 +256,7 @@ local states = {
     end,
     exit = function (com)
     end,
-    update = function (com,dt)
+    update = function (com, dt)
       local passable = false
       local pos = transform.getPos(com.entity)
       event.notify("room.check",0,{
@@ -235,10 +272,9 @@ local states = {
         com:pop()
       end
     end,
-    transition = function (com)   --What state do we want to transition to?
+    transition = function (com)
     end,
   },
-
 
 }
 
@@ -253,14 +289,13 @@ end
 
 local update = function (com, dt)
   com.timer = com.timer + dt
-  print("update", com.timer)
   if com.timer >= AI_TICK then
     com.timer = com.timer - AI_TICK
-    states[com.state[#com.state]].update(com.dt)
+    states[com.state[#com.state]].update(com, AI_TICK)
     for i,state in ipairs(com.state) do
       newState = states[state].transition(com)
       if newState ~= state and newState ~= nil then
-        truncate(com, com.state,i)
+        truncate(com, com.state, i)
         com.state[i] = newState
         states[newState].enter(com)
         break
@@ -270,20 +305,20 @@ local update = function (com, dt)
 end
 
 local push = function (com, state)
-  table.insert(com.state, state)
+  com.state[#com.state+1] = state
   states[state].enter(com)
 end
 
 local pop = function (com)
   states[com.state[#com.state]].exit(com)
-  table.remove(com.state, #com.state)
+  com.state[#com.state] = nil
 end
 
 
 M.new = function (id)
   local com = entity.newComponent({
     entity = id,
-    state = {"idle"},
+    state = { "idle" },
     timer = 0,
     update = update,
     push = push,
@@ -296,5 +331,3 @@ M.new = function (id)
 end
 
 return M
-
-

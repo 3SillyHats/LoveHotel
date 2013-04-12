@@ -20,8 +20,8 @@ STATE_ACHIEVMENTS = 7
 STATE_LOSE = 8
 STATE_CREDITS = 9
 
-PERSON_MOVE = 1
-ELEVATOR_MOVE = 1.2
+PERSON_SPEED = 1
+ELEVATOR_SPEED = 1.2
 BELLHOP_DISTANCE = 0.8
 FOLLOW_DISTANCE = 0.4
 
@@ -113,7 +113,6 @@ local staffer = require("staffer")
 local staff = require("staff")
 local client = require("client")
 local transform = require("transform")
-local path = require("path")
 local decision = require("decision")
 
 local thousandify = function (str)
@@ -1353,8 +1352,8 @@ local init = function ()
   newFloor(GROUND_FLOOR)
   floorUp()
   
-  staff.new("bellhop")
-  staff.new("cleaner")
+  --staff.new("bellhop")
+  --staff.new("cleaner")
   event.notify("menu.info", 0, {selected = "infrastructure"})
   local id, pos
   
