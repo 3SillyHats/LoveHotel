@@ -177,7 +177,7 @@ M.new = function (t)
     id, pos, {x = 16, y = 30}
   ))
   
-  local aiComponent = ai.new(id)
+  local aiComponent = ai.newClient(id)
   entity.addComponent(id, aiComponent)
   aiComponent.moveRoom = 2
   aiComponent.moveFloor = 1

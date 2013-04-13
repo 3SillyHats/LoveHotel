@@ -149,7 +149,7 @@ M.new = function (type)
   }
   entity.addComponent(id, payCom)
 
-  local aiComponent = ai.new(id)
+  local aiComponent = ai.newStaff(id)
   entity.addComponent(id, aiComponent)
   aiComponent.moveRoom = 1
   aiComponent.moveFloor = 0

@@ -120,7 +120,7 @@ M.new = function (state)
           event.notify("scroll", 0, floor)
         end
 
-        info.condoms = self.target.ai.supply
+        info.condoms = self.target.ai.condoms
         info.money = self.target.ai.money / 10000 --self.target.ai.info.maxMoney
         info.patience = self.target.ai.patience / 100
         info.horniness = self.target.ai.horniness / 100

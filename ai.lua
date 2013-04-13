@@ -11,7 +11,7 @@ local M = {}
 local pass = function () end
 
 local states = {
-  idle = {
+  clientIdle = {
     enter = pass,
     exit = pass,
     update = pass,
@@ -32,6 +32,12 @@ local states = {
       
       return result
     end,
+  },
+  staffIdle = {
+    enter = pass,
+    exit = pass,
+    update = pass,
+    transition = pass,
   },
   leave = {
     enter = function (com)
@@ -311,11 +317,15 @@ local update = function (com, dt)
   if com.timer >= AI_TICK then
     com.timer = com.timer - AI_TICK
     
-    -- Update needs
-    com.satiety = math.max(0, com.satiety - AI_TICK)
+    -- Update needs for clients
+    if com.type == "client" then
+      com.satiety = math.max(0, com.satiety - AI_TICK)
+    end
     
     -- Update states
-    states[com.state[#com.state]].update(com, AI_TICK)
+    if #com.state > 0 then
+      states[com.state[#com.state]].update(com, AI_TICK)
+    end
     for i,state in ipairs(com.state) do
       newState = states[state].transition(com)
       if newState ~= state and newState ~= nil then
@@ -338,17 +348,11 @@ local pop = function (com)
   com.state[#com.state] = nil
 end
 
-
-M.new = function (id)
+local new = function (id, state)
   local com = entity.newComponent({
     entity = id,
-    state = { "idle" },
+    state = state,
     timer = 0,
-    supply = 2,
-    money = 1000,
-    patience = 100,
-    horniness = 50,
-    satiety = 50,
     
     update = update,
     push = push,
@@ -357,6 +361,26 @@ M.new = function (id)
   for _,state in ipairs(com.state) do
     states[state].enter(com)
   end
+  return com
+end
+
+M.newClient = function (id)
+  local state = { "clientIdle" }
+  local com = new(id, state)
+  com.type = "client"
+  com.condoms = 0
+  com.money = 10000
+  com.patience = 100
+  com.horniness = 80
+  com.satiety = 50
+  return com
+end
+
+M.newStaff = function (id)
+  local state = { "staffIdle" }
+  local com = new(id, state)
+  com.type = "staff"
+  com.supply = 0
   return com
 end
 
