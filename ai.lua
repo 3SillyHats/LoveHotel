@@ -6,25 +6,50 @@ local event = require("event")
 local room = require("room")
 local transform = require("transform")
 
-
 local M = {}
+
+local pass = function () end
 
 local states = {
   idle = {
-    enter = function (com)
-    end,
-    exit = function (com)
-    end,
-    update = function (com, dt)
-    end,
-    transition = function (com)   --Do we want to transition states?
+    enter = pass,
+    exit = pass,
+    update = pass,
+    transition = function (com)
+      local result
+      com.thought = "None"
+      
+      -- Check needs
+      if com.satiety == 0 then
+        com.thought = "HungryBad"
+        result = "leave"
+      end
+      
+      -- Update speech bubble
+      if com.thought then
+        event.notify("sprite.play", com.entity, "thought" .. com.thought)
+      end
+      
+      return result
     end,
   },
-  moveTo = {
+  leave = {
     enter = function (com)
+      com.moveRoom = -1
+      com.moveFloor = 0
+      com:push("moveTo")
     end,
     exit = function (com)
+      entity.delete(com.entity)
     end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  moveTo = {
+    enter = pass,
+    exit = pass,
     update = function (com, dt)
       local pos = transform.getPos(com.entity)
       if pos.floorNum == com.moveFloor then
@@ -45,8 +70,7 @@ local states = {
         end
       end
     end,
-    transition = function (com)
-    end,
+    transition = pass,
   },
   walk = {
     enter = function (com)
@@ -98,8 +122,7 @@ local states = {
       end
       event.notify("entity.move", com.entity, newPos)
     end,
-    transition = function (com)
-    end,
+    transition = pass,
   },
   elevatorEnter = {
     enter = function (com)
@@ -144,7 +167,7 @@ local states = {
         end
       })
     end,
-    transition = function (com)   --What state do we want to transition to?
+    transition = function (com)
       if com.moveWait == false then 
         return "elevatorRide"
       end
@@ -248,14 +271,11 @@ local states = {
         end
       })
     end,
-    transition = function (com)
-    end,
+    transition = pass,
   },
   elevatorBroken = {
-    enter = function (com)
-    end,
-    exit = function (com)
-    end,
+    enter = pass,
+    exit = pass,
     update = function (com, dt)
       local passable = false
       local pos = transform.getPos(com.entity)
@@ -272,8 +292,7 @@ local states = {
         com:pop()
       end
     end,
-    transition = function (com)
-    end,
+    transition = pass,
   },
 
 }
@@ -291,6 +310,11 @@ local update = function (com, dt)
   com.timer = com.timer + dt
   if com.timer >= AI_TICK then
     com.timer = com.timer - AI_TICK
+    
+    -- Update needs
+    com.satiety = math.max(0, com.satiety - AI_TICK)
+    
+    -- Update states
     states[com.state[#com.state]].update(com, AI_TICK)
     for i,state in ipairs(com.state) do
       newState = states[state].transition(com)
@@ -320,6 +344,12 @@ M.new = function (id)
     entity = id,
     state = { "idle" },
     timer = 0,
+    supply = 2,
+    money = 1000,
+    patience = 100,
+    horniness = 50,
+    satiety = 50,
+    
     update = update,
     push = push,
     pop = pop,

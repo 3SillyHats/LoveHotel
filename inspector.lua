@@ -121,10 +121,10 @@ M.new = function (state)
         end
 
         info.condoms = self.target.ai.supply
-        info.money = self.target.ai.money / self.target.ai.info.maxMoney
+        info.money = self.target.ai.money / 10000 --self.target.ai.info.maxMoney
         info.patience = self.target.ai.patience / 100
-        info.horniness = self.target.ai.needs.horniness / 100
-        info.hunger = math.max(0, (100 - self.target.ai.needs.hunger) / 100)
+        info.horniness = self.target.ai.horniness / 100
+        info.hunger = self.target.ai.satiety / 100
 
         event.notify("menu.info", 0, {
           inspector = info,
