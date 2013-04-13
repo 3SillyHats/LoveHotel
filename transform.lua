@@ -48,8 +48,7 @@ M.new = function (id, pos, offset)
   end
 
   local move = function (pos)
-    component.pos.roomNum = pos.roomNum or component.pos.roomNum
-    component.pos.floorNum = pos.floorNum or component.pos.floorNum
+    component.pos = pos
     updatePos()
   end
 
