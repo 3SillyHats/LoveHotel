@@ -417,9 +417,9 @@ M.new = function (state, roomType, pos)
   return roomId
 end
 
-M.all = function (id)
+M.all = function ()
   local rooms = {}
-  event.notify("room.all", id, function (id, type)
+  event.notify("room.all", 0, function (id, type)
     table.insert(rooms, id)
   end)
   return rooms
@@ -436,6 +436,27 @@ M.getPos = function (id)
     roomNum = pos.roomNum + width/2 - 0.5,
     floorNum = pos.floorNum,
   }
+end
+
+M.getNearest = function (roomNum, floorNum, filter)
+  local rooms = M.all()
+  local nearest = nil
+  local distance = 2^52 -- maximum integer
+  for _,room in ipairs(rooms) do
+    local pos = M.getPos(room)
+    local d
+    if pos.floorNum == floorNum then
+      d = math.abs(pos.roomNum - roomNum)
+    else
+      -- d = dist to elevator + floor dist + dist to room
+      d = math.abs(pos.floorNum - floorNum) + 14 - (roomNum + pos.roomNum)
+    end
+    if d < distance and (not filter or filter(room)) then
+      nearest = room
+      distance = d
+    end
+  end
+  return nearest
 end
 
 M.isDirty = function (id)

@@ -10,19 +10,29 @@ local M = {}
 
 local pass = function () end
 
+-- Filters
+local snackFilter = function (roomId)
+  local info = room.getInfo(roomId)
+  return (info.id == "vending" and
+    room.reservations(roomId) == 0 and
+    room.getStock(roomId) > 0)
+end
+
 local states = {
   clientIdle = {
     enter = pass,
     exit = pass,
     update = pass,
     transition = function (com)
-      local result
+      local result = nil
       com.thought = "None"
       
       -- Check needs
       if com.satiety == 0 then
         com.thought = "HungryBad"
         result = "leave"
+      elseif com.satiety < 30 then
+        result = "getSnack"
       end
       
       -- Update speech bubble
@@ -37,20 +47,6 @@ local states = {
     enter = pass,
     exit = pass,
     update = pass,
-    transition = pass,
-  },
-  leave = {
-    enter = function (com)
-      com.moveRoom = -1
-      com.moveFloor = 0
-      com:push("moveTo")
-    end,
-    exit = function (com)
-      entity.delete(com.entity)
-    end,
-    update = function (com, dt)
-      com:pop()
-    end,
     transition = pass,
   },
   moveTo = {
@@ -300,7 +296,81 @@ local states = {
     end,
     transition = pass,
   },
-
+  leave = {
+    enter = function (com)
+      com.moveRoom = -1
+      com.moveFloor = 0
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      entity.delete(com.entity)
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  wait = {
+    enter = function (com)
+      com.waitSuccess = false
+    end,
+    exit = pass,
+    update = function (com, dt)
+      com.waitTime = com.waitTime - dt
+      if com.waitTime <= 0 then
+        com.waitSuccess = true
+        com:pop()
+      end
+    end,
+    transition = pass,
+  },
+  eat = {
+    enter = function (com)
+      com.waitTime = EAT_TIME
+      com:push("wait")
+    end,
+    exit = function (com)
+      if com.waitSuccess then
+        room.setStock(com.room, room.getStock(com.room) - 1)
+        com.satiety = math.min(100, com.satiety + 50)
+      end
+    end,
+    update = function (com)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  getSnack = {
+    enter = function (com)
+      -- Find the nearest food place
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        myPos.roomNum, myPos.floorNum,
+        snackFilter
+      )
+      if com.room == nil then
+        com:pop()
+        return
+      end
+      
+      -- Go there and eat
+      room.reserve(com.room)
+      local roomPos = room.getPos(com.room)
+      com:push("eat")
+      com.moveRoom = roomPos.roomNum
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      room.release(com.room)
+      com.room = nil
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  
 }
 
 local truncate = function (com, table, i)
@@ -323,9 +393,10 @@ local update = function (com, dt)
     end
     
     -- Update states
-    if #com.state > 0 then
-      states[com.state[#com.state]].update(com, AI_TICK)
+    if #com.state == 0 then
+      com.state[1] = com.type .. "Idle"
     end
+    states[com.state[#com.state]].update(com, AI_TICK)
     for i,state in ipairs(com.state) do
       newState = states[state].transition(com)
       if newState ~= state and newState ~= nil then
@@ -348,10 +419,11 @@ local pop = function (com)
   com.state[#com.state] = nil
 end
 
-local new = function (id, state)
+local new = function (id, type)
   local com = entity.newComponent({
     entity = id,
-    state = state,
+    type = type,
+    state = {},
     timer = 0,
     
     update = update,
@@ -365,9 +437,7 @@ local new = function (id, state)
 end
 
 M.newClient = function (id)
-  local state = { "clientIdle" }
-  local com = new(id, state)
-  com.type = "client"
+  local com = new(id, "client")
   com.condoms = 0
   com.money = 10000
   com.patience = 100
@@ -377,9 +447,7 @@ M.newClient = function (id)
 end
 
 M.newStaff = function (id)
-  local state = { "staffIdle" }
-  local com = new(id, state)
-  com.type = "staff"
+  local com = new(id, "staff")
   com.supply = 0
   return com
 end
