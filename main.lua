@@ -249,12 +249,12 @@ local alertCom = entity.newComponent({
   end,
   draw = function (self)
     if self.alert then
-      love.graphics.setColor(0, 0, 0)
-      love.graphics.rectangle("fill", 0, 112, 256, 12)
+      love.graphics.setColor(140, 24, 0)
+      love.graphics.rectangle("fill", 0, 180, 256, 12)
       love.graphics.setColor(255, 255, 255)
       love.graphics.printf(
         string.format(self.messages[self.alert], self.arg), -- string
-        0, 114, -- x, y
+        0, 182, -- x, y
         256, -- width
         "center" -- alignment
       )
