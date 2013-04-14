@@ -10,7 +10,6 @@ local room = require("room")
 local M = {}
 
 local clients = {}
-local leaders = {}
 
 local categories = {}
 local totalChance = {0, 0, 0, 0, 0}
@@ -60,9 +59,47 @@ for i = 1, 4 do
   }
 end
 
-M.new = function (t)
-  local id = entity.new(STATE_PLAY)
-  entity.setOrder(id, 50)
+local thoughtAnimations = {
+  thoughtNone = {
+    first = 0,
+    last = 0,
+    speed = 1,
+  },
+  thoughtBroke = {
+    frames = {1, 3},
+    speed = 1,
+  },
+  thoughtLove = {
+    frames = {1, 4},
+    speed = 1,
+  },
+  thoughtHungryGood = {
+    frames = {1, 5},
+    speed = 1,
+  },
+  thoughtHungryBad = {
+    frames = {2, 6},
+    speed = 1,
+  },
+  thoughtCondomlessGood = {
+    frames = {1, 7},
+    speed = 1,
+  },
+  thoughtCondomlessBad = {
+    frames = {2, 8},
+    speed = 1,
+  },
+  thoughtImpatient = {
+    frames = {2, 9},
+    speed = 1,
+  },
+  thoughtRoomless = {
+    frames = {2, 10},
+    speed = 1,
+  },
+}
+
+local addSprites = function (id, category, offset)
   local isMale = math.random() < 0.5  --randomize male or female
   local hairColour = math.random(1, 4)
   local hatChance = 1
@@ -73,13 +110,14 @@ M.new = function (t)
   else
     prefix = "resources/img/people/woman/"
   end
-  local categoryPrefix = prefix .. t.category .. "/"
-  if t.category == "poor" or t.category == "working" then
+  local categoryPrefix = prefix .. category .. "/"
+  if category == "poor" or category == "working" then
     hatChance = .125
   end
   local spriteData = {
     width = 24, height = 24,
-    originX = 8, originY = 24,
+    originX = offset,
+    originY = 24,
   }
 
   for _,part in ipairs(bodyParts) do
@@ -118,56 +156,25 @@ M.new = function (t)
       entity.addComponent(id, sprite.new(id, spriteData))
     end
   end
+end
 
-  -- Add thought bubble sprite component if leader
-  if t.leader then
-    entity.addComponent(id, sprite.new(id, {
-      image = resource.get("img/people/bubbles.png"),
-      width = 16,
-      height = 8,
-      originY = 24,
-      animations = {
-        thoughtNone = {
-          first = 0,
-          last = 0,
-          speed = 1,
-        },
-        thoughtBroke = {
-          frames = {1, 3},
-          speed = 1,
-        },
-        thoughtLove = {
-          frames = {1, 4},
-          speed = 1,
-        },
-        thoughtHungryGood = {
-          frames = {1, 5},
-          speed = 1,
-        },
-        thoughtHungryBad = {
-          frames = {2, 6},
-          speed = 1,
-        },
-        thoughtCondomlessGood = {
-          frames = {1, 7},
-          speed = 1,
-        },
-        thoughtCondomlessBad = {
-          frames = {2, 8},
-          speed = 1,
-        },
-        thoughtImpatient = {
-          frames = {2, 9},
-          speed = 1,
-        },
-        thoughtRoomless = {
-          frames = {2, 10},
-          speed = 1,
-        },
-      },
-      playing = "thoughtNone",
-    }))
-  end
+M.new = function (t)
+  local id = entity.new(STATE_PLAY)
+  entity.setOrder(id, 50)
+  
+  -- Create leader and follower sprites
+  addSprites(id, t.category, 4)
+  addSprites(id, t.category, 12)
+
+  -- Add thought bubble sprite
+  entity.addComponent(id, sprite.new(id, {
+    image = resource.get("img/people/bubbles.png"),
+    width = 16,
+    height = 8,
+    originY = 24,
+    animations = thoughtAnimations,
+    playing = "thoughtNone",
+  }))
 
   local pos = {
     roomNum = t.pos.roomNum,
@@ -199,12 +206,6 @@ M.new = function (t)
         break
       end
     end
-    for k,v in ipairs(leaders) do
-      if v.id == id then
-        table.remove(leaders, k)
-        break
-      end
-    end
     old_update = nil
     event.unsubscribe("build", 0, onBuild)
     event.unsubscribe("actor.check", 0, check)
@@ -217,12 +218,6 @@ M.new = function (t)
     id = id,
     ai = aiComponent,
   })
-  if t.leader then
-    table.insert(leaders, {
-      id = id,
-      ai = aiComponent,
-    })
-  end
 
   return id
 end
@@ -271,13 +266,6 @@ M.newSpawner = function (type, pos)
         self.target = M.new({
           category = category,
           pos = pos,
-          leader = true,
-        })
-        M.new({
-          target = self.target,
-          category = category,
-          pos = pos,
-          leader = false,
         })
       else
         self.timer = self.timer - dt
@@ -286,7 +274,8 @@ M.newSpawner = function (type, pos)
   })
   entity.addComponent(spawner, com)
 end
-M.newSpawner(nil, {roomNum = -0.5, floorNum = GROUND_FLOOR})
+
+M.newSpawner(nil, {roomNum = -1, floorNum = GROUND_FLOOR})
 
 event.subscribe("floor.new", 0, function (level)
   if level == SKY_SPAWN then
@@ -306,10 +295,6 @@ end)
 
 M.getAll = function ()
   return clients
-end
-
-M.getLeaders = function ()
-  return leaders
 end
 
 return M

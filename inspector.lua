@@ -56,7 +56,7 @@ M.new = function (state)
   event.notify("menu.info", 0, unselectedInfo)
 
   local getNext = function (self, scale)
-    local clients = client.getLeaders()
+    local clients = client.getAll()
     local minPosA = 20
     local minEntA = nil
     local minPosB = 20
