@@ -11,6 +11,12 @@ local M = {}
 local pass = function () end
 
 -- Filters
+local restockFilter = function (com, roomId)
+  local info = room.getInfo(roomId)
+  return (info.stock and
+    room.getStock(roomId) <= 1 and
+    room.reservations(roomId) == 0)
+end
 local snackFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "vending" and
@@ -20,35 +26,19 @@ local snackFilter = function (com, roomId)
 end
 
 local states = {
-  clientIdle = {
-    enter = pass,
-    exit = pass,
-    update = pass,
-    transition = function (com)
-      local result = nil
-      com.thought = "None"
-      
-      -- Check needs
-      if com.satiety == 0 then
-        com.happy = false
-        com.thought = "HungryBad"
-        result = "leave"
-      elseif com.satiety < 30 then
-        result = "getSnack"
-      end
-      
-      -- Update speech bubble
-      if com.thought then
-        event.notify("sprite.play", com.entity, "thought" .. com.thought)
-      end
-      
-      return result
+  -- GENERAL
+  wait = {
+    enter = function (com)
+      com.waitSuccess = false
     end,
-  },
-  staffIdle = {
-    enter = pass,
     exit = pass,
-    update = pass,
+    update = function (com, dt)
+      com.waitTime = com.waitTime - dt
+      if com.waitTime <= 0 then
+        com.waitSuccess = true
+        com:pop()
+      end
+    end,
     transition = pass,
   },
   moveTo = {
@@ -298,6 +288,33 @@ local states = {
     end,
     transition = pass,
   },
+  
+  -- CLIENTS
+  clientIdle = {
+    enter = pass,
+    exit = pass,
+    update = pass,
+    transition = function (com)
+      local result = nil
+      com.thought = "None"
+      
+      -- Check needs
+      if com.satiety == 0 then
+        com.happy = false
+        com.thought = "HungryBad"
+        result = "leave"
+      elseif com.satiety < 30 then
+        result = "getSnack"
+      end
+      
+      -- Update speech bubble
+      if com.thought then
+        event.notify("sprite.play", com.entity, "thought" .. com.thought)
+      end
+      
+      return result
+    end,
+  },
   leave = {
     enter = function (com)
       com.moveRoom = -1
@@ -320,42 +337,9 @@ local states = {
     end,
     transition = pass,
   },
-  wait = {
-    enter = function (com)
-      com.waitSuccess = false
-    end,
-    exit = pass,
-    update = function (com, dt)
-      com.waitTime = com.waitTime - dt
-      if com.waitTime <= 0 then
-        com.waitSuccess = true
-        com:pop()
-      end
-    end,
-    transition = pass,
-  },
-  eat = {
-    enter = function (com)
-      com.waitTime = EAT_TIME
-      com:push("wait")
-    end,
-    exit = function (com)
-      local info = room.getInfo(com.room)
-      if com.waitSuccess then
-        room.setStock(com.room, room.getStock(com.room) - 1)
-        com.money = com.money - info.profit
-        com.profit = com.profit + info.profit
-        com.satiety = math.min(100, com.satiety + 50)
-      end
-    end,
-    update = function (com)
-      com:pop()
-    end,
-    transition = pass,
-  },
   getSnack = {
     enter = function (com)
-      -- Find the nearest food place
+      -- Find the nearest vending machine
       local myPos = transform.getPos(com.entity)
       com.room = room.getNearest(
         com,
@@ -384,7 +368,91 @@ local states = {
     end,
     transition = pass,
   },
-  
+  eat = {
+    enter = function (com)
+      com.waitTime = EAT_TIME
+      com:push("wait")
+    end,
+    exit = function (com)
+      local info = room.getInfo(com.room)
+      if com.waitSuccess then
+        room.setStock(com.room, room.getStock(com.room) - 1)
+        com.money = com.money - info.profit
+        com.profit = com.profit + info.profit
+        com.satiety = math.min(100, com.satiety + 50)
+      end
+    end,
+    update = function (com)
+      com:pop()
+    end,
+    transition = pass,
+  },
+
+  -- STAFF
+  staffIdle = {
+    enter = pass,
+    exit = pass,
+    update = function (com, dt)
+      if com.subtype == "stocker" then
+        com:push("restock")
+      end
+    end,
+    transition = pass,
+  },
+
+  -- RESTOCKER
+  restock = {
+    enter = function (com)
+      -- Find the nearest stockable room
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        com,
+        myPos.roomNum, myPos.floorNum,
+        restockFilter
+      )
+      if com.room == nil then
+        com:pop()
+        return
+      end
+      
+      -- Go there and restock
+      room.reserve(com.room)
+      local roomPos = room.getPos(com.room)
+      com:push("restockRoom")
+      com.moveRoom = roomPos.roomNum
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      room.release(com.room)
+      com.room = nil
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  restockRoom = {
+    enter = function (com)
+      com.waitTime = RESTOCK_TIME
+      com:push("wait")
+      event.notify("sprite.play", com.entity, "stocking")
+    end,
+    exit = function (com)
+      event.notify("sprite.play", com.entity, "idle")
+      local info = room.getInfo(com.room)
+      if com.waitSuccess then
+        room.setStock(com.room, info.stock)
+        local myPos = transform.getPos(com.entity)
+        moneyChange(-info.restockCost,
+          {roomNum = myPos.roomNum, floorNum = myPos.floorNum})
+      end
+    end,
+    update = function (com)
+      com:pop()
+    end,
+    transition = pass,
+  },
 }
 
 local truncate = function (com, table, i)
@@ -461,8 +529,9 @@ M.newClient = function (id)
   return com
 end
 
-M.newStaff = function (id)
+M.newStaff = function (id, subtype)
   local com = new(id, "staff")
+  com.subtype = subtype
   com.supply = 0
   return com
 end

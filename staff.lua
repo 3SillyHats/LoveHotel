@@ -149,7 +149,7 @@ M.new = function (type)
   }
   entity.addComponent(id, payCom)
 
-  local aiComponent = ai.newStaff(id)
+  local aiComponent = ai.newStaff(id, type)
   entity.addComponent(id, aiComponent)
   aiComponent.moveRoom = 1
   aiComponent.moveFloor = 0
@@ -168,6 +168,8 @@ M.new = function (type)
     payCom.wage = COOK_WAGE
   elseif type == "maintenance" then
     payCom.wage = MAINTENANCE_WAGE
+  elseif type == "stocker" then
+    payCom.wage = STOCKER_WAGE
   end
   
   entity.addComponent(id, aiComponent)
