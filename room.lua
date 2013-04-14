@@ -115,9 +115,9 @@ local infoComponent = function (id, info, pos)
     setReservations(component.reservations - 1)
   end
 
-  local propogate_res
+  local propagate_res
   if info.id == "elevator" then
-    propogate_res = function (e)
+    propagate_res = function (e)
       if e.pos.roomNum == pos.roomNum and
           (e.pos.floorNum == pos.floorNum - 1 or e.pos.floorNum == pos.floorNum + 1) and
           e.reservations ~= component.reservations and
@@ -125,7 +125,7 @@ local infoComponent = function (id, info, pos)
         setReservations(e.reservations)
       end
     end
-    event.subscribe("room.reservationChange", 0, propogate_res)
+    event.subscribe("room.reservationChange", 0, propagate_res)
   end
 
   local checkReservations = function (callback)
@@ -241,9 +241,9 @@ local infoComponent = function (id, info, pos)
     end
   end
 
-  local propogate
+  local propagate
   if info.id == "elevator" then
-    propogate = function (e)
+    propagate = function (e)
       if e.pos.roomNum == pos.roomNum and
           (e.pos.floorNum == pos.floorNum - 1 or e.pos.floorNum == pos.floorNum + 1) and
           e.integrity ~= component.integrity and
@@ -251,7 +251,7 @@ local infoComponent = function (id, info, pos)
         setIntegrity(e.integrity)
       end
     end
-    event.subscribe("room.integrityChange", 0, propogate)
+    event.subscribe("room.integrityChange", 0, propagate)
   end
 
   local function delete ()
@@ -277,8 +277,8 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("room.isBroken", id, isBroken)
     event.unsubscribe("room.use", id, use)
     event.unsubscribe("room.fix", id, fix)
-    event.unsubscribe("room.integrityChange", 0, propogate)
-    event.unsubscribe("room.reservationChange", 0, propogate_res)
+    event.unsubscribe("room.integrityChange", 0, propagate)
+    event.unsubscribe("room.reservationChange", 0, propagate_res)
     event.unsubscribe("delete", id, delete)
   end
 
