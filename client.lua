@@ -13,7 +13,7 @@ local clients = {}
 
 local categories = {}
 local totalChance = {0, 0, 0, 0, 0}
-local files = love.filesystem.enumerate("resources/scr/people/")
+local files = love.filesystem.enumerate("data/scr/people/")
 for _, fname in ipairs(files) do
   local info = resource.get("scr/people/" .. fname)
   table.insert(categories, info.name)
@@ -106,9 +106,9 @@ local addSprites = function (id, category, offset)
 
   local prefix
   if isMale then
-    prefix = "resources/img/people/man/"
+    prefix = "data/img/people/man/"
   else
-    prefix = "resources/img/people/woman/"
+    prefix = "data/img/people/woman/"
   end
   local categoryPrefix = prefix .. category .. "/"
   if category == "poor" or category == "working" then
@@ -136,8 +136,8 @@ local addSprites = function (id, category, offset)
       -- Pick a random image for this body part
       local fname = dir .. "/" .. images[math.random(1, #images)]
 
-      -- Remove 'resources/' from the start of the filename for resource.get()
-      fname = string.sub(fname, 10)
+      -- Remove 'data/' from the start of the filename for resource.get()
+      fname = string.sub(fname, 5)
 
       -- Prepare the sprite data based on body part type
       spriteData.image = resource.get(fname)

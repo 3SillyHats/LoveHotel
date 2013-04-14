@@ -16,7 +16,7 @@ M.new = function (type)
   entity.setOrder(id, 50)
   isMale = math.random() < .5  --randomize male or female
 
-  local prefix = "resources/img/people"
+  local prefix = "data/img/people"
   local nudeimg
   local hairimg
   local staffimg
@@ -32,8 +32,8 @@ M.new = function (type)
   local nudes = love.filesystem.enumerate(nudeimg)
   local hairs = love.filesystem.enumerate(hairimg)
   nudeimg = nudeimg .. nudes[math.random(1,#nudes)]
-  nudeimg = string.sub(nudeimg,10)  -- remove "resources/"
-  hairimg = string.sub(hairimg,10)
+  nudeimg = string.sub(nudeimg,5)  -- remove "data/"
+  hairimg = string.sub(hairimg,5)
   local haircolour = math.random(0,3)
 
   --add skin
