@@ -374,7 +374,7 @@ gFont = love.graphics.newImageFont(
 -- Update menu tooltips (get names, costs of rooms)
 local maxProfit = math.sqrt(resource.get("scr/rooms/nazifurry.lua").profit)
 local maxRep = resource.get("scr/rooms/spa.lua").reputation
-for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
+for _,fname in ipairs(love.filesystem.enumerate("data/scr/rooms/")) do
   local room = resource.get("scr/rooms/" .. fname)
   conf.menu[room.id] = {
     name = room.name,
