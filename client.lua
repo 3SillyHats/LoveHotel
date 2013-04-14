@@ -186,8 +186,8 @@ M.new = function (t)
   
   local aiComponent = ai.newClient(id)
   entity.addComponent(id, aiComponent)
-  aiComponent.moveRoom = 2
-  aiComponent.moveFloor = 1
+  aiComponent.moveRoom = 1
+  aiComponent.moveFloor = 0
   aiComponent:push("moveTo")
 
   local check = function (t)

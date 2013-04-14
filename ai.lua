@@ -22,6 +22,13 @@ local restockFilter = function (com, roomId)
     room.getStock(roomId) <= 1 and
     room.reservations(roomId) == 0)
 end
+local sexFilter = function (com, roomId)
+  local info = room.getInfo(roomId)
+  return (info.visitable and
+    info.profit <= com.money and
+    (not room.isDirty(roomId)) and
+    room.reservations(roomId) == 0)
+end
 local snackFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "vending" and
@@ -29,6 +36,7 @@ local snackFilter = function (com, roomId)
     room.reservations(roomId) == 0 and
     room.getStock(roomId) > 0)
 end
+
 
 local states = {
   -- GENERAL
@@ -293,7 +301,7 @@ local states = {
     end,
     transition = pass,
   },
-  
+
   -- CLIENTS
   clientIdle = {
     enter = pass,
@@ -310,6 +318,8 @@ local states = {
         result = "leave"
       elseif com.satiety < 30 then
         result = "getSnack"
+      elseif com.horniness > 30 then
+        result = "visit"
       end
       
       -- Update speech bubble
@@ -342,6 +352,69 @@ local states = {
     end,
     transition = pass,
   },
+  
+  -- SEXING
+  visit = {
+    enter = function (com)
+      -- Find the nearest available room
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        com,
+        myPos.roomNum, myPos.floorNum,
+        sexFilter
+      )
+      if com.room == nil then
+        com:pop()
+        return
+      end
+      
+      -- Go there and restock
+      room.reserve(com.room)
+      local roomPos = room.getPos(com.room)
+      com:push("sex")
+      com.moveRoom = roomPos.roomNum
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      room.release(com.room)
+      com.room = nil
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  sex = {
+    enter = pass,
+    exit = function (com)
+      local info = room.getInfo(com.room)
+      event.notify("sprite.play", com.room, "opening")
+      event.notify("sprite.play", com.room, "heartless")
+      event.notify("sprite.hide", com.entity, false)
+      if com.waitSuccess then
+        room.setDirty(com.room, true)
+        com.money = com.money - info.profit
+        com.profit = com.profit + info.profit
+        com.horniness = math.max(0, com.horniness - 20)
+      end
+      com.waitSuccess = false
+    end,
+    update = function (com)
+      if com.waitSuccess then
+        com:pop()
+      else
+        com.waitTime = SEX_TIME
+        com:push("wait")
+        event.notify("sprite.hide", com.entity, true)
+        event.notify("sprite.play", com.room, "closing")
+        event.notify("sprite.play", com.room, "hearts")
+      end
+    end,
+    transition = pass,
+  },
+
+  -- EATING
   getSnack = {
     enter = function (com)
       -- Find the nearest vending machine

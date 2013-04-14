@@ -58,6 +58,11 @@ local infoComponent = function (id, info, pos)
 
   local setDirty = function (value)
     component.messy = value
+    if value then
+      event.notify("sprite.play", id, "dirty")
+    else
+      event.notify("sprite.play", id, "clean")
+    end
   end
 
   local checkOccupied = function (callback)
