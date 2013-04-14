@@ -407,33 +407,51 @@ local states = {
   },
   checkIn = {
     enter = pass,
-    exit = pass,
+    exit = function (com)
+      event.unsubscribe("serve", com.room, com.serveHandler)
+      com.serveHandler = nil
+      com.served = false
+    end,
     update = function (com)
       if (not entity.get(com.room)) then
         com:pop()
         return
       end
       
-      -- Find the nearest suite
-      com.room = nil
-      local myPos = transform.getPos(com.entity)
-      com.room = room.getNearest(
-        com,
-        myPos.roomNum, myPos.floorNum,
-        sexFilter
-      )
-      if com.room == nil then
-        com:pop()
-        return
+      if not com.serveHandler then
+        com.serveHandler = function (e)
+          -- Find the nearest suite
+          com.room = nil
+          local myPos = transform.getPos(com.entity)
+          com.room = room.getNearest(
+            com,
+            myPos.roomNum, myPos.floorNum,
+            sexFilter
+          )
+          if com.room == nil then
+            com:pop()
+            return
+          end
+          local roomPos = room.getPos(com.room)
+
+          -- Go to suite and sex
+          com:pop()
+          com:push("sex")
+          com.moveRoom = roomPos.roomNum
+          com.moveFloor = roomPos.floorNum
+          com:push("moveTo")
+          
+          -- Tell bellhop
+          e.com.querySuccess = true
+          e.com.moveRoom = roomPos.roomNum
+          e.com.moveFloor = roomPos.floorNum
+          e.com:push("moveTo")
+        end
+        event.subscribe("serve", com.entity, com.serveHandler)
+        
+        com.served = false
+        event.notify("queryServe", com.room, {entity = com.entity})
       end
-      
-      -- Go there and sex
-      com:pop()
-      local roomPos = room.getPos(com.room)
-      com:push("sex")
-      com.moveRoom = roomPos.roomNum
-      com.moveFloor = roomPos.floorNum
-      com:push("moveTo")
     end,
     transition = pass,
   },
@@ -530,7 +548,9 @@ local states = {
     enter = pass,
     exit = pass,
     update = function (com, dt)
-      if com.class == "cleaner" then
+      if com.class == "bellhop" then
+        com:push("receive")
+      elseif com.class == "cleaner" then
         if com.supply == 0 then
           com:push("getSupply")
         else
@@ -603,6 +623,61 @@ local states = {
     transition = pass,
   },
   
+  -- BELLHOP
+  receive = {
+    enter = function (com)
+      -- Find the nearest reception
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        com,
+        myPos.roomNum, myPos.floorNum,
+        receptionFilter
+      )
+      if com.room == nil then
+        com:pop()
+        return
+      end
+      
+      -- Go there and serve
+      local roomPos = room.getPos(com.room)
+      com:push("serveReception")
+      com.moveRoom = roomPos.roomNum
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      com.room = nil
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  serveReception = {
+    enter = pass,
+    exit = function (com)
+      event.unsubscribe("queryServe", com.room, com.queryHandler)
+      com.room = nil
+      com.queryHandler = nil
+      com.querySuccess = nil
+    end,
+    update = function (com)
+      if com.querySuccess then
+        com:pop()
+      elseif not com.queryHandler then
+        com.queryHandler = function (e)
+          event.notify("serve", e.entity, {
+            com = com,
+            entity = com.entity,
+          })
+        end
+        event.subscribe("queryServe", com.room, com.queryHandler)
+        com.querySuccess = false
+      end
+    end,
+    transition = pass,
+  },
+
   -- CLEANER
   clean = {
     enter = function (com)
