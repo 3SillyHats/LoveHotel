@@ -16,6 +16,12 @@ local cleanFilter = function (com, roomId)
   return (info.dirtyable and
     room.isDirty(roomId))
 end
+local cleaningSupplyFilter = function (com, roomId)
+  local info = room.getInfo(roomId)
+  return (info.id == "utility" and
+    room.getStock(roomId) > 0 and
+    room.reservations(roomId) == 0)
+end
 local restockFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.stock and
@@ -473,14 +479,78 @@ local states = {
     exit = pass,
     update = function (com, dt)
       if com.subtype == "cleaner" then
-        com:push("clean")
+        if com.supply == 0 then
+          com:push("getSupply")
+        else
+          com:push("clean")
+        end
       elseif com.subtype == "stocker" then
         com:push("restock")
       end
     end,
     transition = pass,
   },
-
+  getSupply = {
+    enter = function (com)
+      local filter
+      if com.subtype == "cleaner" then
+        filter = cleaningSupplyFilter
+      end
+    
+      -- Find the nearest stock room
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        com,
+        myPos.roomNum, myPos.floorNum,
+        filter
+      )
+      if com.room == nil then
+        com:pop()
+        return
+      end
+      
+      -- Go there and restock
+      room.reserve(com.room)
+      local roomPos = room.getPos(com.room)
+      com:push("supply")
+      com.moveRoom = roomPos.roomNum
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      room.release(com.room)
+      com.room = nil
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  supply = {
+    enter = pass,
+    exit = function (com)
+      event.notify("sprite.play", com.room, "opening")
+      event.notify("sprite.hide", com.entity, false)
+      local info = room.getInfo(com.room)
+      if com.waitSuccess then
+        room.setStock(com.room, room.getStock(com.room) - 1)
+        com.supply = 1
+      end
+      com.waitSuccess = false
+    end,
+    update = function (com)
+      if com.waitSuccess then
+        com:pop()
+      else
+        com.waitTime = SUPPLY_TIME
+        com:push("wait")
+        event.notify("sprite.hide", com.entity, true)
+        event.notify("sprite.play", com.room, "closing")
+      end
+    end,
+    transition = pass,
+  },
+  
   -- CLEANER
   clean = {
     enter = function (com)
@@ -516,10 +586,12 @@ local states = {
   cleanRoom = {
     enter = pass,
     exit = function (com)
+      event.notify("sprite.play", com.room, "opening")
       event.notify("sprite.play", com.room, "cleanless")
       event.notify("sprite.hide", com.entity, false)
       if com.waitSuccess then
         room.setDirty(com.room, false)
+        com.supply = com.supply - 1
       end
       com.waitSuccess = false
     end,
@@ -529,6 +601,7 @@ local states = {
       else
         com.waitTime = CLEAN_TIME
         com:push("wait")
+        event.notify("sprite.play", com.room, "closing")
         event.notify("sprite.hide", com.entity, true)
         event.notify("sprite.play", com.room, "cleaning")
       end
