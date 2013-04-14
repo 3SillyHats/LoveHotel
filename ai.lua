@@ -23,6 +23,10 @@ local cleaningSupplyFilter = function (com, roomId)
     room.getStock(roomId) > 0 and
     room.reservations(roomId) == 0)
 end
+local receptionFilter = function (com, roomId)
+  local info = room.getInfo(roomId)
+  return (info.id == "reception")
+end
 local restockFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.stock and
@@ -43,7 +47,6 @@ local snackFilter = function (com, roomId)
     room.reservations(roomId) == 0 and
     room.getStock(roomId) > 0)
 end
-
 
 local states = {
   -- GENERAL
@@ -376,7 +379,43 @@ local states = {
   -- SEXING
   visit = {
     enter = function (com)
-      -- Find the nearest available room
+      -- Find the nearest reception
+      com.room = nil
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        com,
+        myPos.roomNum, myPos.floorNum,
+        receptionFilter
+      )
+      if com.room == nil then
+        com:pop()
+        return
+      end
+      
+      -- Go there and get a suite
+      local roomPos = room.getPos(com.room)
+      com:push("checkIn")
+      com.moveRoom = roomPos.roomNum
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = pass,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  checkIn = {
+    enter = pass,
+    exit = pass,
+    update = function (com)
+      if (not entity.get(com.room)) then
+        com:pop()
+        return
+      end
+      
+      -- Find the nearest suite
+      com.room = nil
       local myPos = transform.getPos(com.entity)
       com.room = room.getNearest(
         com,
@@ -388,20 +427,13 @@ local states = {
         return
       end
       
-      -- Go there and restock
-      room.reserve(com.room)
+      -- Go there and sex
+      com:pop()
       local roomPos = room.getPos(com.room)
       com:push("sex")
       com.moveRoom = roomPos.roomNum
       com.moveFloor = roomPos.floorNum
       com:push("moveTo")
-    end,
-    exit = function (com)
-      room.release(com.room)
-      com.room = nil
-    end,
-    update = function (com, dt)
-      com:pop()
     end,
     transition = pass,
   },
@@ -446,6 +478,10 @@ local states = {
       )
       if com.room == nil then
         com:pop()
+        com.happy = true
+        com.thought = "HungryGood"
+        event.notify("sprite.play", com.entity, "thought" .. com.thought)
+        com:push("leave")
         return
       end
       
