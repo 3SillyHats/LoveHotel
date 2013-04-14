@@ -11,6 +11,11 @@ local M = {}
 local pass = function () end
 
 -- Filters
+local cleanFilter = function (com, roomId)
+  local info = room.getInfo(roomId)
+  return (info.dirtyable and
+    room.isDirty(roomId))
+end
 local restockFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.stock and
@@ -381,6 +386,7 @@ local states = {
         com.profit = com.profit + info.profit
         com.satiety = math.min(100, com.satiety + 50)
       end
+      com.waitSuccess = false
     end,
     update = function (com)
       com:pop()
@@ -393,8 +399,65 @@ local states = {
     enter = pass,
     exit = pass,
     update = function (com, dt)
-      if com.subtype == "stocker" then
+      if com.subtype == "cleaner" then
+        com:push("clean")
+      elseif com.subtype == "stocker" then
         com:push("restock")
+      end
+    end,
+    transition = pass,
+  },
+
+  -- CLEANER
+  clean = {
+    enter = function (com)
+      -- Find the nearest dirty room
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        com,
+        myPos.roomNum, myPos.floorNum,
+        cleanFilter
+      )
+      if com.room == nil then
+        com:pop()
+        return
+      end
+      
+      -- Go there and restock
+      room.reserve(com.room)
+      local roomPos = room.getPos(com.room)
+      com:push("cleanRoom")
+      com.moveRoom = roomPos.roomNum
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      room.release(com.room)
+      com.room = nil
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  cleanRoom = {
+    enter = pass,
+    exit = function (com)
+      event.notify("sprite.play", com.room, "cleanless")
+      event.notify("sprite.hide", com.entity, false)
+      if com.waitSuccess then
+        room.setDirty(com.room, false)
+      end
+      com.waitSuccess = false
+    end,
+    update = function (com)
+      if com.waitSuccess then
+        com:pop()
+      else
+        com.waitTime = CLEAN_TIME
+        com:push("wait")
+        event.notify("sprite.hide", com.entity, true)
+        event.notify("sprite.play", com.room, "cleaning")
       end
     end,
     transition = pass,
@@ -433,11 +496,7 @@ local states = {
     transition = pass,
   },
   restockRoom = {
-    enter = function (com)
-      com.waitTime = RESTOCK_TIME
-      com:push("wait")
-      event.notify("sprite.play", com.entity, "stocking")
-    end,
+    enter = pass,
     exit = function (com)
       event.notify("sprite.play", com.entity, "idle")
       local info = room.getInfo(com.room)
@@ -447,9 +506,16 @@ local states = {
         moneyChange(-info.restockCost,
           {roomNum = myPos.roomNum, floorNum = myPos.floorNum})
       end
+      com.waitSuccess = false
     end,
     update = function (com)
-      com:pop()
+      if com.waitSuccess then
+        com:pop()
+      else
+        com.waitTime = RESTOCK_TIME
+        com:push("wait")
+        event.notify("sprite.play", com.entity, "stocking")
+      end
     end,
     transition = pass,
   },
@@ -474,11 +540,15 @@ local update = function (com, dt)
       com.satiety = math.max(0, com.satiety - AI_TICK)
     end
     
-    -- Update states
+    -- Make Idle default state
     if #com.state == 0 then
       com.state[1] = com.type .. "Idle"
     end
+    
+    -- Update top state on stack
     states[com.state[#com.state]].update(com, AI_TICK)
+    
+    -- Check for state transition
     for i,state in ipairs(com.state) do
       newState = states[state].transition(com)
       if newState ~= state and newState ~= nil then
