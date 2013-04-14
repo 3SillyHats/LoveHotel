@@ -394,20 +394,20 @@ local states = {
   sex = {
     enter = pass,
     exit = function (com)
-      local info = room.getInfo(com.room)
-      event.notify("sprite.play", com.room, "opening")
-      event.notify("sprite.play", com.room, "heartless")
-      event.notify("sprite.hide", com.entity, false)
-      if com.waitSuccess then
+      if com.waitSuccess and entity.get(com.room) then
+        local info = room.getInfo(com.room)
         room.setDirty(com.room, true)
         com.money = com.money - info.profit
         com.profit = com.profit + info.profit
         com.horniness = math.max(0, com.horniness - 20)
       end
+      event.notify("sprite.play", com.room, "opening")
+      event.notify("sprite.play", com.room, "heartless")
+      event.notify("sprite.hide", com.entity, false)
       com.waitSuccess = false
     end,
     update = function (com)
-      if com.waitSuccess then
+      if com.waitSuccess or (not entity.get(com.room)) then
         com:pop()
       else
         com.waitTime = SEX_TIME
@@ -453,13 +453,10 @@ local states = {
     transition = pass,
   },
   eat = {
-    enter = function (com)
-      com.waitTime = EAT_TIME
-      com:push("wait")
-    end,
+    enter = pass,
     exit = function (com)
-      local info = room.getInfo(com.room)
-      if com.waitSuccess then
+      if com.waitSuccess and entity.get(com.room) then
+        local info = room.getInfo(com.room)
         room.setStock(com.room, room.getStock(com.room) - 1)
         com.money = com.money - info.profit
         com.profit = com.profit + info.profit
@@ -468,7 +465,12 @@ local states = {
       com.waitSuccess = false
     end,
     update = function (com)
-      com:pop()
+      if com.waitSuccess or (not entity.get(com.room)) then
+        com:pop()
+      else
+        com.waitTime = EAT_TIME
+        com:push("wait")
+      end
     end,
     transition = pass,
   },
@@ -529,17 +531,17 @@ local states = {
   supply = {
     enter = pass,
     exit = function (com)
-      event.notify("sprite.play", com.room, "opening")
-      event.notify("sprite.hide", com.entity, false)
-      local info = room.getInfo(com.room)
-      if com.waitSuccess then
+      if com.waitSuccess and entity.get(com.room) then
+        local info = room.getInfo(com.room)
         room.setStock(com.room, room.getStock(com.room) - 1)
         com.supply = 1
       end
+      event.notify("sprite.play", com.room, "opening")
+      event.notify("sprite.hide", com.entity, false)
       com.waitSuccess = false
     end,
     update = function (com)
-      if com.waitSuccess then
+      if com.waitSuccess or (not entity.get(com.room)) then
         com:pop()
       else
         com.waitTime = SUPPLY_TIME
