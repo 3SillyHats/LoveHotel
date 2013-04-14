@@ -438,7 +438,7 @@ M.getPos = function (id)
   }
 end
 
-M.getNearest = function (roomNum, floorNum, filter)
+M.getNearest = function (com, roomNum, floorNum, filter)
   local rooms = M.all()
   local nearest = nil
   local distance = 2^52 -- maximum integer
@@ -451,7 +451,7 @@ M.getNearest = function (roomNum, floorNum, filter)
       -- d = dist to elevator + floor dist + dist to room
       d = math.abs(pos.floorNum - floorNum) + 14 - (roomNum + pos.roomNum)
     end
-    if d < distance and (not filter or filter(room)) then
+    if d < distance and (not filter or filter(com, room)) then
       nearest = room
       distance = d
     end

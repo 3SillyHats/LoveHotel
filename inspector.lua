@@ -13,6 +13,8 @@ local staff = require("staff")
 --Create the module
 local M = {}
 
+local richestInfo = resource.get("scr/people/space.lua")
+local MAX_MONEY = richestInfo.maxMoney
 local info = {
   condoms = 0,
   money = 0,
@@ -121,7 +123,7 @@ M.new = function (state)
         end
 
         info.condoms = self.target.ai.condoms
-        info.money = self.target.ai.money / 10000 --self.target.ai.info.maxMoney
+        info.money = math.sqrt(self.target.ai.money) / math.sqrt(MAX_MONEY)
         info.patience = self.target.ai.patience / 100
         info.horniness = self.target.ai.horniness / 100
         info.hunger = self.target.ai.satiety / 100

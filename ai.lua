@@ -11,9 +11,10 @@ local M = {}
 local pass = function () end
 
 -- Filters
-local snackFilter = function (roomId)
+local snackFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "vending" and
+    info.profit <= com.money and
     room.reservations(roomId) == 0 and
     room.getStock(roomId) > 0)
 end
@@ -29,6 +30,7 @@ local states = {
       
       -- Check needs
       if com.satiety == 0 then
+        com.happy = false
         com.thought = "HungryBad"
         result = "leave"
       elseif com.satiety < 30 then
@@ -301,8 +303,16 @@ local states = {
       com.moveRoom = -1
       com.moveFloor = 0
       com:push("moveTo")
+      
+      local profit = com.profit
+      if not com.happy then
+        profit = math.floor(profit / 4)
+      end
+      local myPos = transform.getPos(com.entity)
+      moneyChange(profit, {roomNum = myPos.roomNum, floorNum = myPos.floorNum})
     end,
     exit = function (com)
+      
       entity.delete(com.entity)
     end,
     update = function (com, dt)
@@ -330,8 +340,11 @@ local states = {
       com:push("wait")
     end,
     exit = function (com)
+      local info = room.getInfo(com.room)
       if com.waitSuccess then
         room.setStock(com.room, room.getStock(com.room) - 1)
+        com.money = com.money - info.profit
+        com.profit = com.profit + info.profit
         com.satiety = math.min(100, com.satiety + 50)
       end
     end,
@@ -345,6 +358,7 @@ local states = {
       -- Find the nearest food place
       local myPos = transform.getPos(com.entity)
       com.room = room.getNearest(
+        com,
         myPos.roomNum, myPos.floorNum,
         snackFilter
       )
@@ -443,6 +457,7 @@ M.newClient = function (id)
   com.patience = 100
   com.horniness = 80
   com.satiety = 50
+  com.profit = 0
   return com
 end
 
