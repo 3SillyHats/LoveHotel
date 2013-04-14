@@ -3,6 +3,7 @@ local AI_TICK = 0.05
 
 local entity = require("entity")
 local event = require("event")
+local resource = require("resource")
 local room = require("room")
 local transform = require("transform")
 
@@ -314,17 +315,30 @@ local states = {
     exit = pass,
     update = pass,
     transition = function (com)
+      local info = resource.get("scr/people/" .. com.class .. ".lua")
       local result = nil
       com.thought = "None"
       
       -- Check needs
-      if com.satiety == 0 then
+      if com.horniness < 20 then
+        com.happy = true
+        com.thought = "Love"
+        result = "leave"
+      elseif com.money < (info.maxMoney / 10) then
+        com.happy = true
+        com.thought = "Broke"
+        result = "leave"
+      elseif com.satiety == 0 then
+        com.happy = true
+        com.thought = "HungryGood"
+        result = "leave"
+      elseif com.patience == 0 then
         com.happy = false
-        com.thought = "HungryBad"
+        com.thought = "Impatient"
         result = "leave"
       elseif com.satiety < 30 then
         result = "getSnack"
-      elseif com.horniness > 30 then
+      else
         result = "visit"
       end
       
@@ -480,13 +494,13 @@ local states = {
     enter = pass,
     exit = pass,
     update = function (com, dt)
-      if com.subtype == "cleaner" then
+      if com.class == "cleaner" then
         if com.supply == 0 then
           com:push("getSupply")
         else
           com:push("clean")
         end
-      elseif com.subtype == "stocker" then
+      elseif com.class == "stocker" then
         com:push("restock")
       end
     end,
@@ -495,7 +509,7 @@ local states = {
   getSupply = {
     enter = function (com)
       local filter
-      if com.subtype == "cleaner" then
+      if com.class == "cleaner" then
         filter = cleaningSupplyFilter
       end
     
@@ -747,9 +761,9 @@ M.newClient = function (id)
   return com
 end
 
-M.newStaff = function (id, subtype)
+M.newStaff = function (id, class)
   local com = new(id, "staff")
-  com.subtype = subtype
+  com.class = class
   com.supply = 0
   return com
 end
