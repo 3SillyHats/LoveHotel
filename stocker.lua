@@ -60,7 +60,7 @@ local stocker = function (id, cost, t)
     local roomId, type = getRoom()
     if roomId ~= nil then
       local info = resource.get("scr/rooms/" .. string.lower(type) .. ".lua")
-      if info.stock then
+      if info.restockCost then
         broken = false
         if room.isBroken(roomId) then
           broken = true
