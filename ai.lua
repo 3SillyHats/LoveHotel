@@ -40,6 +40,11 @@ local receptionFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "reception")
 end
+local relaxFilter = function (com, roomId)
+  local info = room.getInfo(roomId)
+  return (info.id == "spa" and
+    room.reservations(roomId) == 0)
+end
 local restockFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.restockCost and
@@ -337,17 +342,13 @@ local states = {
       com.thought = "None"
       
       -- Check needs
-      if com.horniness < 20 then
-        com.happy = true
-        com.thought = "Love"
+      if com.patience == 0 then
+        com.happy = false
+        com.thought = "Impatient"
         result = "leave"
       elseif com.money < (info.maxMoney / 10) then
         com.happy = true
         com.thought = "Broke"
-        result = "leave"
-      elseif com.patience == 0 then
-        com.happy = false
-        com.thought = "Impatient"
         result = "leave"
       elseif com.satiety == 0 then
         com.happy = true
@@ -355,6 +356,8 @@ local states = {
         result = "leave"
       elseif com.satiety < 30 then
         result = "getMeal"
+      elseif com.horniness < 20 then
+        result = "relax"
       elseif com.condoms == 0 then
         result = "getCondoms"
       else
@@ -559,6 +562,62 @@ local states = {
         com:pop()
       else
         com.waitTime = SUPPLY_TIME
+        com:push("wait")
+      end
+    end,
+    transition = pass,
+  },
+
+  -- RELAXING
+  relax = {
+    enter = function (com)
+      -- Find the nearest spa
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        com,
+        myPos.roomNum, myPos.floorNum,
+        relaxFilter
+      )
+      if com.room == nil then
+        com:pop()
+        com.happy = true
+        com.thought = "Love"
+        event.notify("sprite.play", com.entity, "thought" .. com.thought)
+        com:push("leave")
+        return
+      end
+      
+      -- Go there and relax
+      room.reserve(com.room)
+      local roomPos = room.getPos(com.room)
+      com:push("useSpa")
+      com.moveRoom = roomPos.roomNum
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      room.release(com.room)
+      com.room = nil
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  useSpa = {
+    enter = pass,
+    exit = function (com)
+      if com.waitSuccess and entity.get(com.room) then
+        local info = room.getInfo(com.room)
+        com.horniness = 100
+      end
+      com.waitSuccess = false
+    end,
+    update = function (com)
+      if com.waitSuccess or (not entity.get(com.room)) then
+        com:pop()
+      else
+        com.waitTime = SEX_TIME
         com:push("wait")
       end
     end,
