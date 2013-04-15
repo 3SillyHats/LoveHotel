@@ -15,7 +15,8 @@ local pass = function () end
 local cleanFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.dirtyable and
-    room.isDirty(roomId))
+  room.isDirty(roomId) and
+  room.reservations(roomId) == 0)
 end
 local cleaningSupplyFilter = function (com, roomId)
   local info = room.getInfo(roomId)
