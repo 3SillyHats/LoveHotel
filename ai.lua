@@ -406,10 +406,13 @@ local states = {
     transition = pass,
   },
   checkIn = {
-    enter = pass,
+    enter = function (com)
+      com.served = false
+    end,
     exit = function (com)
       event.unsubscribe("serve", com.room, com.serveHandler)
       com.serveHandler = nil
+      com.served = nil
     end,
     update = function (com)
       if (not entity.get(com.room)) then
@@ -419,32 +422,36 @@ local states = {
       
       if not com.serveHandler then
         com.serveHandler = function (e)
-          -- Find the nearest suite
-          com.room = nil
-          local myPos = transform.getPos(com.entity)
-          com.room = room.getNearest(
-            com,
-            myPos.roomNum, myPos.floorNum,
-            sexFilter
-          )
-          if com.room == nil then
+          if com.served == false then
+            com.served = true
+            
+            -- Find the nearest suite
+            com.room = nil
+            local myPos = transform.getPos(com.entity)
+            com.room = room.getNearest(
+              com,
+              myPos.roomNum, myPos.floorNum,
+              sexFilter
+            )
+            if com.room == nil then
+              com:pop()
+              return
+            end
+            local roomPos = room.getPos(com.room)
+  
+            -- Go to suite and sex
             com:pop()
-            return
+            com:push("sex")
+            com.moveRoom = roomPos.roomNum
+            com.moveFloor = roomPos.floorNum
+            com:push("moveTo")
+            
+            -- Tell bellhop
+            e.com.querySuccess = true
+            e.com.moveRoom = roomPos.roomNum
+            e.com.moveFloor = roomPos.floorNum
+            e.com:push("moveTo")
           end
-          local roomPos = room.getPos(com.room)
-
-          -- Go to suite and sex
-          com:pop()
-          com:push("sex")
-          com.moveRoom = roomPos.roomNum
-          com.moveFloor = roomPos.floorNum
-          com:push("moveTo")
-          
-          -- Tell bellhop
-          e.com.querySuccess = true
-          e.com.moveRoom = roomPos.roomNum
-          e.com.moveFloor = roomPos.floorNum
-          e.com:push("moveTo")
         end
         event.subscribe("serve", com.entity, com.serveHandler)
       end
