@@ -23,6 +23,12 @@ local cleaningSupplyFilter = function (com, roomId)
     room.getStock(roomId) > 0 and
     room.reservations(roomId) == 0)
 end
+local mealFilter = function (com, roomId)
+  local info = room.getInfo(roomId)
+  return (info.id == "dining" and
+    info.profit <= com.money and
+    room.reservations(roomId) <= room.getStock(roomId))
+end
 local receptionFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "reception")
@@ -331,16 +337,16 @@ local states = {
         com.happy = true
         com.thought = "Broke"
         result = "leave"
-      elseif com.satiety == 0 then
-        com.happy = true
-        com.thought = "HungryGood"
-        result = "leave"
       elseif com.patience == 0 then
         com.happy = false
         com.thought = "Impatient"
         result = "leave"
+      elseif com.satiety == 0 then
+        com.happy = true
+        com.thought = "HungryGood"
+        result = "leave"
       elseif com.satiety < 30 then
-        result = "getSnack"
+        result = "getMeal"
       else
         result = "visit"
       end
@@ -511,7 +517,7 @@ local states = {
       -- Go there and eat
       room.reserve(com.room)
       local roomPos = room.getPos(com.room)
-      com:push("eat")
+      com:push("eatSnack")
       com.moveRoom = roomPos.roomNum
       com.moveFloor = roomPos.floorNum
       com:push("moveTo")
@@ -525,7 +531,7 @@ local states = {
     end,
     transition = pass,
   },
-  eat = {
+  eatSnack = {
     enter = pass,
     exit = function (com)
       if com.waitSuccess and entity.get(com.room) then
@@ -534,6 +540,60 @@ local states = {
         com.money = com.money - info.profit
         com.profit = com.profit + info.profit
         com.satiety = math.min(100, com.satiety + 50)
+      end
+      com.waitSuccess = false
+    end,
+    update = function (com)
+      if com.waitSuccess or (not entity.get(com.room)) then
+        com:pop()
+      else
+        com.waitTime = EAT_TIME
+        com:push("wait")
+      end
+    end,
+    transition = pass,
+  },
+  getMeal = {
+    enter = function (com)
+      -- Find the nearest dining room
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        com,
+        myPos.roomNum, myPos.floorNum,
+        mealFilter
+      )
+      if com.room == nil then
+        com:pop()
+        com:push("getSnack")
+        return
+      end
+      
+      -- Go there (to a random spot) and eat
+      room.reserve(com.room)
+      local roomPos = room.getPos(com.room)
+      com:push("eatMeal")
+      com.moveRoom = roomPos.roomNum - 1.3 + (2.6 * math.random())
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      room.release(com.room)
+      com.room = nil
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  eatMeal = {
+    enter = pass,
+    exit = function (com)
+      if com.waitSuccess and entity.get(com.room) then
+        local info = room.getInfo(com.room)
+        room.setStock(com.room, room.getStock(com.room) - 1)
+        com.money = com.money - info.profit
+        com.profit = com.profit + info.profit
+        com.satiety = 100
       end
       com.waitSuccess = false
     end,
