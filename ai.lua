@@ -410,7 +410,6 @@ local states = {
     exit = function (com)
       event.unsubscribe("serve", com.room, com.serveHandler)
       com.serveHandler = nil
-      com.served = false
     end,
     update = function (com)
       if (not entity.get(com.room)) then
@@ -448,10 +447,9 @@ local states = {
           e.com:push("moveTo")
         end
         event.subscribe("serve", com.entity, com.serveHandler)
-        
-        com.served = false
-        event.notify("queryServe", com.room, {entity = com.entity})
       end
+      
+      event.notify("queryServe", com.room, {entity = com.entity})
     end,
     transition = pass,
   },
@@ -807,7 +805,6 @@ local update = function (com, dt)
   com.timer = com.timer + dt
   if com.timer >= AI_TICK then
     com.timer = com.timer - AI_TICK
-    print(com.type, com.timer)
     
     -- Update needs for clients
     if com.type == "client" then
