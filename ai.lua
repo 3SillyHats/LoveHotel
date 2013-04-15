@@ -447,7 +447,7 @@ local states = {
             com:push("moveTo")
             
             -- Tell bellhop
-            e.com.querySuccess = true
+            e.com:pop()
             e.com.moveRoom = roomPos.roomNum
             e.com.moveFloor = roomPos.floorNum
             e.com:push("moveTo")
@@ -659,17 +659,15 @@ local states = {
     transition = pass,
   },
   serveReception = {
+    -- com:pop() is called by client's checkIn state
     enter = pass,
     exit = function (com)
       event.unsubscribe("queryServe", com.room, com.queryHandler)
       com.room = nil
       com.queryHandler = nil
-      com.querySuccess = nil
     end,
     update = function (com)
-      if com.querySuccess then
-        com:pop()
-      elseif not com.queryHandler then
+      if not com.queryHandler then
         com.queryHandler = function (e)
           event.notify("serve", e.entity, {
             com = com,
@@ -677,7 +675,6 @@ local states = {
           })
         end
         event.subscribe("queryServe", com.room, com.queryHandler)
-        com.querySuccess = false
       end
     end,
     transition = pass,
