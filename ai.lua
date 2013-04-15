@@ -807,6 +807,7 @@ local update = function (com, dt)
   com.timer = com.timer + dt
   if com.timer >= AI_TICK then
     com.timer = com.timer - AI_TICK
+    print(com.type, com.timer)
     
     -- Update needs for clients
     if com.type == "client" then

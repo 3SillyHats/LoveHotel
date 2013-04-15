@@ -171,8 +171,6 @@ M.new = function (type)
   elseif type == "stocker" then
     payCom.wage = STOCKER_WAGE
   end
-  
-  entity.addComponent(id, aiComponent)
 
   local check = function (t)
     local epos = transform.getPos(id)
