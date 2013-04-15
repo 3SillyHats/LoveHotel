@@ -528,7 +528,7 @@ local states = {
   -- CONDOMS
   getCondoms = {
     enter = function (com)
-      -- Find the nearest vending machine
+      -- Find the nearest condom machine
       local myPos = transform.getPos(com.entity)
       com.room = room.getNearest(
         com,
@@ -571,7 +571,7 @@ local states = {
         com.profit = com.profit + info.profit
         com.condoms = 3
       end
-      com.waitSuccess = false
+      com.waitSuccess = nil
     end,
     update = function (com)
       if com.waitSuccess or (not entity.get(com.room)) then
@@ -900,7 +900,7 @@ local states = {
         return
       end
       
-      -- Go there and restock
+      -- Go there and clean
       room.reserve(com.room)
       local roomPos = room.getPos(com.room)
       com:push("cleanRoom")
