@@ -56,8 +56,9 @@ end
 local sexFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.visitable and
+    info.id == com.preference and
     info.profit <= com.money and
-    (not room.isDirty(roomId)) and
+    room.isDirty(roomId) == false and
     room.reservations(roomId) == 0)
 end
 local snackFilter = function (com, roomId)
@@ -445,21 +446,33 @@ local states = {
           if com.served == false then
             com.served = true
             
-            -- Find the nearest suite
+            -- Find the nearest prefered suite
             com.room = nil
             local myPos = transform.getPos(com.entity)
-            com.room = room.getNearest(
-              com,
-              myPos.roomNum, myPos.floorNum,
-              sexFilter
-            )
+            local info = resource.get("scr/people/" .. com.class .. ".lua")
+            for _,preference in ipairs(info.preferences) do
+              com.preference = preference
+              com.room = room.getNearest(
+                com,
+                myPos.roomNum, myPos.floorNum,
+                sexFilter
+              )
+              if com.room ~= nil then break end
+            end
+            com.preference = nil
             if com.room == nil then
               com:pop()
+              e.com:pop()
+              com.happy = false
+              com.thought = "Roomless"
+              event.notify("sprite.play", com.entity, "thought" .. com.thought)
+              com:push("leave")
               return
             end
             local roomPos = room.getPos(com.room)
   
             -- Go to suite and sex
+            room.reserve(com.room)
             com:pop()
             com:push("sex")
             com.moveRoom = roomPos.roomNum
@@ -491,10 +504,12 @@ local states = {
         com.profit = com.profit + info.profit
         com.horniness = math.max(0, com.horniness - 20)
       end
+      room.release(com.room)
       event.notify("sprite.play", com.room, "opening")
       event.notify("sprite.play", com.room, "heartless")
       event.notify("sprite.hide", com.entity, false)
-      com.waitSuccess = false
+      com.room = nil
+      com.waitSuccess = nil
     end,
     update = function (com)
       if com.waitSuccess or (not entity.get(com.room)) then
