@@ -31,6 +31,11 @@ local condomFilter = function (com, roomId)
     room.reservations(roomId) == 0 and
     room.getStock(roomId) > 0)
 end
+local kitchenFilter = function (com, roomId)
+  local info = room.getInfo(roomId)
+  return (info.id == "kitchen" and
+    room.reservations(roomId) == 0)
+end
 local mealFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "dining" and
@@ -52,6 +57,11 @@ local restockFilter = function (com, roomId)
     info.restockCost <= gMoney and
     room.getStock(roomId) <= 1 and
     room.reservations(roomId) == 0)
+end
+local serveFoodFilter = function (com, roomId)
+  local info = room.getInfo(roomId)
+  return (info.id == "dining" and
+    room.getStock(roomId) <= 1)
 end
 local sexFilter = function (com, roomId)
   local info = room.getInfo(roomId)
@@ -762,9 +772,15 @@ local states = {
         com:push("receive")
       elseif com.class == "cleaner" then
         if com.supply == 0 then
-          com:push("getSupply")
+          com:push("getSupplies")
         else
           com:push("clean")
+        end
+      elseif com.class == "cook" then
+        if com.supply == 0 then
+          com:push("cook")
+        else
+          com:push("serveFood")
         end
       elseif com.class == "stocker" then
         com:push("restock")
@@ -772,67 +788,7 @@ local states = {
     end,
     transition = pass,
   },
-  getSupply = {
-    enter = function (com)
-      local filter
-      if com.class == "cleaner" then
-        filter = cleaningSupplyFilter
-      end
-    
-      -- Find the nearest stock room
-      local myPos = transform.getPos(com.entity)
-      com.room = room.getNearest(
-        com,
-        myPos.roomNum, myPos.floorNum,
-        filter
-      )
-      if com.room == nil then
-        com:pop()
-        return
-      end
-      
-      -- Go there and restock
-      room.reserve(com.room)
-      local roomPos = room.getPos(com.room)
-      com:push("supply")
-      com.moveRoom = roomPos.roomNum
-      com.moveFloor = roomPos.floorNum
-      com:push("moveTo")
-    end,
-    exit = function (com)
-      room.release(com.room)
-      com.room = nil
-    end,
-    update = function (com, dt)
-      com:pop()
-    end,
-    transition = pass,
-  },
-  supply = {
-    enter = pass,
-    exit = function (com)
-      if com.waitSuccess and entity.get(com.room) then
-        local info = room.getInfo(com.room)
-        room.setStock(com.room, room.getStock(com.room) - 1)
-        com.supply = 1
-      end
-      event.notify("sprite.play", com.room, "opening")
-      event.notify("sprite.hide", com.entity, false)
-      com.waitSuccess = false
-    end,
-    update = function (com)
-      if com.waitSuccess or (not entity.get(com.room)) then
-        com:pop()
-      else
-        com.waitTime = SUPPLY_TIME
-        com:push("wait")
-        event.notify("sprite.hide", com.entity, true)
-        event.notify("sprite.play", com.room, "closing")
-      end
-    end,
-    transition = pass,
-  },
-  
+
   -- BELLHOP
   receive = {
     enter = function (com)
@@ -942,8 +898,168 @@ local states = {
     end,
     transition = pass,
   },
+  getSupplies = {
+    enter = function (com)
+      -- Find the nearest stock room
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        com,
+        myPos.roomNum, myPos.floorNum,
+        cleaningSupplyFilter
+      )
+      if com.room == nil then
+        com:pop()
+        return
+      end
+      
+      -- Go there and restock
+      room.reserve(com.room)
+      local roomPos = room.getPos(com.room)
+      com:push("useUtility")
+      com.moveRoom = roomPos.roomNum
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      room.release(com.room)
+      com.room = nil
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  useUtility = {
+    enter = pass,
+    exit = function (com)
+      if com.waitSuccess and entity.get(com.room) then
+        local info = room.getInfo(com.room)
+        room.setStock(com.room, room.getStock(com.room) - 1)
+        com.supply = 1
+      end
+      event.notify("sprite.play", com.room, "opening")
+      event.notify("sprite.hide", com.entity, false)
+      com.waitSuccess = false
+    end,
+    update = function (com)
+      if com.waitSuccess or (not entity.get(com.room)) then
+        com:pop()
+      else
+        com.waitTime = SUPPLY_TIME
+        com:push("wait")
+        event.notify("sprite.hide", com.entity, true)
+        event.notify("sprite.play", com.room, "closing")
+      end
+    end,
+    transition = pass,
+  },
 
-  -- RESTOCKER
+  -- MAINTENANCE
+  
+  -- COOK
+  cook = {
+    enter = function (com)
+      -- Find the nearest kitchen
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        com,
+        myPos.roomNum, myPos.floorNum,
+        kitchenFilter
+      )
+      if com.room == nil then
+        com:pop()
+        return
+      end
+      
+      -- Go there and cook
+      room.reserve(com.room)
+      local roomPos = room.getPos(com.room)
+      com:push("useKitchen")
+      com.moveRoom = roomPos.roomNum
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      room.release(com.room)
+      com.room = nil
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  useKitchen = {
+    enter = pass,
+    exit = function (com)
+      event.notify("sprite.play", com.entity, "idle")
+      if com.waitSuccess then
+        com.supply = 8
+      end
+      com.waitSuccess = false
+    end,
+    update = function (com)
+      if com.waitSuccess then
+        com:pop()
+      else
+        com.waitTime = COOK_TIME
+        com:push("wait")
+      event.notify("sprite.play", com.entity, "cooking")
+      end
+    end,
+    transition = pass,
+  },
+  serveFood = {
+    enter = function (com)
+      -- Find the nearest dining room
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        com,
+        myPos.roomNum, myPos.floorNum,
+        serveFoodFilter
+      )
+      if com.room == nil then
+        com:pop()
+        return
+      end
+      
+      -- Go there and restock
+      local roomPos = room.getPos(com.room)
+      com:push("useDining")
+      com.moveRoom = roomPos.roomNum
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      com.room = nil
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  useDining = {
+    enter = pass,
+    exit = function (com)
+      if com.waitSuccess and entity.get(com.room) then
+        local info = room.getInfo(com.room)
+        local newStock = math.min(8, room.getStock(com.room) + com.supply)
+        room.setStock(com.room, newStock)
+        com.supply = 0
+      end
+      com.waitSuccess = false
+    end,
+    update = function (com)
+      if com.waitSuccess or (not entity.get(com.room)) then
+        com:pop()
+      else
+        com.waitTime = SUPPLY_TIME
+        com:push("wait")
+      end
+    end,
+    transition = pass,
+  },
+
+  -- STOCKER
   restock = {
     enter = function (com)
       -- Find the nearest stockable room
