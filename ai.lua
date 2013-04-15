@@ -23,6 +23,13 @@ local cleaningSupplyFilter = function (com, roomId)
     room.getStock(roomId) > 0 and
     room.reservations(roomId) == 0)
 end
+local condomFilter = function (com, roomId)
+  local info = room.getInfo(roomId)
+  return (info.id == "condom" and
+    info.profit <= com.money and
+    room.reservations(roomId) == 0 and
+    room.getStock(roomId) > 0)
+end
 local mealFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "dining" and
@@ -348,6 +355,8 @@ local states = {
         result = "leave"
       elseif com.satiety < 30 then
         result = "getMeal"
+      elseif com.condoms == 0 then
+        result = "getCondoms"
       else
         result = "visit"
       end
@@ -473,6 +482,7 @@ local states = {
       if com.waitSuccess and entity.get(com.room) then
         local info = room.getInfo(com.room)
         room.setDirty(com.room, true)
+        com.condoms = com.condoms - 1
         com.money = com.money - info.profit
         com.profit = com.profit + info.profit
         com.horniness = math.max(0, com.horniness - 20)
@@ -491,6 +501,65 @@ local states = {
         event.notify("sprite.hide", com.entity, true)
         event.notify("sprite.play", com.room, "closing")
         event.notify("sprite.play", com.room, "hearts")
+      end
+    end,
+    transition = pass,
+  },
+
+  -- CONDOMS
+  getCondoms = {
+    enter = function (com)
+      -- Find the nearest vending machine
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        com,
+        myPos.roomNum, myPos.floorNum,
+        condomFilter
+      )
+      if com.room == nil then
+        com:pop()
+        com.happy = false
+        com.thought = "CondomlessBad"
+        event.notify("sprite.play", com.entity, "thought" .. com.thought)
+        com:push("leave")
+        return
+      end
+      
+      -- Go there and buy condoms
+      room.reserve(com.room)
+      local roomPos = room.getPos(com.room)
+      com:push("buyCondoms")
+      com.moveRoom = roomPos.roomNum
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      room.release(com.room)
+      com.room = nil
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  buyCondoms = {
+    enter = pass,
+    exit = function (com)
+      if com.waitSuccess and entity.get(com.room) then
+        local info = room.getInfo(com.room)
+        room.setStock(com.room, room.getStock(com.room) - 1)
+        com.money = com.money - info.profit
+        com.profit = com.profit + info.profit
+        com.condoms = 3
+      end
+      com.waitSuccess = false
+    end,
+    update = function (com)
+      if com.waitSuccess or (not entity.get(com.room)) then
+        com:pop()
+      else
+        com.waitTime = SUPPLY_TIME
+        com:push("wait")
       end
     end,
     transition = pass,
