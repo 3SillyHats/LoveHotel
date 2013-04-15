@@ -35,7 +35,8 @@ local receptionFilter = function (com, roomId)
 end
 local restockFilter = function (com, roomId)
   local info = room.getInfo(roomId)
-  return (info.stock and
+  return (info.restockCost and
+    info.restockCost <= gMoney and
     room.getStock(roomId) <= 1 and
     room.reservations(roomId) == 0)
 end
