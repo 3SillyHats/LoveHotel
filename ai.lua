@@ -803,7 +803,7 @@ end
 
 local update = function (com, dt)
   com.timer = com.timer + dt
-  if com.timer >= AI_TICK then
+  while com.timer >= AI_TICK do
     com.timer = com.timer - AI_TICK
     
     -- Update needs for clients
