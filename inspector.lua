@@ -14,7 +14,7 @@ local staff = require("staff")
 local M = {}
 
 local richestInfo = resource.get("scr/people/space.lua")
-local MAX_MONEY = richestInfo.maxMoney
+local MAX_MONEY = richestInfo.money
 local info = {
   condoms = 0,
   money = 0,

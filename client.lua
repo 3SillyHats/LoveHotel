@@ -184,10 +184,12 @@ M.new = function (t)
     id, pos, {x = 16, y = 30}
   ))
   
-  local aiComponent = ai.newClient(id)
+  local info = resource.get("scr/people/" .. t.category .. ".lua")
+  
+  local aiComponent = ai.newClient(id, info)
   entity.addComponent(id, aiComponent)
   aiComponent.class = t.category
-  aiComponent.moveRoom = 1
+  aiComponent.moveRoom = 3
   aiComponent.moveFloor = 0
   aiComponent:push("moveTo")
 

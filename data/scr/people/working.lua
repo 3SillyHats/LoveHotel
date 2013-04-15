@@ -1,25 +1,17 @@
 return {
   name = "working",
 
-  minHorniness = 50,
-  maxHorniness = 80,
-  minHunger = 10,
-  maxHunger = 20,
-  minSupply = 1,
-  maxSupply = 1,
-  minMoney = 20000,
-  maxMoney = 30000,
-  influence = 1,
+  condoms = 1,
+  money = 25000,
+  horniness = 60,
+  satiety = 90,
 
-  desirability = {
-    utility = 1,
-    missionary = 0,
-    spoon = 0,
-    balloon = 2,
-    moustache = 3,
-    eco = 0,
-    torture = 4,
-    nazifurry = 0,
+  influence = 1,
+  preferences = {
+    "torture",
+    "moustache",
+    "balloon",
+    "utility",
   },
 
   spawnChance = {

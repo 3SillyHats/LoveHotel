@@ -348,7 +348,7 @@ local states = {
         com.happy = false
         com.thought = "Impatient"
         result = "leave"
-      elseif com.money < (info.maxMoney / 10) then
+      elseif com.money < (info.money / 10) then
         com.happy = true
         com.thought = "Broke"
         result = "leave"
@@ -1068,13 +1068,13 @@ local new = function (id, type)
   return com
 end
 
-M.newClient = function (id)
+M.newClient = function (id, info)
   local com = new(id, "client")
-  com.condoms = 0
-  com.money = 10000
-  com.patience = 100
-  com.horniness = 80
-  com.satiety = 50
+  com.condoms = info.condoms
+  com.money = info.money
+  com.patience = info.patience
+  com.horniness = info.horniness
+  com.satiety = info.satiety
   com.profit = 0
   return com
 end
