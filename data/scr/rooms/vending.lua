@@ -4,11 +4,9 @@ return {
   cost = 500,
   width = 1,
   profit = 100,
-  foodSupplies = true,
   stock = 8,
   restockCost = 200,
-  breakable = true,
-  integrity = 4,
+  integrity = 13,
   upkeep = 50,
 
   sprites = {

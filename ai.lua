@@ -28,13 +28,20 @@ local condomFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "condom" and
     info.profit <= com.money and
-    room.reservations(roomId) == 0 and
-    room.getStock(roomId) > 0)
+    room.getStock(roomId) > 0 and
+    room.isBroken(roomId) == false and
+    room.reservations(roomId) == 0)
+end
+local fixFilter = function (com, roomId)
+  local info = room.getInfo(roomId)
+  return (room.isBroken(roomId) and
+  room.assigned(roomId) == 0)
 end
 local freezerFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "freezer" and
     room.getStock(roomId) > 0 and
+    room.isBroken(roomId) == false and
     room.reservations(roomId) == 0)
 end
 local kitchenFilter = function (com, roomId)
@@ -55,6 +62,7 @@ end
 local relaxFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "spa" and
+    room.isBroken(roomId) == false and
     room.reservations(roomId) == 0)
 end
 local restockFilter = function (com, roomId)
@@ -82,8 +90,9 @@ local snackFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "vending" and
     info.profit <= com.money and
-    room.reservations(roomId) == 0 and
-    room.getStock(roomId) > 0)
+    room.getStock(roomId) > 0 and
+    room.isBroken(roomId) == false and
+    room.reservations(roomId) == 0)
 end
 
 local states = {
@@ -582,8 +591,8 @@ local states = {
     enter = pass,
     exit = function (com)
       if com.waitSuccess and entity.get(com.room) then
+        room.use(com.room)
         local info = room.getInfo(com.room)
-        room.setStock(com.room, room.getStock(com.room) - 1)
         com.money = com.money - info.profit
         com.profit = com.profit + info.profit
         com.condoms = 3
@@ -641,7 +650,7 @@ local states = {
     enter = pass,
     exit = function (com)
       if com.waitSuccess and entity.get(com.room) then
-        local info = room.getInfo(com.room)
+        room.use(com.room)
         com.horniness = 100
       end
       com.waitSuccess = false
@@ -698,7 +707,7 @@ local states = {
     exit = function (com)
       if com.waitSuccess and entity.get(com.room) then
         local info = room.getInfo(com.room)
-        room.setStock(com.room, room.getStock(com.room) - 1)
+        room.use(com.room)
         com.money = com.money - info.profit
         com.profit = com.profit + info.profit
         com.satiety = math.min(100, com.satiety + 50)
@@ -789,6 +798,8 @@ local states = {
         else
           com:push("serveFood")
         end
+      elseif com.class == "maintenance" then
+        com:push("fix")
       elseif com.class == "stocker" then
         com:push("restock")
       end
@@ -962,6 +973,58 @@ local states = {
   },
 
   -- MAINTENANCE
+  fix = {
+    enter = function (com)
+      -- Find the nearest broken machine
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        com,
+        myPos.roomNum, myPos.floorNum,
+        fixFilter
+      )
+      if com.room == nil then
+        com:pop()
+        return
+      end
+      
+      -- Go there and fix
+      room.assign(com.room)
+      local roomPos = room.getPos(com.room)
+      com:push("fixMachine")
+      com.moveRoom = roomPos.roomNum
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      room.unassign(com.room)
+      com.room = nil
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  fixMachine = {
+    enter = pass,
+    exit = function (com)
+      event.notify("sprite.play", com.entity, "idle")
+      local info = room.getInfo(com.room)
+      if com.waitSuccess then
+        room.fix(com.room, info.integrity)
+      end
+      com.waitSuccess = false
+    end,
+    update = function (com)
+      if com.waitSuccess then
+        com:pop()
+      else
+        com.waitTime = FIX_TIME
+        com:push("wait")
+        event.notify("sprite.play", com.entity, "fixing")
+      end
+    end,
+    transition = pass,
+  },
   
   -- COOK
   cook = {
@@ -1113,8 +1176,7 @@ local states = {
     enter = pass,
     exit = function (com)
       if com.waitSuccess and entity.get(com.room) then
-        local info = room.getInfo(com.room)
-        room.setStock(com.room, room.getStock(com.room) - 1)
+        room.use(com.room)
         com.frozen = 1
       end
       event.notify("sprite.play", com.room, "closing")

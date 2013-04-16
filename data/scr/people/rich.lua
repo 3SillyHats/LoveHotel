@@ -1,7 +1,7 @@
 return {
   name = "rich",
 
-  condoms = 2,
+  condoms = 0,
   money = 50000,
   horniness = 60,
   satiety = 70,

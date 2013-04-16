@@ -4,11 +4,9 @@ return {
   cost = 1000,
   width = 1,
   profit = 200,
-  condomSupplies = true,
   stock = 8,
   restockCost = 300,
-  breakable = true,
-  integrity = 4,
+  integrity = 13,
   upkeep = 100,
 
   sprites = {

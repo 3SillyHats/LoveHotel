@@ -3,9 +3,6 @@ return {
   name = "Elevator",
   cost = 0,
   width = 1,
-  dirtyable = false,
-  breakable = true,
-  integrity = 32,
   upkeep = 0,
 
   sprites = {

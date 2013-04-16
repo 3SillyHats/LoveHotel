@@ -23,9 +23,8 @@ local infoComponent = function (id, info, pos)
   if info.cleaningSupplies then
     component.stock = info.stock
   end
-  if info.breakable then
-    local integrity = info.integrity + math.random(1, info.integrity)
-    component.integrity = integrity
+  if info.integrity then
+    component.integrity = info.integrity
   end
 
   local check = function (t)
@@ -167,7 +166,7 @@ local infoComponent = function (id, info, pos)
   end
 
   local isBroken = function (callback)
-    if info.breakable then
+    if info.integrity then
       callback(component.integrity <= 0)
     else
       callback(false)
@@ -230,13 +229,13 @@ local infoComponent = function (id, info, pos)
     if component.stock then
       setStock(component.stock - 1)
     end
-    if info.breakable then
+    if info.integrity then
       setIntegrity(component.integrity - 1)
     end
   end
 
   local fix = function (t)
-    if info.breakable then
+    if info.integrity then
       setIntegrity(t.integrity)
     end
   end
@@ -589,7 +588,7 @@ M.setStock = function (id, stock)
 end
 
 M.isBroken = function (id)
-  local broken
+  local broken = false
   event.notify("room.isBroken", id, function (e)
     broken = e
   end)
