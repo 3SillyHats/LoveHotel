@@ -450,8 +450,6 @@ conf.screen = {
   i = 1
 }
 
-love.filesystem.setIdentity("love-hotel")
-
 -- Create the window
 love.graphics.setMode(
   conf.screen.modes[conf.screen.i].width,
