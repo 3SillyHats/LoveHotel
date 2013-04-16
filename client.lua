@@ -245,7 +245,7 @@ end
 
 M.newSpawner = function (type, pos)
   local spawner = entity.new(STATE_PLAY)
-  local itime = 1 --SPAWN_MIN
+  local itime = SPAWN_MIN
 
   local com = entity.newComponent({
     timer = itime,

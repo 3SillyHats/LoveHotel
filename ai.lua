@@ -55,9 +55,10 @@ local mealFilter = function (com, roomId)
     info.profit <= com.money and
     room.reservations(roomId) <= room.getStock(roomId))
 end
-local receptionFilter = function (com, roomId)
+local bellhopFilter = function (com, roomId)
   local info = room.getInfo(roomId)
-  return (info.id == "reception")
+  return (info.id == "reception" and
+  room.assigned(roomId) <= com.limit)
 end
 local relaxFilter = function (com, roomId)
   local info = room.getInfo(roomId)
@@ -93,6 +94,10 @@ local snackFilter = function (com, roomId)
     room.getStock(roomId) > 0 and
     room.isBroken(roomId) == false and
     room.reservations(roomId) == 0)
+end
+local visitFilter = function (com, roomId)
+  local info = room.getInfo(roomId)
+  return (info.id == "reception")
 end
 
 local states = {
@@ -405,6 +410,13 @@ local states = {
     enter = function (com)
       com.moveRoom = -1
       com.moveFloor = 0
+      if com.class == "ground" then
+        com.moveFloor = -8
+      elseif com.class == "sky" then
+        com.moveFloor = 8
+      elseif com.class == "space" then
+        com.moveFloor = 16
+      end
       com:push("moveTo")
       
       local myInfo = resource.get("scr/people/" .. com.class .. ".lua")
@@ -434,7 +446,7 @@ local states = {
       com.room = room.getNearest(
         com,
         myPos.roomNum, myPos.floorNum,
-        receptionFilter
+        visitFilter
       )
       if com.room == nil then
         com:pop()
@@ -505,8 +517,11 @@ local states = {
             end
             com.preference = nil
             if com.room == nil then
-              com:pop()
+              -- Pop serveReception and receive on bellhop
               e.com:pop()
+              e.com:pop()
+            
+              com:pop()
               com.happy = false
               com.thought = "Roomless"
               event.notify("sprite.play", com.entity, "thought" .. com.thought)
@@ -873,17 +888,23 @@ local states = {
     enter = function (com)
       -- Find the nearest reception
       local myPos = transform.getPos(com.entity)
-      com.room = room.getNearest(
-        com,
-        myPos.roomNum, myPos.floorNum,
-        receptionFilter
-      )
+      for i = 0, 8 do
+        com.limit = i
+        com.room = room.getNearest(
+          com,
+          myPos.roomNum, myPos.floorNum,
+          bellhopFilter
+        )
+        if com.room ~= nil then break end
+      end
+      com.limit = nil
       if com.room == nil then
         com:pop()
         return
       end
       
       -- Go there and serve
+      room.assign(com.room)
       local roomPos = room.getPos(com.room)
       com:push("serveReception")
       com.moveRoom = roomPos.roomNum
@@ -891,6 +912,7 @@ local states = {
       com:push("moveTo")
     end,
     exit = function (com)
+      room.unassign(com.room)
       com.room = nil
     end,
     update = function (com, dt)
@@ -903,7 +925,6 @@ local states = {
     enter = pass,
     exit = function (com)
       event.unsubscribe("queryServe", com.room, com.queryHandler)
-      com.room = nil
       com.queryHandler = nil
     end,
     update = function (com)
