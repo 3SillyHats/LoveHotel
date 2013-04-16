@@ -430,6 +430,10 @@ M.all = function ()
   return rooms
 end
 
+M.getCount = function (type)
+  return (gCounts.rooms[type] or 0)
+end
+
 M.getInfo = function (id)
   return roomInfo[id]
 end

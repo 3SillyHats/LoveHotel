@@ -31,6 +31,12 @@ local condomFilter = function (com, roomId)
     room.reservations(roomId) == 0 and
     room.getStock(roomId) > 0)
 end
+local freezerFilter = function (com, roomId)
+  local info = room.getInfo(roomId)
+  return (info.id == "freezer" and
+    room.getStock(roomId) > 0 and
+    room.reservations(roomId) == 0)
+end
 local kitchenFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "kitchen" and
@@ -61,7 +67,8 @@ end
 local serveFoodFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "dining" and
-    room.getStock(roomId) <= 1)
+    room.getStock(roomId) <= (8 - com.meals) and
+    room.assigned(roomId) == 0)
 end
 local sexFilter = function (com, roomId)
   local info = room.getInfo(roomId)
@@ -777,7 +784,7 @@ local states = {
           com:push("clean")
         end
       elseif com.class == "cook" then
-        if com.supply == 0 then
+        if com.meals == 0 then
           com:push("cook")
         else
           com:push("serveFood")
@@ -959,6 +966,12 @@ local states = {
   -- COOK
   cook = {
     enter = function (com)
+      if room.getCount("freezer") > 0 and com.frozen == 0 then
+        com:pop()
+        com:push("getFrozen")
+        return
+      end
+      
       -- Find the nearest kitchen
       local myPos = transform.getPos(com.entity)
       com.room = room.getNearest(
@@ -993,7 +1006,12 @@ local states = {
     exit = function (com)
       event.notify("sprite.play", com.entity, "idle")
       if com.waitSuccess then
-        com.supply = 8
+        if com.frozen > 0 then
+          com.frozen = com.frozen - 1
+          com.meals = 8
+        else
+          com.meals = 2
+        end
       end
       com.waitSuccess = false
     end,
@@ -1023,6 +1041,7 @@ local states = {
       end
       
       -- Go there and restock
+      room.assign(com.room)
       local roomPos = room.getPos(com.room)
       com:push("useDining")
       com.moveRoom = roomPos.roomNum
@@ -1030,6 +1049,7 @@ local states = {
       com:push("moveTo")
     end,
     exit = function (com)
+      room.unassign(com.room)
       com.room = nil
     end,
     update = function (com, dt)
@@ -1042,10 +1062,62 @@ local states = {
     exit = function (com)
       if com.waitSuccess and entity.get(com.room) then
         local info = room.getInfo(com.room)
-        local newStock = math.min(8, room.getStock(com.room) + com.supply)
+        local newStock = math.min(8, room.getStock(com.room) + com.meals)
         room.setStock(com.room, newStock)
-        com.supply = 0
+        com.meals = 0
       end
+      com.waitSuccess = false
+    end,
+    update = function (com)
+      if com.waitSuccess or (not entity.get(com.room)) then
+        com:pop()
+      else
+        com.waitTime = COOK_TIME
+        com:push("wait")
+      end
+    end,
+    transition = pass,
+  },
+  getFrozen = {
+    enter = function (com)
+      -- Find the nearest freezer
+      local myPos = transform.getPos(com.entity)
+      com.room = room.getNearest(
+        com,
+        myPos.roomNum, myPos.floorNum,
+        freezerFilter
+      )
+      if com.room == nil then
+        com:pop()
+        return
+      end
+      
+      -- Go there and get frozen
+      room.reserve(com.room)
+      local roomPos = room.getPos(com.room)
+      com:push("useFreezer")
+      com.moveRoom = roomPos.roomNum
+      com.moveFloor = roomPos.floorNum
+      com:push("moveTo")
+    end,
+    exit = function (com)
+      room.release(com.room)
+      com.room = nil
+    end,
+    update = function (com, dt)
+      com:pop()
+    end,
+    transition = pass,
+  },
+  useFreezer = {
+    enter = pass,
+    exit = function (com)
+      if com.waitSuccess and entity.get(com.room) then
+        local info = room.getInfo(com.room)
+        room.setStock(com.room, room.getStock(com.room) - 1)
+        com.frozen = 1
+      end
+      event.notify("sprite.play", com.room, "closing")
       com.waitSuccess = false
     end,
     update = function (com)
@@ -1054,6 +1126,7 @@ local states = {
       else
         com.waitTime = SUPPLY_TIME
         com:push("wait")
+        event.notify("sprite.play", com.room, "opening")
       end
     end,
     transition = pass,
@@ -1198,7 +1271,12 @@ end
 M.newStaff = function (id, class)
   local com = new(id, "staff")
   com.class = class
-  com.supply = 0
+  if class == "cleaner" then
+    com.supply = 0
+  elseif class == "cook" then
+    com.frozen = 0
+    com.meals = 0
+  end
   return com
 end
 
