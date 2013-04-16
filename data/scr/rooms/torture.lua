@@ -3,7 +3,7 @@ return {
   name = "Torture Room",
   cost = 20000,
   profit = 10000,
-  reputation = 15,
+  desirability = 15,
   width = 4,
   dirtyable = true,
   visitable = true,

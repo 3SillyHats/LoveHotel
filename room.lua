@@ -142,11 +142,8 @@ local infoComponent = function (id, info, pos)
   end
 
   local occupy = function (e)
-    if component.occupied < 2 then
+    if component.occupied < 1 then
       component.occupied = component.occupied + 1
-      if component.occupied == 2 then
-        event.notify("sprite.play", id, "closing")
-      end
       e.callback(true)
     else
       e.callback(false)
@@ -156,9 +153,6 @@ local infoComponent = function (id, info, pos)
   local depart = function (e)
     if component.occupied > 0 then
       component.occupied = component.occupied - 1
-    end
-    if info.dirtyable and not component.messy then
-      component.messy = true
     end
     if component.occupied <= 0 then
       component.occupied = 0

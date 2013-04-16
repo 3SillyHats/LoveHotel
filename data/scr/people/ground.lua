@@ -5,7 +5,9 @@ return {
   money = 10000,
   horniness = 90,
   satiety = 100,
-  
+
+  demandsCondoms = true,
+  demandsFood = true,
   influence = 1,
   preferences = {
     "torture",

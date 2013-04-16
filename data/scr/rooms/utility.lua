@@ -3,7 +3,7 @@ return {
   name = "Supply Closet",
   cost = 200,
   profit = 100,
-  reputation = -2,
+  desirability = -2,
   width = 1,
   dirtyable = false,
   visitable = true,

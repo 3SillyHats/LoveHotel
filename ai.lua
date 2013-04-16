@@ -375,8 +375,13 @@ local states = {
         com.thought = "Broke"
         result = "leave"
       elseif com.satiety == 0 then
-        com.happy = true
-        com.thought = "HungryGood"
+        if info.demandsFood then
+          com.happy = false
+          com.thought = "HungryBad"
+        else
+          com.happy = true
+          com.thought = "HungryGood"
+        end
         result = "leave"
       elseif com.satiety < 30 then
         result = "getMeal"
@@ -402,12 +407,13 @@ local states = {
       com.moveFloor = 0
       com:push("moveTo")
       
-      local profit = com.profit
-      if not com.happy then
-        profit = math.floor(profit / 4)
+      local myInfo = resource.get("scr/people/" .. com.class .. ".lua")
+      if com.happy == false then
+        com.profit = math.floor(com.profit / 4)
+        reputationChange(myInfo.influence * -5)
       end
       local myPos = transform.getPos(com.entity)
-      moneyChange(profit, {roomNum = myPos.roomNum, floorNum = myPos.floorNum})
+      moneyChange(com.profit, {roomNum = myPos.roomNum, floorNum = myPos.floorNum})
     end,
     exit = function (com)
       
@@ -418,7 +424,7 @@ local states = {
     end,
     transition = pass,
   },
-  
+
   -- SEXING
   visit = {
     enter = function (com)
@@ -534,12 +540,15 @@ local states = {
     enter = pass,
     exit = function (com)
       if com.waitSuccess and entity.get(com.room) then
-        local info = room.getInfo(com.room)
+        local myInfo = resource.get("scr/people/" .. com.class .. ".lua")
+        local roomInfo = room.getInfo(com.room)
+        room.exit(com.room)
         room.setDirty(com.room, true)
         com.condoms = com.condoms - 1
-        com.money = com.money - info.profit
-        com.profit = com.profit + info.profit
         com.horniness = math.max(0, com.horniness - 20)
+        com.money = com.money - roomInfo.profit
+        com.profit = com.profit + roomInfo.profit
+        reputationChange(myInfo.influence * roomInfo.desirability)
       end
       room.release(com.room)
       event.notify("sprite.play", com.room, "opening")
@@ -557,6 +566,7 @@ local states = {
         event.notify("sprite.hide", com.entity, true)
         event.notify("sprite.play", com.room, "closing")
         event.notify("sprite.play", com.room, "hearts")
+        room.enter(com.room)
       end
     end,
     transition = pass,
@@ -574,8 +584,14 @@ local states = {
       )
       if com.room == nil then
         com:pop()
-        com.happy = false
-        com.thought = "CondomlessBad"
+        local myInfo = resource.get("scr/people/" .. com.class .. ".lua")
+        if myInfo.demandsCondoms then
+          com.happy = false
+          com.thought = "CondomlessBad"
+        else
+          com.happy = true
+          com.thought = "CondomlessGood"
+        end
         event.notify("sprite.play", com.entity, "thought" .. com.thought)
         com:push("leave")
         return
@@ -661,8 +677,12 @@ local states = {
     enter = pass,
     exit = function (com)
       if com.waitSuccess and entity.get(com.room) then
+        local myInfo = resource.get("scr/people/" .. com.class .. ".lua")
+        local roomInfo = room.getInfo(com.room)
+        room.exit(com.room)
         room.use(com.room)
         com.horniness = 100
+        reputationChange(myInfo.influence * roomInfo.desirability)
       end
       com.waitSuccess = false
     end,
@@ -672,6 +692,7 @@ local states = {
       else
         com.waitTime = SEX_TIME
         com:push("wait")
+        room.enter(com.room)
       end
     end,
     transition = pass,
@@ -905,6 +926,7 @@ local states = {
   cleanRoom = {
     enter = pass,
     exit = function (com)
+      room.exit(com.room)
       event.notify("sprite.play", com.room, "opening")
       event.notify("sprite.play", com.room, "cleanless")
       event.notify("sprite.hide", com.entity, false)
@@ -915,7 +937,7 @@ local states = {
       com.waitSuccess = false
     end,
     update = function (com)
-      if com.waitSuccess then
+      if com.waitSuccess or (not entity.get(com.room)) then
         com:pop()
       else
         com.waitTime = CLEAN_TIME
@@ -923,6 +945,7 @@ local states = {
         event.notify("sprite.play", com.room, "closing")
         event.notify("sprite.hide", com.entity, true)
         event.notify("sprite.play", com.room, "cleaning")
+        room.enter(com.room)
       end
     end,
     transition = pass,
@@ -1026,7 +1049,7 @@ local states = {
       com.waitSuccess = false
     end,
     update = function (com)
-      if com.waitSuccess then
+      if com.waitSuccess or (not entity.get(com.room)) then
         com:pop()
       else
         com.waitTime = FIX_TIME

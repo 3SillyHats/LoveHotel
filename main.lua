@@ -371,7 +371,7 @@ gFont = love.graphics.newImageFont(
 
 -- Update menu tooltips (get names, costs of rooms)
 local maxProfit = math.sqrt(resource.get("scr/rooms/nazifurry.lua").profit)
-local maxRep = resource.get("scr/rooms/spa.lua").reputation
+local maxRep = resource.get("scr/rooms/spa.lua").desirability
 for _,fname in ipairs(love.filesystem.enumerate("data/scr/rooms/")) do
   local room = resource.get("scr/rooms/" .. fname)
   conf.menu[room.id] = {
@@ -381,8 +381,8 @@ for _,fname in ipairs(love.filesystem.enumerate("data/scr/rooms/")) do
   if room.profit then
     conf.menu[room.id].profit = math.sqrt(room.profit) / maxProfit
   end
-  if room.reputation then
-    conf.menu[room.id].rep = math.max(0, room.reputation) / maxRep
+  if room.desirability then
+    conf.menu[room.id].rep = math.max(0, room.desirability) / maxRep
   end
 end
 
@@ -1742,6 +1742,7 @@ love.update = function (dt)
   if not initialised then
     init()
   end
+  
   local dt = dt * gGameSpeed
   entity.update(dt)
   input.update(dt)

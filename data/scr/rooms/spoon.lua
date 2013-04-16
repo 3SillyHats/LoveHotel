@@ -3,7 +3,7 @@ return {
   name = "Spooning",
   cost = 2500,
   profit = 2000,
-  reputation = 5,
+  desirability = 5,
   width = 2,
   dirtyable = true,
   visitable = true,

@@ -3,7 +3,7 @@ return {
   name = "Choc 'tache",
   cost = 8000,
   profit = 4000,
-  reputation = 12,
+  desirability = 12,
   width = 2,
   dirtyable = true,
   visitable = true,

@@ -6,6 +6,8 @@ return {
   horniness = 60,
   satiety = 90,
 
+  demandsCondoms = true,
+  demandsFood = true,
   influence = 1,
   preferences = {
     "torture",
