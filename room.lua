@@ -23,9 +23,8 @@ local infoComponent = function (id, info, pos)
   if info.cleaningSupplies then
     component.stock = info.stock
   end
-  if info.breakable then
-    local integrity = info.integrity + math.random(1, info.integrity)
-    component.integrity = integrity
+  if info.integrity then
+    component.integrity = info.integrity
   end
 
   local check = function (t)
@@ -58,6 +57,11 @@ local infoComponent = function (id, info, pos)
 
   local setDirty = function (value)
     component.messy = value
+    if value then
+      event.notify("sprite.play", id, "dirty")
+    else
+      event.notify("sprite.play", id, "clean")
+    end
   end
 
   local checkOccupied = function (callback)
@@ -110,9 +114,9 @@ local infoComponent = function (id, info, pos)
     setReservations(component.reservations - 1)
   end
 
-  local propogate_res
+  local propagate_res
   if info.id == "elevator" then
-    propogate_res = function (e)
+    propagate_res = function (e)
       if e.pos.roomNum == pos.roomNum and
           (e.pos.floorNum == pos.floorNum - 1 or e.pos.floorNum == pos.floorNum + 1) and
           e.reservations ~= component.reservations and
@@ -120,7 +124,7 @@ local infoComponent = function (id, info, pos)
         setReservations(e.reservations)
       end
     end
-    event.subscribe("room.reservationChange", 0, propogate_res)
+    event.subscribe("room.reservationChange", 0, propagate_res)
   end
 
   local checkReservations = function (callback)
@@ -138,11 +142,8 @@ local infoComponent = function (id, info, pos)
   end
 
   local occupy = function (e)
-    if component.occupied < 2 then
+    if component.occupied < 1 then
       component.occupied = component.occupied + 1
-      if component.occupied == 2 then
-        event.notify("sprite.play", id, "closing")
-      end
       e.callback(true)
     else
       e.callback(false)
@@ -153,16 +154,13 @@ local infoComponent = function (id, info, pos)
     if component.occupied > 0 then
       component.occupied = component.occupied - 1
     end
-    if info.dirtyable and not component.messy then
-      component.messy = true
-    end
     if component.occupied <= 0 then
       component.occupied = 0
     end
   end
 
   local isBroken = function (callback)
-    if info.breakable then
+    if info.integrity then
       callback(component.integrity <= 0)
     else
       callback(false)
@@ -225,20 +223,20 @@ local infoComponent = function (id, info, pos)
     if component.stock then
       setStock(component.stock - 1)
     end
-    if info.breakable then
+    if info.integrity then
       setIntegrity(component.integrity - 1)
     end
   end
 
   local fix = function (t)
-    if info.breakable then
+    if info.integrity then
       setIntegrity(t.integrity)
     end
   end
 
-  local propogate
+  local propagate
   if info.id == "elevator" then
-    propogate = function (e)
+    propagate = function (e)
       if e.pos.roomNum == pos.roomNum and
           (e.pos.floorNum == pos.floorNum - 1 or e.pos.floorNum == pos.floorNum + 1) and
           e.integrity ~= component.integrity and
@@ -246,7 +244,7 @@ local infoComponent = function (id, info, pos)
         setIntegrity(e.integrity)
       end
     end
-    event.subscribe("room.integrityChange", 0, propogate)
+    event.subscribe("room.integrityChange", 0, propagate)
   end
 
   local function delete ()
@@ -272,8 +270,8 @@ local infoComponent = function (id, info, pos)
     event.unsubscribe("room.isBroken", id, isBroken)
     event.unsubscribe("room.use", id, use)
     event.unsubscribe("room.fix", id, fix)
-    event.unsubscribe("room.integrityChange", 0, propogate)
-    event.unsubscribe("room.reservationChange", 0, propogate_res)
+    event.unsubscribe("room.integrityChange", 0, propagate)
+    event.unsubscribe("room.reservationChange", 0, propagate_res)
     event.unsubscribe("delete", id, delete)
   end
 
@@ -417,12 +415,16 @@ M.new = function (state, roomType, pos)
   return roomId
 end
 
-M.all = function (id)
+M.all = function ()
   local rooms = {}
-  event.notify("room.all", id, function (id, type)
+  event.notify("room.all", 0, function (id, type)
     table.insert(rooms, id)
   end)
   return rooms
+end
+
+M.getCount = function (type)
+  return (gCounts.rooms[type] or 0)
 end
 
 M.getInfo = function (id)
@@ -436,6 +438,27 @@ M.getPos = function (id)
     roomNum = pos.roomNum + width/2 - 0.5,
     floorNum = pos.floorNum,
   }
+end
+
+M.getNearest = function (com, roomNum, floorNum, filter)
+  local rooms = M.all()
+  local nearest = nil
+  local distance = 2^52 -- maximum integer
+  for _,room in ipairs(rooms) do
+    local pos = M.getPos(room)
+    local d
+    if pos.floorNum == floorNum then
+      d = math.abs(pos.roomNum - roomNum)
+    else
+      -- d = dist to elevator + floor dist + dist to room
+      d = math.abs(pos.floorNum - floorNum) + 14 - (roomNum + pos.roomNum)
+    end
+    if d < distance and (not filter or filter(com, room)) then
+      nearest = room
+      distance = d
+    end
+  end
+  return nearest
 end
 
 M.isDirty = function (id)
@@ -559,7 +582,7 @@ M.setStock = function (id, stock)
 end
 
 M.isBroken = function (id)
-  local broken
+  local broken = false
   event.notify("room.isBroken", id, function (e)
     broken = e
   end)

@@ -1,13 +1,13 @@
 return {
-  id = "eco",
-  name = "Eco Room",
-  cost = 40000,
-  profit = 16000,
-  reputation = 20,
-  width = 5,
+  id = "nazifurry",
+  name = "Nazi Furry",
+  cost = 66600,
+  profit = 20000,
+  desirability = 17,
+  width = 3,
   dirtyable = true,
   visitable = true,
-  upkeep = 4000,
+  upkeep = 6660,
 
   sprites = {
     {

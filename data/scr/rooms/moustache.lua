@@ -1,13 +1,13 @@
 return {
-  id = "torture",
-  name = "Torture Room",
-  cost = 20000,
-  profit = 10000,
-  reputation = 15,
-  width = 4,
+  id = "moustache",
+  name = "Choc 'tache",
+  cost = 8000,
+  profit = 4000,
+  desirability = 12,
+  width = 2,
   dirtyable = true,
   visitable = true,
-  upkeep = 2000,
+  upkeep = 800,
 
   sprites = {
     {
@@ -63,18 +63,18 @@ return {
           speed = 1,
         },
         closed = {
-          first = 3,
-          last = 3,
+          first = 4,
+          last = 4,
           speed = 1,
         },
         closing = {
           first = 0,
-          last = 3,
+          last = 4,
           speed = 0.2,
           goto = "closed",
         },
         opening = {
-          first = 3,
+          first = 4,
           last = 0,
           speed = 0.2,
           goto = "opened",

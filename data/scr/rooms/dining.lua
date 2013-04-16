@@ -1,14 +1,12 @@
 return {
-  id = "freezer",
-  name = "Freezer",
-  cost = 20000,
-  width = 2,
-  cookingSupplies = true,
+  id = "dining",
+  name = "Dining Room",
+  cost = 5000,
+  profit = 4000,
+  reputation = 10,
+  width = 3,
   stock = 8,
-  restockCost = 5000,
-  breakable = true,
-  integrity = 8,
-  upkeep = 2000,
+  upkeep = 500,
 
   sprites = {
     {
@@ -23,7 +21,7 @@ return {
           first = 1,
           last = 1,
           speed = 1,
-        },
+        },     
         stocked6 = {
           first = 2,
           last = 2,
@@ -59,41 +57,8 @@ return {
           last = 8,
           speed = 1,
         },
-        broken = {
-          first = 9,
-          last = 13,
-          speed = 0.2,
-        }
       },
       playing = "stocked8",
-    },
-   {
-      name = "door",
-      animations = {
-        opened = {
-          first = 0,
-          last = 0,
-          speed = 1,
-        },
-        closed = {
-          first = 3,
-          last = 3,
-          speed = 1,
-        },
-        closing = {
-          first = 0,
-          last = 3,
-          speed = 0.2,
-          goto = "closed",
-        },
-        opening = {
-          first = 3,
-          last = 0,
-          speed = 0.2,
-          goto = "opened",
-        },
-      },
-      playing = "closed",
     },
   },
 }

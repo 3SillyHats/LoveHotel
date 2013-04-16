@@ -1,15 +1,13 @@
 return {
-  id = "condom",
-  name = "Condom Mach.",
-  cost = 1000,
+  id = "vending",
+  name = "Vending Mach.",
+  cost = 500,
   width = 1,
-  profit = 200,
-  condomSupplies = true,
+  profit = 100,
   stock = 8,
-  restockCost = 300,
-  breakable = true,
-  integrity = 4,
-  upkeep = 100,
+  restockCost = 200,
+  integrity = 13,
+  upkeep = 50,
 
   sprites = {
     {
@@ -19,17 +17,17 @@ return {
           first = 0,
           last = 0,
           speed = 1,
-        },
-         stocked7 = {
+        },     
+        stocked7 = {
           first = 1,
           last = 1,
           speed = 1,
-        },     
+        },
         stocked6 = {
           first = 2,
           last = 2,
           speed = 1,
-        },
+        },     
         stocked5 = {
           first = 3,
           last = 3,
@@ -40,16 +38,16 @@ return {
           last = 4,
           speed = 1,
         },
-         stocked3 = {
+        stocked3 = {
           first = 5,
           last = 5,
           speed = 1,
-        },     
+        },
         stocked2 = {
           first = 6,
           last = 6,
           speed = 1,
-        },
+        },     
         stocked1 = {
           first = 7,
           last = 7,
@@ -64,7 +62,7 @@ return {
           first = 10,
           last = 11,
           speed = 0.5,
-        }
+        },
       },
       playing = "stocked8",
     },

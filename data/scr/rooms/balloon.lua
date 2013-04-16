@@ -1,13 +1,13 @@
 return {
-  id = "nazifurry",
-  name = "Nazi Furry",
-  cost = 66600,
-  profit = 20000,
-  reputation = 17,
+  id = "balloon",
+  name = "Balloons",
+  cost = 5000,
+  profit = 3000,
+  desirability = 10,
   width = 3,
   dirtyable = true,
   visitable = true,
-  upkeep = 6660,
+  upkeep = 500,
 
   sprites = {
     {

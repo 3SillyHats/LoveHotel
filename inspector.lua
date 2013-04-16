@@ -13,6 +13,8 @@ local staff = require("staff")
 --Create the module
 local M = {}
 
+local richestInfo = resource.get("scr/people/space.lua")
+local MAX_MONEY = richestInfo.money
 local info = {
   condoms = 0,
   money = 0,
@@ -56,7 +58,7 @@ M.new = function (state)
   event.notify("menu.info", 0, unselectedInfo)
 
   local getNext = function (self, scale)
-    local clients = client.getLeaders()
+    local clients = client.getAll()
     local minPosA = 20
     local minEntA = nil
     local minPosB = 20
@@ -120,11 +122,11 @@ M.new = function (state)
           event.notify("scroll", 0, floor)
         end
 
-        info.condoms = self.target.ai.supply
-        info.money = self.target.ai.money / self.target.ai.info.maxMoney
+        info.condoms = self.target.ai.condoms
+        info.money = math.sqrt(self.target.ai.money) / math.sqrt(MAX_MONEY)
         info.patience = self.target.ai.patience / 100
-        info.horniness = self.target.ai.needs.horniness / 100
-        info.hunger = math.max(0, (100 - self.target.ai.needs.hunger) / 100)
+        info.horniness = self.target.ai.horniness / 100
+        info.hunger = self.target.ai.satiety / 100
 
         event.notify("menu.info", 0, {
           inspector = info,

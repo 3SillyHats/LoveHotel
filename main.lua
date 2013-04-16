@@ -20,10 +20,8 @@ STATE_ACHIEVMENTS = 7
 STATE_LOSE = 8
 STATE_CREDITS = 9
 
-PERSON_MOVE = 1
-ELEVATOR_MOVE = 1.2
-BELLHOP_DISTANCE = 0.8
-FOLLOW_DISTANCE = 0.4
+PERSON_SPEED = 1
+ELEVATOR_SPEED = 1.2
 
 UPKEEP_PERIOD = 60
 
@@ -44,9 +42,9 @@ STAFF_MAX = {
 SEX_HORNINESS = 20
 
 SEX_TIME = 16
+CHECKIN_TIME = 0.5
 CLEAN_TIME = 8
 SUPPLY_TIME = 2
-CONDOM_TIME = 2
 EAT_TIME = 4
 FIX_TIME = 8
 COOK_TIME = 16
@@ -113,7 +111,6 @@ local staffer = require("staffer")
 local staff = require("staff")
 local client = require("client")
 local transform = require("transform")
-local path = require("path")
 local decision = require("decision")
 
 local thousandify = function (str)
@@ -250,12 +247,12 @@ local alertCom = entity.newComponent({
   end,
   draw = function (self)
     if self.alert then
-      love.graphics.setColor(0, 0, 0)
-      love.graphics.rectangle("fill", 0, 112, 256, 12)
+      love.graphics.setColor(140, 24, 0)
+      love.graphics.rectangle("fill", 0, 180, 256, 12)
       love.graphics.setColor(255, 255, 255)
       love.graphics.printf(
         string.format(self.messages[self.alert], self.arg), -- string
-        0, 114, -- x, y
+        0, 182, -- x, y
         256, -- width
         "center" -- alignment
       )
@@ -374,8 +371,8 @@ gFont = love.graphics.newImageFont(
 
 -- Update menu tooltips (get names, costs of rooms)
 local maxProfit = math.sqrt(resource.get("scr/rooms/nazifurry.lua").profit)
-local maxRep = resource.get("scr/rooms/spa.lua").reputation
-for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
+local maxRep = resource.get("scr/rooms/spa.lua").desirability
+for _,fname in ipairs(love.filesystem.enumerate("data/scr/rooms/")) do
   local room = resource.get("scr/rooms/" .. fname)
   conf.menu[room.id] = {
     name = room.name,
@@ -384,8 +381,8 @@ for _,fname in ipairs(love.filesystem.enumerate("resources/scr/rooms/")) do
   if room.profit then
     conf.menu[room.id].profit = math.sqrt(room.profit) / maxProfit
   end
-  if room.reputation then
-    conf.menu[room.id].rep = math.max(0, room.reputation) / maxRep
+  if room.desirability then
+    conf.menu[room.id].rep = math.max(0, room.desirability) / maxRep
   end
 end
 
@@ -828,14 +825,6 @@ menu.addButton(gui, menu.newButton("services", function ()
     --Condom machine
     menu.addButton(submenu, menu.newButton("condom", function ()
       buildRoom("condom", submenu)
-    end))
-  else
-    addLockButton(submenu)
-  end
-  if gStars >= 3 then
-    --Reception
-    menu.addButton(submenu, menu.newButton("reception", function ()
-      buildRoom("reception", submenu)
     end))
   else
     addLockButton(submenu)
@@ -1748,6 +1737,7 @@ love.update = function (dt)
   if not initialised then
     init()
   end
+  
   local dt = dt * gGameSpeed
   entity.update(dt)
   input.update(dt)

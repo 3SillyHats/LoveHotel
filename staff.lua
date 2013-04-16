@@ -16,7 +16,7 @@ M.new = function (type)
   entity.setOrder(id, 50)
   isMale = math.random() < .5  --randomize male or female
 
-  local prefix = "resources/img/people"
+  local prefix = "data/img/people"
   local nudeimg
   local hairimg
   local staffimg
@@ -32,8 +32,8 @@ M.new = function (type)
   local nudes = love.filesystem.enumerate(nudeimg)
   local hairs = love.filesystem.enumerate(hairimg)
   nudeimg = nudeimg .. nudes[math.random(1,#nudes)]
-  nudeimg = string.sub(nudeimg,10)  -- remove "resources/"
-  hairimg = string.sub(hairimg,10)
+  nudeimg = string.sub(nudeimg,5)  -- remove "data/"
+  hairimg = string.sub(hairimg,5)
   local haircolour = math.random(0,3)
 
   --add skin
@@ -149,89 +149,28 @@ M.new = function (type)
   }
   entity.addComponent(id, payCom)
 
-  local aiComponent = ai.new(id)
-  aiComponent.type = type
+  local aiComponent = ai.newStaff(id, type)
+  entity.addComponent(id, aiComponent)
+  aiComponent.moveRoom = 1
+  aiComponent.moveFloor = 0
+  aiComponent:push("moveTo")
     
   -- update global staff totals
   gStaffTotals[type] = gStaffTotals[type] + 1
   aiComponent.staffNum = gStaffTotals[type]
   
-  local addRoomGoal
-  -- Type-specific initialisation
+   -- Type-specific initialisation
   if type == "cleaner" then
     payCom.wage = CLEANER_WAGE
-
-    -- start with no cleaning supplies
-    aiComponent.supply = 0
-
-    addRoomGoal = function (id)
-      local info = room.getInfo(id)
-      if info.dirtyable then
-        aiComponent:addCleanGoal(id)
-      elseif info.cleaningSupplies then
-        aiComponent:addSupplyGoal(id)
-      end
-    end
   elseif type == "bellhop" then
     payCom.wage = BELLHOP_WAGE
-
-    addRoomGoal = function (id)
-      local info = room.getInfo(id)
-      if info.reception then
-        aiComponent:addBellhopGoal(id)
-      end
-    end
   elseif type == "cook" then
     payCom.wage = COOK_WAGE
-
-    -- start with no cooking supplies
-    aiComponent.supply = 0
-    aiComponent.hasMeal = 0
-
-    addRoomGoal = function (id)
-      local info = room.getInfo(id)
-      if info.id == "dining" then
-        aiComponent:addWaiterGoal(id)
-      elseif info.id == "kitchen" then
-        aiComponent:addCookGoal(id)
-      elseif info.cookingSupplies then
-        aiComponent:addIngredientsGoal(id)
-      end
-    end
-
-    aiComponent:addServeMealGoal()
   elseif type == "maintenance" then
     payCom.wage = MAINTENANCE_WAGE
-
-    addRoomGoal = function (id)
-      local info = room.getInfo(id)
-      if info.breakable then
-        aiComponent:addMaintenanceGoal(id)
-      end
-    end
   elseif type == "stocker" then
     payCom.wage = STOCKER_WAGE
-
-    addRoomGoal = function (id)
-      local info = room.getInfo(id)
-      if info.stock then
-        aiComponent:addStockGoal(id)
-      end
-    end
   end
-
-  event.notify("room.all", 0, function (id,type)
-    addRoomGoal(id)
-  end)
-  local onBuild = function (t)
-    addRoomGoal(t.id)
-  end
-  event.subscribe("build", 0, onBuild)
-
-  aiComponent:addEnterGoal() -- First goal: enter building
-  aiComponent:addWanderGoal()
-  aiComponent:addFiredGoal()
-  entity.addComponent(id, aiComponent)
 
   local check = function (t)
     local epos = transform.getPos(id)

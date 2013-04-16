@@ -1,11 +1,9 @@
 return {
-  id = "dining",
-  name = "Dining Room",
-  cost = 5000,
-  profit = 4000,
-  reputation = 10,
+  id = "reception",
+  name = "Reception",
+  cost = 0,
   width = 3,
-  upkeep = 500,
+  upkeep = 0,
 
   sprites = {
     {

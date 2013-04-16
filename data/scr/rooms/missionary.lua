@@ -1,13 +1,13 @@
 return {
-  id = "balloon",
-  name = "Balloons",
-  cost = 5000,
-  profit = 3000,
-  reputation = 10,
-  width = 3,
+  id = "missionary",
+  name = "Missionary",
+  cost = 1000,
+  profit = 800,
+  desirability = 10,
+  width = 2,
   dirtyable = true,
   visitable = true,
-  upkeep = 500,
+  upkeep = 100,
 
   sprites = {
     {
@@ -63,18 +63,18 @@ return {
           speed = 1,
         },
         closed = {
-          first = 3,
-          last = 3,
+          first = 4,
+          last = 4,
           speed = 1,
         },
         closing = {
           first = 0,
-          last = 3,
+          last = 4,
           speed = 0.2,
           goto = "closed",
         },
         opening = {
-          first = 3,
+          first = 4,
           last = 0,
           speed = 0.2,
           goto = "opened",

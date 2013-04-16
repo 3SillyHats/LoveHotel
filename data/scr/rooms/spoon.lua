@@ -1,13 +1,13 @@
 return {
-  id = "missionary",
-  name = "Missionary",
-  cost = 1000,
-  profit = 800,
-  reputation = 10,
+  id = "spoon",
+  name = "Spooning",
+  cost = 2500,
+  profit = 2000,
+  desirability = 5,
   width = 2,
   dirtyable = true,
   visitable = true,
-  upkeep = 100,
+  upkeep = 250,
 
   sprites = {
     {
@@ -63,18 +63,18 @@ return {
           speed = 1,
         },
         closed = {
-          first = 4,
-          last = 4,
+          first = 3,
+          last = 3,
           speed = 1,
         },
         closing = {
           first = 0,
-          last = 4,
+          last = 3,
           speed = 0.2,
           goto = "closed",
         },
         opening = {
-          first = 4,
+          first = 3,
           last = 0,
           speed = 0.2,
           goto = "opened",
