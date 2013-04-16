@@ -816,6 +816,35 @@ local states = {
     enter = pass,
     exit = pass,
     update = function (com, dt)
+      -- IDLE WANDER
+      com.idleTimer = com.idleTimer - dt
+      if com.idleTimer <= 0 then
+        com.idleTimer = math.random(1, 4)
+        if math.random() < 0.5 then
+          com.facingLeft = true
+        else
+          com.facingLeft = false
+        end
+      end
+      event.notify("sprite.flip", com.entity, com.facingLeft)
+      event.notify("sprite.play", com.entity, "walking")
+      local delta = 1
+      if com.facingLeft then
+        delta = -1
+      end
+      local pos = transform.getPos(com.entity)
+      local newPos = {
+        roomNum = pos.roomNum + (delta * dt),
+        floorNum = pos.floorNum,
+      }
+      if newPos.roomNum < 1 or newPos.roomNum > 7 then
+        com.facingLeft = not com.facingLeft
+        com.idleTimer = math.random(1, 4)
+      else
+        event.notify("entity.move", com.entity, newPos)
+      end
+    
+      -- DO JOB
       if com.class == "bellhop" then
         com:push("receive")
       elseif com.class == "cleaner" then
@@ -1367,6 +1396,7 @@ end
 M.newStaff = function (id, class)
   local com = new(id, "staff")
   com.class = class
+  com.idleTimer = 0
   if class == "cleaner" then
     com.supply = 0
   elseif class == "cook" then
