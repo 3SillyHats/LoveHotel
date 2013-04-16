@@ -456,6 +456,7 @@ local states = {
       event.unsubscribe("serve", com.room, com.serveHandler)
       com.serveHandler = nil
       com.served = nil
+      com.waitSuccess = nil
     end,
     update = function (com, dt)
       if (not entity.get(com.room)) then
@@ -463,16 +464,22 @@ local states = {
         return
       end
       
-      com.patience = math.max(0, com.patience - (10 * dt))
-      if com.patience == 0 then
+      if com.waitSuccess then
         com:pop()
-        com.happy = false
-        com.thought = "Impatient"
-        event.notify("sprite.play", com.entity, "thought" .. com.thought)
-        com:push("leave")
+        com:push("sex")
+        com:push("moveTo")
       end
       
-      if not com.serveHandler then
+      if com.serveHandler then
+        com.patience = math.max(0, com.patience - (10 * dt))
+        if com.patience == 0 then
+          com:pop()
+          com.happy = false
+          com.thought = "Impatient"
+          event.notify("sprite.play", com.entity, "thought" .. com.thought)
+          com:push("leave")
+        end
+      else
         com.serveHandler = function (e)
           if com.served == false then
             com.served = true
@@ -504,11 +511,10 @@ local states = {
   
             -- Go to suite and sex
             room.reserve(com.room)
-            com:pop()
-            com:push("sex")
             com.moveRoom = roomPos.roomNum
             com.moveFloor = roomPos.floorNum
-            com:push("moveTo")
+            com.waitTime = CHECKIN_TIME
+            com:push("wait")
             
             -- Tell bellhop
             e.com:pop()
