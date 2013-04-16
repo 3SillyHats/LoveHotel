@@ -370,11 +370,7 @@ local states = {
       com.thought = "None"
       
       -- Check needs
-      if com.patience == 0 then
-        com.happy = false
-        com.thought = "Impatient"
-        result = "leave"
-      elseif com.money < (info.money / 10) then
+      if com.money < (info.money / 10) then
         com.happy = true
         com.thought = "Broke"
         result = "leave"
@@ -461,10 +457,19 @@ local states = {
       com.serveHandler = nil
       com.served = nil
     end,
-    update = function (com)
+    update = function (com, dt)
       if (not entity.get(com.room)) then
         com:pop()
         return
+      end
+      
+      com.patience = math.max(0, com.patience - (10 * dt))
+      if com.patience == 0 then
+        com:pop()
+        com.happy = false
+        com.thought = "Impatient"
+        event.notify("sprite.play", com.entity, "thought" .. com.thought)
+        com:push("leave")
       end
       
       if not com.serveHandler then
@@ -1323,7 +1328,7 @@ M.newClient = function (id, info)
   local com = new(id, "client")
   com.condoms = info.condoms
   com.money = info.money
-  com.patience = info.patience
+  com.patience = 100
   com.horniness = info.horniness
   com.satiety = info.satiety
   com.profit = 0
