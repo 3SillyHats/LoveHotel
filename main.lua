@@ -828,14 +828,6 @@ menu.addButton(gui, menu.newButton("services", function ()
   else
     addLockButton(submenu)
   end
-  if gStars >= 3 then
-    --Reception
-    menu.addButton(submenu, menu.newButton("reception", function ()
-      buildRoom("reception", submenu)
-    end))
-  else
-    addLockButton(submenu)
-  end
   if gStars >= 5 then
     --Spa room
     menu.addButton(submenu, menu.newButton("spa", function ()

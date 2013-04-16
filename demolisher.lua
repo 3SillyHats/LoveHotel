@@ -64,7 +64,7 @@ local demolisher = function (id, cost, t)
           end
         })
         
-        if roomId == -1 or type == "elevator" then
+        if roomId == -1 or type == "elevator" or type == "reception" then
           local snd = resource.get("snd/error.wav")
           love.audio.rewind(snd)
           love.audio.play(snd)

@@ -190,7 +190,7 @@ M.new = function (t)
   entity.addComponent(id, aiComponent)
   aiComponent.class = t.category
   aiComponent.moveRoom = 1
-  aiComponent.moveFloor = 0
+  aiComponent.moveFloor = pos.floorNum
   aiComponent:push("moveTo")
 
   local check = function (t)
@@ -281,18 +281,22 @@ end
 M.newSpawner(nil, {roomNum = -1, floorNum = GROUND_FLOOR})
 
 event.subscribe("floor.new", 0, function (level)
+  local pos
   if level == SKY_SPAWN then
-    local pos = {roomNum = -.5, floorNum = SKY_SPAWN}
+    pos = {roomNum = -1, floorNum = SKY_SPAWN}
     M.newSpawner("sky", pos)
-    path.addNode(pos)
   elseif level == GROUND_SPAWN then
-    local pos = {roomNum = -.5, floorNum = GROUND_SPAWN}
+    pos = {roomNum = -1, floorNum = GROUND_SPAWN}
     M.newSpawner("ground", pos)
-    path.addNode(pos)
   elseif level == SPACE_SPAWN then
-    local pos = {roomNum = -.5, floorNum = SPACE_SPAWN}
+    pos = {roomNum = -1, floorNum = SPACE_SPAWN}
     M.newSpawner("space", pos)
-    path.addNode(pos)
+  end
+  
+  if pos then
+    pos.roomNum = 1
+    room.new(STATE_PLAY, "reception", pos)
+    event.notify("build", 0, {id=id, pos=pos, type="reception"})
   end
 end)
 

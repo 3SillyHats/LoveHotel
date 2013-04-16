@@ -1,10 +1,9 @@
 return {
   id = "reception",
   name = "Reception",
-  cost = 10000,
+  cost = 0,
   width = 3,
-  reception = true,
-  upkeep = 100,
+  upkeep = 0,
 
   sprites = {
     {
