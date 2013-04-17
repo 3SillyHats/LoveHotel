@@ -149,15 +149,15 @@ M.new = function (type)
   }
   entity.addComponent(id, payCom)
 
-  local aiComponent = ai.newStaff(id, type)
+  -- update global staff totals
+  gStaffTotals[type] = gStaffTotals[type] + 1
+
+  -- Add AI component
+  local aiComponent = ai.newStaff(id, type, gStaffTotals[type])
   entity.addComponent(id, aiComponent)
   aiComponent.moveRoom = 1
   aiComponent.moveFloor = 0
   aiComponent:push("moveTo")
-    
-  -- update global staff totals
-  gStaffTotals[type] = gStaffTotals[type] + 1
-  aiComponent.staffNum = gStaffTotals[type]
   
    -- Type-specific initialisation
   if type == "cleaner" then

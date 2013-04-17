@@ -880,6 +880,20 @@ local states = {
         com:push("restock")
       end
     end,
+    transition = function (com)
+      if com.order and com.order > gStaffTotals[com.class] then
+        return "quit"
+      end
+    end,
+  },
+  quit = {
+    enter = function (com)
+      com.moveRoom = -1
+      com.moveFloor = 0
+      com:push("moveTo")
+    end,
+    exit = pass,
+    update = pass,
     transition = pass,
   },
 
@@ -1414,9 +1428,10 @@ M.newClient = function (id, info)
   return com
 end
 
-M.newStaff = function (id, class)
+M.newStaff = function (id, class, order)
   local com = new(id, "staff")
   com.class = class
+  com.order = order
   com.idleTimer = 0
   if class == "cleaner" then
     com.supply = 0
