@@ -1,16 +1,16 @@
 return {
   id = "utility",
   name = "Supply Closet",
-  cost = 200,
-  profit = 100,
-  desirability = -2,
+  cost = 500,
+  profit = 50,
+  desirability = -10,
   width = 1,
   dirtyable = false,
   visitable = true,
   cleaningSupplies = true,
   stock = 8,
-  restockCost = 100,
-  upkeep = 20,
+  restockCost = 500,
+  upkeep = 5,
   
   sprites = {
     {

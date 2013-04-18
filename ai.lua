@@ -53,7 +53,8 @@ local mealFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "dining" and
     info.profit <= com.money and
-    room.reservations(roomId) <= room.getStock(roomId))
+    room.reservations(roomId) < 3 and
+    room.reservations(roomId) < room.getStock(roomId))
 end
 local bellhopFilter = function (com, roomId)
   local info = room.getInfo(roomId)
@@ -375,25 +376,16 @@ local states = {
       com.thought = "None"
       
       -- Check needs
-      if com.money < (info.money / 10) then
+      if com.money < (info.money / 4) then
         com.happy = true
         com.thought = "Broke"
         result = "leave"
-      elseif com.satiety == 0 then
-        if info.demandsFood then
-          com.happy = false
-          com.thought = "HungryBad"
-        else
-          com.happy = true
-          com.thought = "HungryGood"
-        end
-        result = "leave"
       elseif com.satiety < 30 then
         result = "getMeal"
-      elseif com.horniness < 20 then
-        result = "relax"
       elseif com.condoms == 0 then
         result = "getCondoms"
+      elseif com.horniness < 30 then
+        result = "relax"
       else
         result = "visit"
       end
@@ -421,11 +413,8 @@ local states = {
       
       local myInfo = resource.get("scr/people/" .. com.class .. ".lua")
       if com.happy == false then
-        com.profit = math.floor(com.profit / 4)
         reputationChange(myInfo.influence * -5)
       end
-      local myPos = transform.getPos(com.entity)
-      moneyChange(com.profit, {roomNum = myPos.roomNum, floorNum = myPos.floorNum})
     end,
     exit = function (com)
       
@@ -489,7 +478,7 @@ local states = {
       end
       
       if com.serveHandler then
-        com.patience = math.max(0, com.patience - (10 * dt))
+        com.patience = math.max(0, com.patience - (5 * dt))
         if com.patience == 0 then
           com:pop()
           com.happy = false
@@ -562,7 +551,8 @@ local states = {
         com.condoms = com.condoms - 1
         com.horniness = math.max(0, com.horniness - 20)
         com.money = com.money - roomInfo.profit
-        com.profit = com.profit + roomInfo.profit
+        local myPos = transform.getPos(com.entity)
+        moneyChange(roomInfo.profit, {roomNum = myPos.roomNum, floorNum = myPos.floorNum})
         reputationChange(myInfo.influence * roomInfo.desirability)
       end
       room.release(com.room)
@@ -634,9 +624,10 @@ local states = {
     exit = function (com)
       if com.waitSuccess and entity.get(com.room) then
         room.use(com.room)
-        local info = room.getInfo(com.room)
-        com.money = com.money - info.profit
-        com.profit = com.profit + info.profit
+        local roomInfo = room.getInfo(com.room)
+        com.money = com.money - roomInfo.profit
+        local myPos = transform.getPos(com.entity)
+        moneyChange(roomInfo.profit, {roomNum = myPos.roomNum, floorNum = myPos.floorNum})
         com.condoms = 3
       end
       com.waitSuccess = nil
@@ -717,6 +708,7 @@ local states = {
   getSnack = {
     enter = function (com)
       -- Find the nearest vending machine
+      local myInfo = resource.get("scr/people/" .. com.class .. ".lua")
       local myPos = transform.getPos(com.entity)
       com.room = room.getNearest(
         com,
@@ -725,8 +717,13 @@ local states = {
       )
       if com.room == nil then
         com:pop()
-        com.happy = true
-        com.thought = "HungryGood"
+        if myInfo.demandsFood then
+          com.happy = false
+          com.thought = "HungryBad"
+        else
+          com.happy = true
+          com.thought = "HungryGood"
+        end
         event.notify("sprite.play", com.entity, "thought" .. com.thought)
         com:push("leave")
         return
@@ -753,10 +750,11 @@ local states = {
     enter = pass,
     exit = function (com)
       if com.waitSuccess and entity.get(com.room) then
-        local info = room.getInfo(com.room)
+        local roomInfo = room.getInfo(com.room)
         room.use(com.room)
-        com.money = com.money - info.profit
-        com.profit = com.profit + info.profit
+        com.money = com.money - roomInfo.profit
+        local myPos = transform.getPos(com.entity)
+        moneyChange(roomInfo.profit, {roomNum = myPos.roomNum, floorNum = myPos.floorNum})
         com.satiety = math.min(100, com.satiety + 50)
       end
       com.waitSuccess = false
@@ -807,11 +805,14 @@ local states = {
     enter = pass,
     exit = function (com)
       if com.waitSuccess and entity.get(com.room) then
-        local info = room.getInfo(com.room)
+        local myInfo = resource.get("scr/people/" .. com.class .. ".lua")
+        local roomInfo = room.getInfo(com.room)
         room.setStock(com.room, room.getStock(com.room) - 1)
-        com.money = com.money - info.profit
-        com.profit = com.profit + info.profit
+        com.money = com.money - roomInfo.profit
+        local myPos = transform.getPos(com.entity)
+        moneyChange(roomInfo.profit, {roomNum = myPos.roomNum, floorNum = myPos.floorNum})
         com.satiety = 100
+        reputationChange(myInfo.influence * roomInfo.desirability)
       end
       com.waitSuccess = false
     end,
@@ -1424,7 +1425,6 @@ M.newClient = function (id, info)
   com.patience = 100
   com.horniness = info.horniness
   com.satiety = info.satiety
-  com.profit = 0
   return com
 end
 

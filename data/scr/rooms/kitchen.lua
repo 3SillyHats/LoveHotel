@@ -1,9 +1,9 @@
 return {
   id = "kitchen",
   name = "Kitchen",
-  cost = 10000,
+  cost = 20000,
   width = 3,
-  upkeep = 1000,
+  upkeep = 100,
 
   sprites = {
     {

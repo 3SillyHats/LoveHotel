@@ -1,17 +1,18 @@
 return {
   name = "space",
 
-  condoms = 2,
-  money = 120000,
+  condoms = 1,
+  money = 30000,
   horniness = 60,
-  satiety = 70,
+  satiety = 40,
 
   demandsCondoms = true,
   demandsFood = true,
-  influence = 1,
+  influence = 2,
   preferences = {
     "nazifurry",
     "eco",
+    "utility",
   },
 
   spawnChance = {

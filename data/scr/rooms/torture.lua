@@ -1,13 +1,13 @@
 return {
   id = "torture",
   name = "Torture Room",
-  cost = 20000,
-  profit = 10000,
-  desirability = 15,
+  cost = 13000,
+  profit = 3000,
+  desirability = 10,
   width = 4,
   dirtyable = true,
   visitable = true,
-  upkeep = 2000,
+  upkeep = 65,
 
   sprites = {
     {

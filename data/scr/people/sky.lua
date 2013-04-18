@@ -1,17 +1,18 @@
 return {
   name = "sky",
 
-  condoms = 2,
-  money = 10000,
+  condoms = 1,
+  money = 6000,
   horniness = 60,
-  satiety = 90,
+  satiety = 40,
 
   demandsCondoms = true,
   demandsFood = true,
-  influence = 2,
+  influence = 5,
   preferences = {
     "balloon",
     "missionary",
+    "utility",
   },
 
   spawnChance = {

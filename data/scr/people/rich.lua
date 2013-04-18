@@ -1,18 +1,19 @@
 return {
   name = "rich",
 
-  condoms = 0,
-  money = 50000,
+  condoms = 1,
+  money = 15000,
   horniness = 60,
-  satiety = 70,
+  satiety = 20,
 
   demandsCondoms = true,
   demandsFood = true,
-  influence = 1,
+  influence = 3,
   preferences = {
-    "nazifurry",
     "eco",
+    "nazifurry",
     "torture",
+    "utility",
   },
 
   spawnChance = {

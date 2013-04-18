@@ -453,7 +453,7 @@ M.getNearest = function (com, roomNum, floorNum, filter)
       -- d = dist to elevator + floor dist + dist to room
       d = math.abs(pos.floorNum - floorNum) + 14 - (roomNum + pos.roomNum)
     end
-    if d < distance and (not filter or filter(com, room)) then
+    if d < distance and (filter == nil or filter(com, room)) then
       nearest = room
       distance = d
     end

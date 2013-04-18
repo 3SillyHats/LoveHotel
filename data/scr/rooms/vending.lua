@@ -3,11 +3,11 @@ return {
   name = "Vending Mach.",
   cost = 500,
   width = 1,
-  profit = 100,
+  profit = 50,
   stock = 8,
-  restockCost = 200,
+  restockCost = 250,
   integrity = 13,
-  upkeep = 50,
+  upkeep = 100,
 
   sprites = {
     {

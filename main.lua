@@ -26,18 +26,12 @@ ELEVATOR_SPEED = 1.2
 UPKEEP_PERIOD = 60
 
 PAY_PERIOD = 60
-BELLHOP_WAGE = 20
-CLEANER_WAGE = 50
+BELLHOP_WAGE = 50
+CLEANER_WAGE = 80
 MAINTENANCE_WAGE = 200
-COOK_WAGE = 1000
-STOCKER_WAGE = 500
-STAFF_MAX = {
-  bellhop = {2, 5, 10, 20, 30},
-  cleaner = {2, 5, 10, 20, 30},
-  maintenance = {1, 2, 3, 4, 6},
-  cook = {0, 0, 2, 3, 6},
-  stocker = {0, 0, 0, 2, 4},
-}
+COOK_WAGE = 500
+STOCKER_WAGE = 100
+STAFF_MAX = 99
 
 SEX_HORNINESS = 20
 
@@ -60,37 +54,37 @@ SPACE_SPAWN = 16
 TREASURE_LEVEL = -3
 
 FLOOR_COSTS = {
-  500,
-  1250,
   1000,
   2000,
-  3500,
-  5500,
-  8500,
-  12500, -- 8th floor
-  18000,
-  24500,
-  32500,
-  42000,
-  50000,
-  65000,
-  80000,
-  100000, -- 16th floor
+  3000,
+  4000,
+  5000,
+  6000,
+  7000,
+  8000, -- 8th floor
+  9000,
+  10000,
+  11000,
+  12000,
+  13000,
+  14000,
+  15000,
+  16000, -- 16th floor
 }
 
-MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 2000
+MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 20000
 MONEY_MAX = 999999
 REP_INITIAL = 10
-REP_MAX = 6000
+REP_MAX = 10000
 STARS_INITIAL = 1
 STARS_MAX = 5
 REP_THRESHOLDS = {
   0,
-  60,
-  240,
-  960,
-  2700,
-  6000,
+  50,
+  300,
+  2000,
+  5000,
+  10000,
 }
 
 local luatexts = require("luatexts")
@@ -328,8 +322,8 @@ moneyChange = function (c, pos)
   if c > 0 then
     love.audio.rewind(moneySnd)
     love.audio.play(moneySnd)
-    if gMoney >= 100000 and gStarsBest < 4 then
-      achievement.achieve(achievement.RACE)
+    if gMoney >= 100000 then
+      achievement.achieve(achievement.BANK)
     end
   elseif gMoney < 0 and brokeCom.timer == -1 then
     brokeCom.timer = 0

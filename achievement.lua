@@ -30,7 +30,7 @@ local ACHIEVEMENTS = {
   },
   {
     name = "Frisky Business",
-    desc = "Earned $100,000 before reaching 4 stars.",
+    desc = "Had $100,000 in the bank.",
   },
   {
     name = "Full Contact Spa-ing",
@@ -64,7 +64,7 @@ M.DEBT = 3
 M.FIX = 4
 M.SUITES = 5
 M.DOWN = 6
-M.RACE = 7
+M.BANK = 7
 M.SPA = 8
 M.SKY = 9
 M.GROUND = 10

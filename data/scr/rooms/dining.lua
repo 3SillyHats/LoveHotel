@@ -2,11 +2,11 @@ return {
   id = "dining",
   name = "Dining Room",
   cost = 5000,
-  profit = 4000,
-  reputation = 10,
+  profit = 2000,
+  desirability = 15,
   width = 3,
   stock = 8,
-  upkeep = 500,
+  upkeep = 25,
 
   sprites = {
     {

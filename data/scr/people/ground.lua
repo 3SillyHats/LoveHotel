@@ -3,8 +3,8 @@ return {
 
   condoms = 0,
   money = 10000,
-  horniness = 90,
-  satiety = 100,
+  horniness = 100,
+  satiety = 40,
 
   demandsCondoms = true,
   demandsFood = true,
@@ -12,6 +12,7 @@ return {
   preferences = {
     "torture",
     "moustache",
+    "utility",
   },
   
   spawnChance = {

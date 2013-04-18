@@ -3,11 +3,11 @@ return {
   name = "Condom Mach.",
   cost = 1000,
   width = 1,
-  profit = 200,
+  profit = 100,
   stock = 8,
-  restockCost = 300,
+  restockCost = 500,
   integrity = 13,
-  upkeep = 100,
+  upkeep = 200,
 
   sprites = {
     {

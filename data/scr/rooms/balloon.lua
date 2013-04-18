@@ -1,13 +1,13 @@
 return {
   id = "balloon",
   name = "Balloons",
-  cost = 5000,
-  profit = 3000,
-  desirability = 10,
+  cost = 6000,
+  profit = 900,
+  desirability = 5,
   width = 3,
   dirtyable = true,
   visitable = true,
-  upkeep = 500,
+  upkeep = 35,
 
   sprites = {
     {

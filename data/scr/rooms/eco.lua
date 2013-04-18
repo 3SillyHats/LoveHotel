@@ -1,13 +1,13 @@
 return {
   id = "eco",
   name = "Eco Room",
-  cost = 40000,
-  profit = 16000,
+  cost = 50000,
+  profit = 4000,
   desirability = 20,
   width = 5,
   dirtyable = true,
   visitable = true,
-  upkeep = 4000,
+  upkeep = 100,
 
   sprites = {
     {

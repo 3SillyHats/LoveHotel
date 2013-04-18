@@ -2,12 +2,12 @@ return {
   id = "moustache",
   name = "Choc 'tache",
   cost = 8000,
-  profit = 4000,
-  desirability = 12,
+  profit = 800,
+  desirability = 15,
   width = 2,
   dirtyable = true,
   visitable = true,
-  upkeep = 800,
+  upkeep = 25,
 
   sprites = {
     {

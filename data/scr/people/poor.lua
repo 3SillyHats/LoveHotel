@@ -2,9 +2,9 @@ return {
   name = "poor",
 
   condoms = 2,
-  money = 5000,
+  money = 1000,
   horniness = 60,
-  satiety = 100,
+  satiety = 60,
 
   demandsCondoms = false,
   demandsFood = true,

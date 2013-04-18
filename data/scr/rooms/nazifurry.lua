@@ -2,12 +2,12 @@ return {
   id = "nazifurry",
   name = "Nazi Furry",
   cost = 66600,
-  profit = 20000,
-  desirability = 17,
+  profit = 6660,
+  desirability = 15,
   width = 3,
   dirtyable = true,
   visitable = true,
-  upkeep = 6660,
+  upkeep = 200,
 
   sprites = {
     {

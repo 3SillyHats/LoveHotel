@@ -46,7 +46,6 @@ local offsets = {
 local staffer = function (id, type)
   local component = entity.newComponent()
 
-  local max = STAFF_MAX[type]
   local new = true
 
   gScrollable = false
@@ -72,7 +71,7 @@ local staffer = function (id, type)
     )
 
     -- Max staff number
-    if gStaffTotals[type] == max[gStars] then
+    if gStaffTotals[type] == STAFF_MAX then
       love.graphics.setColor(123, 126, 127)
       love.graphics.print(
         string.format("MAX"),
@@ -89,7 +88,7 @@ local staffer = function (id, type)
         0
       )
     end
-    if gStaffTotals[type] < max[gStars] then
+    if gStaffTotals[type] < STAFF_MAX then
       love.graphics.drawq(
         resource.get("img/hud.png"), UArrowQuad,
         140, CANVAS_HEIGHT - 26,
@@ -117,7 +116,7 @@ local staffer = function (id, type)
         love.audio.play(snd)
       end
     elseif key == "up" then
-      if gStaffTotals[type] < max[gStars] and gMoney >= WAGES[type] then
+      if gStaffTotals[type] < STAFF_MAX and gMoney >= WAGES[type] then
         staff.new(type)
       else
         local snd = resource.get("snd/error.wav")
