@@ -53,8 +53,7 @@ local mealFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "dining" and
     info.profit <= com.money and
-    room.reservations(roomId) < 3 and
-    room.reservations(roomId) < room.getStock(roomId))
+    room.reservations(roomId) < math.min(3, room.getStock(roomId)))
 end
 local bellhopFilter = function (com, roomId)
   local info = room.getInfo(roomId)
@@ -611,8 +610,10 @@ local states = {
       com:push("moveTo")
     end,
     exit = function (com)
-      room.release(com.room)
-      com.room = nil
+      if com.room then
+        room.release(com.room)
+        com.room = nil
+      end
     end,
     update = function (com, dt)
       com:pop()
@@ -738,8 +739,10 @@ local states = {
       com:push("moveTo")
     end,
     exit = function (com)
-      room.release(com.room)
-      com.room = nil
+      if com.room then
+        room.release(com.room)
+        com.room = nil
+      end
     end,
     update = function (com, dt)
       com:pop()
@@ -793,8 +796,10 @@ local states = {
       com:push("moveTo")
     end,
     exit = function (com)
-      room.release(com.room)
-      com.room = nil
+      if com.room then
+        room.release(com.room)
+        com.room = nil
+      end
     end,
     update = function (com, dt)
       com:pop()
@@ -1128,14 +1133,16 @@ local states = {
   -- COOK
   cook = {
     enter = function (com)
-      if room.getCount("freezer") > 0 and com.frozen == 0 then
+      local myPos = transform.getPos(com.entity)
+      if room.getCount("freezer") > 0 and com.frozen == 0 and
+        room.getNearest(com, myPos.roomNum, myPos.floorNum, freezerFilter) then
         com:pop()
         com:push("getFrozen")
         return
       end
       
       -- Find the nearest kitchen
-      local myPos = transform.getPos(com.entity)
+      
       com.room = room.getNearest(
         com,
         myPos.roomNum, myPos.floorNum,
