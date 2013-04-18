@@ -2,7 +2,7 @@
 -- luatexts/lua.lua: plain Lua implementation of luatexts
 --------------------------------------------------------------------------------
 -- Copyright (c) 2011-2012, luatexts authors
--- See license in the file named COPYRIGHT
+-- See license in the file named COPYING
 --------------------------------------------------------------------------------
 
 local assert, error, pairs, select, type
