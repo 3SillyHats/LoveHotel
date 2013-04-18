@@ -786,7 +786,7 @@ local states = {
         com:push("getSnack")
         return
       end
-      
+
       -- Go there (to a random spot) and eat
       room.reserve(com.room)
       local roomPos = room.getPos(com.room)
@@ -985,8 +985,10 @@ local states = {
       com:push("moveTo")
     end,
     exit = function (com)
-      room.release(com.room)
-      com.room = nil
+      if com.room then
+        room.release(com.room)
+        com.room = nil
+      end
     end,
     update = function (com, dt)
       com:pop()
@@ -1043,8 +1045,10 @@ local states = {
       com:push("moveTo")
     end,
     exit = function (com)
-      room.release(com.room)
-      com.room = nil
+      if com.room then
+        room.release(com.room)
+        com.room = nil
+      end
     end,
     update = function (com, dt)
       com:pop()
@@ -1162,8 +1166,10 @@ local states = {
       com:push("moveTo")
     end,
     exit = function (com)
-      room.release(com.room)
-      com.room = nil
+      if com.room then
+        room.release(com.room)
+        com.room = nil
+      end
     end,
     update = function (com, dt)
       com:pop()
@@ -1270,8 +1276,10 @@ local states = {
       com:push("moveTo")
     end,
     exit = function (com)
-      room.release(com.room)
-      com.room = nil
+      if com.room then
+        room.release(com.room)
+        com.room = nil
+      end
     end,
     update = function (com, dt)
       com:pop()
@@ -1324,8 +1332,10 @@ local states = {
       com:push("moveTo")
     end,
     exit = function (com)
-      room.release(com.room)
-      com.room = nil
+      if com.room then
+        room.release(com.room)
+        com.room = nil
+      end
     end,
     update = function (com, dt)
       com:pop()

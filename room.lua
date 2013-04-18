@@ -512,11 +512,15 @@ M.assigned = function (id)
 end
 
 M.reserve = function (id)
-  event.notify("room.reserve", id, nil)
+  if id ~= nil then
+    event.notify("room.reserve", id, nil)
+  end
 end
 
 M.release = function (id)
-  event.notify("room.release", id, nil)
+  if id ~= nil then
+    event.notify("room.release", id, nil)
+  end
 end
 
 M.reservations = function (id)
