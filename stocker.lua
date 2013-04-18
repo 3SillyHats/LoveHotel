@@ -116,7 +116,7 @@ local stocker = function (id, cost, t)
         local stock = room.getStock(roomId)
 
         if not room.isBroken(roomId) and
-            info.stock and
+            info.restockCost and
             stock < info.stock and
             room.occupation(roomId) == 0 and
             gMoney > info.restockCost then
