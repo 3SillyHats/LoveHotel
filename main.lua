@@ -672,14 +672,14 @@ end
 
 local floorDown = function()
   if gBottomFloor <= -8 then return end
-  local cost = FLOOR_COSTS[-gBottomFloor + 1] * 2
+  local cost = FLOOR_COSTS[-gBottomFloor + 1] * 1.5
   if gMoney >= cost then
     gMoney = gMoney - cost
     event.notify("money.change", 0, {
       amount = -cost,
     })
     gBottomFloor = gBottomFloor - 1
-    conf.menu["floorDown"].desc = "$" .. thousandify(tostring(FLOOR_COSTS[-gBottomFloor + 1] * 2))
+    conf.menu["floorDown"].desc = "$" .. thousandify(tostring(FLOOR_COSTS[-gBottomFloor + 1] * 1.5))
     if gBottomFloor <= -8 then
       conf.menu["floorDown"].desc = "MAXED"
     end
