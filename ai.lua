@@ -1432,6 +1432,15 @@ local new = function (id, type)
   for _,state in ipairs(com.state) do
     states[state].enter(com)
   end
+
+  local delete = function ()
+    while #com.state > 0 do
+      com:pop()
+    end
+    event.unsubscribe("delete", id, delete)
+  end
+  event.subscribe("delete", id, delete)
+
   return com
 end
 
