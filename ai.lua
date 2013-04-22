@@ -412,7 +412,7 @@ local states = {
       
       local myInfo = resource.get("scr/people/" .. com.class .. ".lua")
       if com.happy == false then
-        reputationChange(myInfo.influence * -5)
+        reputationChange(myInfo.influence * -10)
       end
     end,
     exit = function (com)
