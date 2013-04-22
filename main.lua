@@ -708,11 +708,7 @@ local gui = menu.new(STATE_PLAY, mainMenuY)
 menu.setBack(gui, function ()
 end)
 
---Suites button
-menu.addButton(gui, menu.newButton("suites", function ()
-  menu.disable(gui)
-
-  --Create the suites menu
+local newSuiteMenu = function ()
   local submenu = menu.new(STATE_PLAY, subMenuY)
 
   --Missionary
@@ -766,10 +762,28 @@ menu.addButton(gui, menu.newButton("suites", function ()
   else
     addLockButton(submenu)
   end
+  
+  return submenu
+end
+
+--Suites button
+menu.addButton(gui, menu.newButton("suites", function ()
+  menu.disable(gui)
+
+  --Create the suites menu
+  local submenu = newSuiteMenu()
+
+  local onStars = function (e)
+    entity.delete(submenu)
+    submenu = newSuiteMenu()
+  end
+
+  event.subscribe("stars", 0, onStars)
 
   --The back button deletes the submenu
   menu.setBack(submenu, function ()
     entity.delete(submenu)
+    event.unsubscribe("stars", 0, onStars)
     menu.enable(gui)
   end)
 end))
@@ -802,11 +816,7 @@ menu.addButton(gui, menu.newButton("infrastructure", function ()
 end))
 
 
---Services button
-menu.addButton(gui, menu.newButton("services", function ()
-  menu.disable(gui)
-
-  --Create the services menu
+local newServicesMenu = function ()
   local submenu = menu.new(STATE_PLAY, subMenuY)
 
   --Utility
@@ -830,18 +840,32 @@ menu.addButton(gui, menu.newButton("services", function ()
     addLockButton(submenu)
   end
 
+  return submenu
+end
+
+--Services button
+menu.addButton(gui, menu.newButton("services", function ()
+  menu.disable(gui)
+
+  --Create the services menu
+  local submenu = newServicesMenu()
+
+  local onStars = function (e)
+    entity.delete(submenu)
+    submenu = newServicesMenu()
+  end
+
+  event.subscribe("stars", 0, onStars)
+
    --The back button deletes the submenu
   menu.setBack(submenu, function ()
     entity.delete(submenu)
+    event.unsubscribe("stars", 0, onStars)
     menu.enable(gui)
   end)
 end))
 
---Food button
-menu.addButton(gui, menu.newButton("food", function ()
-  menu.disable(gui)
-
-  --Create the food menu
+local newFoodMenu = function ()
   local submenu = menu.new(STATE_PLAY, subMenuY)
 
   --Vending machine
@@ -871,20 +895,32 @@ menu.addButton(gui, menu.newButton("food", function ()
   else
     addLockButton(submenu)
   end
+  return submenu
+end
 
+--Food button
+menu.addButton(gui, menu.newButton("food", function ()
+  menu.disable(gui)
+
+  --Create the food menu
+  local submenu = newFoodMenu()
+
+  local onStars = function (e)
+    entity.delete(submenu)
+    submenu = newFoodMenu()
+  end
+
+  event.subscribe("stars", 0, onStars)
 
   --The back button deletes the submenu
   menu.setBack(submenu, function ()
     entity.delete(submenu)
+    event.unsubscribe("stars", 0, onStars)
     menu.enable(gui)
   end)
 end))
 
---Staff button
-menu.addButton(gui, menu.newButton("staff", function ()
-  menu.disable(gui)
-
-  --Create the manage menu
+local newStaffMenu = function ()
   local submenu = menu.new(STATE_PLAY, subMenuY)
 
   --Hire staff
@@ -911,6 +947,16 @@ menu.addButton(gui, menu.newButton("staff", function ()
   else
     addLockButton(submenu)
   end
+
+  return submenu
+end
+
+--Staff button
+menu.addButton(gui, menu.newButton("staff", function ()
+  menu.disable(gui)
+
+  --Create the manage menu
+  local submenu = newStaffMenu()
 
   --The back button deletes the submenu
   menu.setBack(submenu, function ()
