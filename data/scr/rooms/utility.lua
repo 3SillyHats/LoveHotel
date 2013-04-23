@@ -1,7 +1,7 @@
 return {
   id = "utility",
   name = "Supply Closet",
-  cost = 500,
+  cost = 1000,
   profit = 50,
   desirability = 0,
   width = 1,
