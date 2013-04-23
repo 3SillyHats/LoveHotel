@@ -45,6 +45,14 @@ COOK_TIME = 16
 RESTOCK_TIME = 4
 BROKE_TIME = 30
 
+CLIENTS = {
+  "poor",
+  "working",
+  "rich",
+  "sky",
+  "ground",
+  "space"
+}
 SPAWN_MIN = 20
 SPAWN_MAX = 30
 SPAWN_FACTOR = 5
@@ -366,6 +374,10 @@ gFont = love.graphics.newImageFont(
 -- Update menu tooltips (get names, costs of rooms)
 local maxProfit = math.sqrt(resource.get("scr/rooms/nazifurry.lua").profit)
 local maxRep = resource.get("scr/rooms/spa.lua").desirability
+local clientInfo = {}
+for _,c in ipairs(CLIENTS) do
+  clientInfo[c] = resource.get("scr/people/" .. c .. ".lua")
+end
 for _,fname in ipairs(love.filesystem.enumerate("data/scr/rooms/")) do
   local room = resource.get("scr/rooms/" .. fname)
   conf.menu[room.id] = {
@@ -377,6 +389,16 @@ for _,fname in ipairs(love.filesystem.enumerate("data/scr/rooms/")) do
   end
   if room.desirability then
     conf.menu[room.id].rep = math.max(0, room.desirability) / maxRep
+    conf.menu[room.id].desirable = {}
+    for _,client in ipairs(CLIENTS) do
+      local desire = false
+      for _,suite in ipairs(clientInfo[client].preferences) do
+        if suite == room.id then
+          desire = true
+        end
+      end
+      conf.menu[room.id].desirable[client] = desire
+    end
   end
 end
 
@@ -1148,6 +1170,21 @@ local condomQuad = love.graphics.newQuad(
   resource.get("img/hud.png"):getWidth(),
   resource.get("img/hud.png"):getHeight()
 )
+local iconQuads = {}
+iconPosX = {}
+iconPosY = {}
+for i,client in ipairs(CLIENTS) do
+  local dx = (i - 1) % 3
+  local dy = math.floor((i - 1) / 3)
+  iconQuads[client] = love.graphics.newQuad(
+    32 + (8 * dx), 160 + (8 * dy),
+    5, 5,
+    resource.get("img/hud.png"):getWidth(),
+    resource.get("img/hud.png"):getHeight()
+  )
+  iconPosX[client] = 173 + (6 * dx)
+  iconPosY[client] = 196 + (6 * dy)
+end
 local hudBar = entity.new(STATE_PLAY)
 entity.setOrder(hudBar, 90)
 local hudCom = entity.newComponent()
@@ -1155,6 +1192,7 @@ hudCom.name = ""
 hudCom.desc = ""
 hudCom.profit = nil
 hudCom.rep = nil
+hudCom.desirable = nil
 hudCom.draw = function (self)
   love.graphics.setColor(255, 255, 255)
   love.graphics.drawq(
@@ -1219,6 +1257,19 @@ hudCom.draw = function (self)
     love.graphics.setColor(252, 184, 0)
     love.graphics.rectangle("fill", 169, 217, rep * 20, 2)
   end
+  -- draw desirability icons
+  if self.desirable then
+    love.graphics.setColor(255, 255, 255)
+    for _,client in ipairs(CLIENTS) do
+      if self.desirable[client] then
+        love.graphics.drawq(
+          resource.get("img/hud.png"), iconQuads[client],
+          iconPosX[client], iconPosY[client],
+          0
+        )
+      end
+    end
+  end
 end
 entity.addComponent(hudBar, hudCom)
 event.subscribe("menu.info", 0, function (e)
@@ -1228,11 +1279,13 @@ event.subscribe("menu.info", 0, function (e)
     hudCom.desc = info.desc
     hudCom.profit = info.profit
     hudCom.rep = info.rep
+    hudCom.desirable = info.desirable
   else
     hudCom.name = e.name
     hudCom.desc = e.desc
     hudCom.profit = e.profit
     hudCom.rep = e.rep
+    hudCom.desirable = e.desirable
   end
   hudCom.inspector = e.inspector
 end)

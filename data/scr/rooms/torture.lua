@@ -1,6 +1,6 @@
 return {
   id = "torture",
-  name = "Torture Room",
+  name = "Torture",
   cost = 13000,
   profit = 3000,
   desirability = 10,

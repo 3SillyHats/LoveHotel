@@ -1,6 +1,6 @@
 return {
   id = "moustache",
-  name = "Choc 'tache",
+  name = "Chocolate",
   cost = 8000,
   profit = 800,
   desirability = 15,
