@@ -996,8 +996,6 @@ event.subscribe("state.enter", 0, function (state)
   if state == STATE_PLAY or state == STATE_DECISION then
     bgm:setVolume(0.1)
     love.audio.play(bgm)
-  else
-    love.audio.pause(bgm)
   end
 end)
 
