@@ -9,19 +9,19 @@ local M = {}
 local decisions = {
   skySpawn = {
     prompt = "Skyfarers are arriving at Love Hotel!" ..
-    "\nThey will only use Missionary and Balloon rooms, and " ..
+    "\nThey will only use Missionary and Balloon suites, and " ..
     "they are highly influential so show them a good time!",
     alert = true,
   },
   groundSpawn = {
     prompt = "Devilspawn are arriving at Love Hotel!" ..
-    "\nThey will only use Moustache and Torture rooms. " ..
+    "\nThey will only use Chocolate and Torture suites. " ..
     "They didn't think to bring condoms, but they're all horny!",
     alert = true,
   },
   spaceSpawn = {
     prompt = "Astronauts are arriving at Love Hotel!" ..
-    "\nThey will only use Eco and Nazi Furry rooms. " ..
+    "\nThey will only use Tropical and Nazi Furry suites. " ..
     "They have tons of space cash, so lighten their return trip by taking it all!",
     alert = true,
   },
@@ -38,7 +38,7 @@ local decisions = {
   },
   star3 = {
     prompt = "Nice work - 3 stars!\nYou can now hire Cooks and build " ..
-    "Dining Rooms, Kitchens, and Chocolate Moustache suites.",
+    "Dining Rooms, Kitchens, and Chocolate suites.",
     alert = true,
   },
   star4 = {
