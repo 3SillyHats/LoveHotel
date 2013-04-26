@@ -386,6 +386,8 @@ for _,fname in ipairs(love.filesystem.enumerate("data/scr/rooms/")) do
   end
   if room.desirability then
     conf.menu[room.id].rep = math.max(0, room.desirability) / maxRep
+  end
+  if room.visitable then
     conf.menu[room.id].desirable = {}
     for _,client in ipairs(CLIENTS) do
       local desire = false
@@ -1156,14 +1158,22 @@ local iconQuads = {}
 iconPosX = {}
 iconPosY = {}
 for i,client in ipairs(CLIENTS) do
-  local dx = (i - 1) % 3
-  local dy = math.floor((i - 1) / 3)
+  -- lit
   iconQuads[client] = love.graphics.newQuad(
-    32 + (8 * dx), 160 + (8 * dy),
+    24 + (8 * i), 160,
     5, 5,
     resource.get("img/hud.png"):getWidth(),
     resource.get("img/hud.png"):getHeight()
   )
+  -- unlit
+  iconQuads[client.."Off"] = love.graphics.newQuad(
+    24 + (8 * i), 168,
+    5, 5,
+    resource.get("img/hud.png"):getWidth(),
+    resource.get("img/hud.png"):getHeight()
+  )
+  local dx = (i - 1) % 3
+  local dy = math.floor((i - 1) / 3)
   iconPosX[client] = 173 + (6 * dx)
   iconPosY[client] = 196 + (6 * dy)
 end
@@ -1243,13 +1253,17 @@ hudCom.draw = function (self)
   if self.desirable then
     love.graphics.setColor(255, 255, 255)
     for _,client in ipairs(CLIENTS) do
+      local quad
       if self.desirable[client] then
-        love.graphics.drawq(
-          resource.get("img/hud.png"), iconQuads[client],
-          iconPosX[client], iconPosY[client],
-          0
-        )
+        quad = iconQuads[client]
+      else
+        quad = iconQuads[client.."Off"]
       end
+      love.graphics.drawq(
+        resource.get("img/hud.png"), quad,
+        iconPosX[client], iconPosY[client],
+        0
+      )
     end
   end
 end
