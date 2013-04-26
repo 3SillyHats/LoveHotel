@@ -840,31 +840,40 @@ local states = {
       -- IDLE WANDER
       com.idleTimer = com.idleTimer - dt
       if com.idleTimer <= 0 then
-        com.idleTimer = math.random(1, 4)
-        if math.random() < 0.5 then
-          com.facingLeft = true
+        if com.idlePause then
+          if math.random() < 0.5 then
+            com.facingLeft = true
+          else
+            com.facingLeft = false
+          end
+          event.notify("sprite.flip", com.entity, com.facingLeft)
+          event.notify("sprite.play", com.entity, "walking")
+          com.idleTimer = math.random(1, 4)
         else
-          com.facingLeft = false
+          event.notify("sprite.play", com.entity, "idle")
+          com.idleTimer = math.random(1, 3)
+        end
+        com.idlePause = not com.idlePause
+      end
+      if not com.idlePause then
+        local delta = 1
+        if com.facingLeft then
+          delta = -1
+        end
+        local pos = transform.getPos(com.entity)
+        local newPos = {
+          roomNum = pos.roomNum + (delta * dt),
+          floorNum = pos.floorNum,
+        }
+        if newPos.roomNum < 1 or newPos.roomNum > 7 then
+          com.facingLeft = not com.facingLeft
+          event.notify("sprite.flip", com.entity, com.facingLeft)
+          com.idleTimer = math.random(1, 4)
+        else
+          event.notify("entity.move", com.entity, newPos)
         end
       end
-      event.notify("sprite.flip", com.entity, com.facingLeft)
-      event.notify("sprite.play", com.entity, "walking")
-      local delta = 1
-      if com.facingLeft then
-        delta = -1
-      end
-      local pos = transform.getPos(com.entity)
-      local newPos = {
-        roomNum = pos.roomNum + (delta * dt),
-        floorNum = pos.floorNum,
-      }
-      if newPos.roomNum < 1 or newPos.roomNum > 7 then
-        com.facingLeft = not com.facingLeft
-        com.idleTimer = math.random(1, 4)
-      else
-        event.notify("entity.move", com.entity, newPos)
-      end
-    
+      
       -- DO JOB
       if com.class == "bellhop" then
         com:push("receive")
@@ -1458,6 +1467,7 @@ M.newStaff = function (id, class, order)
   local com = new(id, "staff")
   com.class = class
   com.order = order
+  com.idlePause = false
   com.idleTimer = 0
   if class == "cleaner" then
     com.supply = 0
