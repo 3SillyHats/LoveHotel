@@ -1445,6 +1445,8 @@ local init = function ()
   pos = {roomNum = 6, floorNum = 1}
   id = room.new(STATE_PLAY, "utility", pos)
   event.notify("build", 0, {id=id, pos=pos, type="utility"})
+  -- reduce initial stock
+  room.setStock(id, 3)
 
   initialised = true
 end
