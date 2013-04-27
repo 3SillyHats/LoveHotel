@@ -510,6 +510,62 @@ local frameQuad = love.graphics.newQuad(
   frameImage:getWidth(), frameImage:getHeight()
 )
 
+-- Roof entity
+local roof = entity.new(STATE_PLAY)
+entity.setOrder(roof, -50)
+entity.addComponent(roof, transform.new(roof, {
+  roomNum = .5,
+  floorNum = GROUND_FLOOR
+}))
+entity.addComponent(roof, sprite.new(
+  roof, {
+    image = resource.get("img/floor.png"),
+    width = 256, height = 32,
+    originY = 32,
+  }
+))
+event.subscribe("floor.new", 0, function (level)
+  if level > 0 then
+    event.notify("entity.move", roof, {roomNum=.5, floorNum=level})
+  end
+end)
+
+local floors = {}
+
+-- Create an empty floor entity
+local newFloor = function (level)
+  local id = entity.new(STATE_PLAY)
+  entity.setOrder(id, -50)
+  local pos = {roomNum = .5, floorNum = level }
+  entity.addComponent(id, transform.new(id, pos))
+  if level ~= 0 then
+    entity.addComponent(id, sprite.new(id, {
+      image = resource.get("img/floor.png"),
+      width = 256, height = 32,
+      animations = {
+        idle = {
+          first = 1,
+          last = 1,
+          speed = 1
+        }
+      },
+      playing = "idle",
+    }))
+  end
+
+  -- build default elevator on right hand side
+  local epos = {roomNum = 7, floorNum = level}
+  local eid = room.new(STATE_PLAY, "elevator", epos)
+  event.notify("build", 0, {id=eid, pos=epos, type="elevator"})
+  
+  event.notify("floor.new", 0, level)
+  local snd = resource.get("snd/build.wav")
+  love.audio.rewind(snd)
+  love.audio.play(snd)
+  floors[level] = id
+  return id
+end
+
 --Menu spacing values
 local mainMenuY = 32*6.5
 local subMenuY = 32*6
@@ -565,8 +621,8 @@ local demolishRoom = function ()
   event.subscribe("pressed", 0, back)
 end
 
-local stockRoom = function ()
-  menu.disable(submenu)
+local stockRoom = function (gui)
+  menu.disable(gui)
 
   local stockUtility = stocker.new(STATE_PLAY)
 
@@ -575,7 +631,7 @@ local stockRoom = function ()
   back = function (key)
     if gState == STATE_PLAY and key == "b" then
       event.unsubscribe("pressed", 0, back)
-      menu.enable(submenu)
+      menu.enable(gui)
       entity.delete(stockUtility)
     end
   end
@@ -583,8 +639,8 @@ local stockRoom = function ()
   event.subscribe("pressed", 0, back)
 end
 
-local inspect = function ()
-  menu.disable(submenu)
+local inspect = function (gui)
+  menu.disable(gui)
 
   local inspectUtility = inspector.new(STATE_PLAY)
 
@@ -592,7 +648,7 @@ local inspect = function ()
   back = function (key)
     if gState == STATE_PLAY and key == "b" then
       event.unsubscribe("pressed", 0, back)
-      menu.enable(submenu)
+      menu.enable(gui)
       entity.delete(inspectUtility)
     end
   end
@@ -600,8 +656,8 @@ local inspect = function ()
   event.subscribe("pressed", 0, back)
 end
 
-local staffManage = function (type)
-  menu.disable(submenu)
+local staffManage = function (gui, type)
+  menu.disable(gui)
 
   local staffUtility = staffer.new(STATE_PLAY, type)
 
@@ -610,68 +666,12 @@ local staffManage = function (type)
     if gState == STATE_PLAY and
         (key == "a" or key == "b") then
       event.unsubscribe("pressed", 0, back)
-      menu.enable(submenu)
+      menu.enable(gui)
       entity.delete(staffUtility)
     end
   end
 
   event.subscribe("pressed", 0, back)
-end
-
--- Roof entity
-local roof = entity.new(STATE_PLAY)
-entity.setOrder(roof, -50)
-entity.addComponent(roof, transform.new(roof, {
-  roomNum = .5,
-  floorNum = GROUND_FLOOR
-}))
-entity.addComponent(roof, sprite.new(
-  roof, {
-    image = resource.get("img/floor.png"),
-    width = 256, height = 32,
-    originY = 32,
-  }
-))
-event.subscribe("floor.new", 0, function (level)
-  if level > 0 then
-    event.notify("entity.move", roof, {roomNum=.5, floorNum=level})
-  end
-end)
-
-local floors = {}
-
--- Create an empty floor entity
-local newFloor = function (level)
-  local id = entity.new(STATE_PLAY)
-  entity.setOrder(id, -50)
-  local pos = {roomNum = .5, floorNum = level }
-  entity.addComponent(id, transform.new(id, pos))
-  if level ~= 0 then
-    entity.addComponent(id, sprite.new(id, {
-      image = resource.get("img/floor.png"),
-      width = 256, height = 32,
-      animations = {
-        idle = {
-          first = 1,
-          last = 1,
-          speed = 1
-        }
-      },
-      playing = "idle",
-    }))
-  end
-
-  -- build default elevator on right hand side
-  local epos = {roomNum = 7, floorNum = level}
-  local eid = room.new(STATE_PLAY, "elevator", epos)
-  event.notify("build", 0, {id=eid, pos=epos, type="elevator"})
-  
-  event.notify("floor.new", 0, level)
-  local snd = resource.get("snd/build.wav")
-  love.audio.rewind(snd)
-  love.audio.play(snd)
-  floors[level] = id
-  return id
 end
 
 local floorUp = function()
@@ -803,27 +803,7 @@ local newSuiteMenu = function ()
   return m
 end
 
---Suites button
-menu.addButton(gui, menu.newButton("suites", function ()
-  menu.disable(gui)
-
-  --Create the suites menu
-  submenu = newSuiteMenu()
-  submenuConstructor = newSuiteMenu
-
-  --The back button deletes the submenu
-  menu.setBack(submenu, function ()
-    entity.delete(submenu)
-    submenu = nil
-    menu.enable(gui)
-  end)
-end))
-
---Infrastructure button
-menu.addButton(gui, menu.newButton("infrastructure", function ()
-  menu.disable(gui)
-
-  --Create the infrastructure menu
+local newInfrastructureMenu = function ()
   local m = menu.new(STATE_PLAY, subMenuY)
 
   --Build floor up
@@ -838,14 +818,9 @@ menu.addButton(gui, menu.newButton("infrastructure", function ()
   menu.addButton(m, menu.newButton("destroy", function ()
     demolishRoom(submenu)
   end))
-
-  --The back button deletes the submenu
-  menu.setBack(submenu, function ()
-    entity.delete(submenu)
-    menu.enable(gui)
-  end)
-end))
-
+  
+  return m
+end
 
 local newServicesMenu = function ()
   local m = menu.new(STATE_PLAY, subMenuY)
@@ -873,22 +848,6 @@ local newServicesMenu = function ()
 
   return m
 end
-
---Services button
-menu.addButton(gui, menu.newButton("services", function ()
-  menu.disable(gui)
-
-  --Create the services menu
-  submenu = newServicesMenu()
-  submenuConstructor = newServicesMenu
-
-   --The back button deletes the submenu
-  menu.setBack(submenu, function ()
-    entity.delete(submenu)
-    submenu = nil
-    menu.enable(gui)
-  end)
-end))
 
 local newFoodMenu = function ()
   local m = menu.new(STATE_PLAY, subMenuY)
@@ -923,22 +882,6 @@ local newFoodMenu = function ()
   return m
 end
 
---Food button
-menu.addButton(gui, menu.newButton("food", function ()
-  menu.disable(gui)
-
-  --Create the food menu
-  submenu = newFoodMenu()
-  submenuConstructor = newFoodMenu
-
-  --The back button deletes the submenu
-  menu.setBack(submenu, function ()
-    entity.delete(submenu)
-    submenu = nil
-    menu.enable(gui)
-  end)
-end))
-
 local newStaffMenu = function ()
   local m = menu.new(STATE_PLAY, subMenuY)
 
@@ -969,6 +912,71 @@ local newStaffMenu = function ()
 
   return m
 end
+
+--Suites button
+menu.addButton(gui, menu.newButton("suites", function ()
+  menu.disable(gui)
+
+  --Create the suites menu
+  submenu = newSuiteMenu()
+  submenuConstructor = newSuiteMenu
+
+  --The back button deletes the submenu
+  menu.setBack(submenu, function ()
+    entity.delete(submenu)
+    submenu = nil
+    menu.enable(gui)
+  end)
+end))
+
+--Infrastructure button
+menu.addButton(gui, menu.newButton("infrastructure", function ()
+  menu.disable(gui)
+
+  --Create the infrastructure menu
+  submenu = newInfrastructureMenu()
+  submenuConstructor = newInfrastructureMenu
+
+  --The back button deletes the submenu
+  menu.setBack(submenu, function ()
+    entity.delete(submenu)
+    submenu = nil
+    menu.enable(gui)
+  end)
+end))
+
+
+--Services button
+menu.addButton(gui, menu.newButton("services", function ()
+  menu.disable(gui)
+
+  --Create the services menu
+  submenu = newServicesMenu()
+  submenuConstructor = newServicesMenu
+
+   --The back button deletes the submenu
+  menu.setBack(submenu, function ()
+    entity.delete(submenu)
+    submenu = nil
+    menu.enable(gui)
+  end)
+end))
+
+--Food button
+menu.addButton(gui, menu.newButton("food", function ()
+  menu.disable(gui)
+
+  --Create the food menu
+  submenu = newFoodMenu()
+  submenuConstructor = newFoodMenu
+
+  --The back button deletes the submenu
+  menu.setBack(submenu, function ()
+    entity.delete(submenu)
+    submenu = nil
+    menu.enable(gui)
+  end)
+end))
 
 --Staff button
 menu.addButton(gui, menu.newButton("staff", function ()
