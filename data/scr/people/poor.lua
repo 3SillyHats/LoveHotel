@@ -11,6 +11,7 @@ return {
   influence = 1,
   preferences = {
     "spoon",
+    "balloon",
     "missionary",
     "utility",
   },
