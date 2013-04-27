@@ -656,8 +656,8 @@ local inspect = function (gui)
   event.subscribe("pressed", 0, back)
 end
 
-local staffManage = function (gui, type)
-  menu.disable(gui)
+local staffManage = function (type)
+  menu.disable(submenu)
 
   local staffUtility = staffer.new(STATE_PLAY, type)
 
@@ -666,7 +666,7 @@ local staffManage = function (gui, type)
     if gState == STATE_PLAY and
         (key == "a" or key == "b") then
       event.unsubscribe("pressed", 0, back)
-      menu.enable(gui)
+      menu.enable(submenu)
       entity.delete(staffUtility)
     end
   end
