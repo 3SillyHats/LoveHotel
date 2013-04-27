@@ -753,7 +753,7 @@ local newSuiteMenu = function ()
     buildRoom("missionary")
   end))
 
-  if gStars >= 2 then
+  if gStarsBest >= 2 then
     --Spoon
     menu.addButton(m, menu.newButton("spoon", function ()
       buildRoom("spoon")
@@ -768,7 +768,7 @@ local newSuiteMenu = function ()
     addLockButton(m)
   end
 
-  if gStars >= 3 then
+  if gStarsBest >= 3 then
     --Chocolate Moustache
     menu.addButton(m, menu.newButton("moustache", function ()
       buildRoom("moustache")
@@ -777,7 +777,7 @@ local newSuiteMenu = function ()
     addLockButton(m)
   end
 
-  if gStars >= 4 then
+  if gStarsBest >= 4 then
     --Torture
     menu.addButton(m, menu.newButton("torture", function ()
       buildRoom("torture")
@@ -791,7 +791,7 @@ local newSuiteMenu = function ()
     buildRoom("eco")
   end))
 
-  if gStars >= 5 then
+  if gStarsBest >= 5 then
     --Nazi Furry
     menu.addButton(m, menu.newButton("nazifurry", function ()
       buildRoom("nazifurry")
@@ -829,7 +829,7 @@ local newServicesMenu = function ()
   menu.addButton(m, menu.newButton("utility", function ()
     buildRoom("utility")
   end))
-  if gStars >= 2 then
+  if gStarsBest >= 2 then
     --Condom machine
     menu.addButton(m, menu.newButton("condom", function ()
       buildRoom("condom")
@@ -837,7 +837,7 @@ local newServicesMenu = function ()
   else
     addLockButton(m)
   end
-  if gStars >= 5 then
+  if gStarsBest >= 5 then
     --Spa room
     menu.addButton(m, menu.newButton("spa", function ()
       buildRoom("spa")
@@ -857,7 +857,7 @@ local newFoodMenu = function ()
     buildRoom("vending")
   end))
 
-  if gStars >= 3 then
+  if gStarsBest >= 3 then
     --Dining room
     menu.addButton(m, menu.newButton("dining", function ()
       buildRoom("dining")
@@ -871,7 +871,7 @@ local newFoodMenu = function ()
     addLockButton(m)
   end
 
-  if gStars >= 4 then
+  if gStarsBest >= 4 then
     --Freezer Room
     menu.addButton(m, menu.newButton("freezer", function ()
       buildRoom("freezer")
@@ -895,14 +895,14 @@ local newStaffMenu = function ()
   menu.addButton(m, menu.newButton("maintenance", function ()
     staffManage("maintenance")
   end))
-  if gStars >= 3 then
+  if gStarsBest >= 3 then
     menu.addButton(m, menu.newButton("cook", function ()
       staffManage("cook")
     end))
   else
     addLockButton(m)
   end
-  if gStars >= 4 then
+  if gStarsBest >= 4 then
     menu.addButton(m, menu.newButton("stocker", function ()
       staffManage("stocker")
     end))
