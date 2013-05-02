@@ -41,14 +41,13 @@ local stocker = function (id, cost, t)
   })
   
   local new = true
-  local full = true
-  local broken = false
+  local stockable = false
 
   component.draw = function (self)
-    if full or broken then
-      love.graphics.setColor(172,16,0)
-    else
+    if stockable then
       love.graphics.setColor(0,184,0)
+    else
+      love.graphics.setColor(172,16,0)
     end
     love.graphics.setLine(1, "rough")
     love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
@@ -60,19 +59,17 @@ local stocker = function (id, cost, t)
     local roomId, type = getRoom()
     if roomId ~= nil then
       local info = resource.get("scr/rooms/" .. string.lower(type) .. ".lua")
+      stockable = false
       if info.restockCost then
-        broken = false
         if room.isBroken(roomId) then
-          broken = true
           event.notify("menu.info", 0, {name = "Cost:", desc = "BROKEN"})
         elseif room.getStock(roomId) < info.stock then
-          full = false
+          stockable = true
           event.notify("menu.info", 0, {
             name = "Cost:",
             desc = "$" .. info.restockCost,
           })
         else
-          full = true
           event.notify("menu.info", 0, {name = "Cost:", desc = "FULL"})
         end
       else
@@ -127,7 +124,7 @@ local stocker = function (id, cost, t)
             floorNum = gScrollPos,
           })
           
-          full = true
+          stockable = false
           event.notify("menu.info", 0, {name = "Cost:", desc = "FULL"})
 
           local snd = resource.get("snd/select.wav")
