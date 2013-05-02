@@ -53,8 +53,8 @@ CLIENTS = {
   "ground",
   "space"
 }
-SPAWN_MIN = 20
-SPAWN_MAX = 30
+SPAWN_MIN = 45
+SPAWN_MAX = 60
 SPAWN_FACTOR = 5
 SKY_SPAWN = 8
 GROUND_SPAWN = -8
