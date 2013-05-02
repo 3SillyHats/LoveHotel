@@ -2,7 +2,7 @@ return {
   id = "balloon",
   name = "Balloons",
   cost = 6000,
-  profit = 900,
+  profit = 1000,
   desirability = 5,
   width = 3,
   dirtyable = true,

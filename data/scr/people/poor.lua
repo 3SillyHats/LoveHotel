@@ -2,7 +2,7 @@ return {
   name = "poor",
 
   condoms = 2,
-  money = 1000,
+  money = 1200,
   horniness = 60,
   satiety = 60,
 
