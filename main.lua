@@ -1460,7 +1460,7 @@ local init = function ()
   id = room.new(STATE_PLAY, "reception", pos)
   event.notify("build", 0, {id=id, pos=pos, type="reception"})
   
-  pos = {roomNum = 4, floorNum = 1}
+  pos = {roomNum = 1, floorNum = 1}
   id = room.new(STATE_PLAY, "missionary", pos)
   event.notify("build", 0, {id=id, pos=pos, type="missionary"})
   
