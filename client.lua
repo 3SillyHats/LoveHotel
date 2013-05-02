@@ -276,6 +276,8 @@ M.newSpawner = function (type, pos)
     end,
   })
   entity.addComponent(spawner, com)
+  
+  event.notify("newSpawner", 0, type)
 end
 
 M.newSpawner(nil, {roomNum = -1, floorNum = GROUND_FLOOR})

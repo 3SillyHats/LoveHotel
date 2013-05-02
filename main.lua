@@ -226,6 +226,15 @@ gCounts = {
   rooms = {},
   spas = 0,
 }
+gClientsSeen = {
+  poor = true,
+  working = true,
+  rich = true,
+}
+
+event.subscribe("newSpawner", 0, function (type)
+  gClientsSeen[type] = true
+end)
 
 local alertEntity = entity.new(STATE_PLAY)
 entity.setOrder(alertEntity, 110)
@@ -1261,17 +1270,19 @@ hudCom.draw = function (self)
   if self.desirable then
     love.graphics.setColor(255, 255, 255)
     for _,client in ipairs(CLIENTS) do
-      local quad
-      if self.desirable[client] then
-        quad = iconQuads[client]
-      else
-        quad = iconQuads[client.."Off"]
+      if gClientsSeen[client] then
+        local quad
+        if self.desirable[client] then
+          quad = iconQuads[client]
+        else
+          quad = iconQuads[client.."Off"]
+        end
+        love.graphics.drawq(
+          resource.get("img/hud.png"), quad,
+          iconPosX[client], iconPosY[client],
+          0
+        )
       end
-      love.graphics.drawq(
-        resource.get("img/hud.png"), quad,
-        iconPosX[client], iconPosY[client],
-        0
-      )
     end
   end
 end
@@ -1494,6 +1505,11 @@ local reset = function ()
     fix = 0,
     rooms = {},
     spas = 0,
+  }
+  gClientsSeen = {
+    poor = true,
+    working = true,
+    rich = true,
   }
   upkeepCom.timer = 0 -- reset electricity bill timer
   brokeCom.timer = -1 -- disable game over timer
