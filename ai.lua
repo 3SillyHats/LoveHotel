@@ -57,8 +57,13 @@ local mealFilter = function (com, roomId)
 end
 local bellhopFilter = function (com, roomId)
   local info = room.getInfo(roomId)
+  local pos = room.getPos(roomId)
+  local limit = com.limit
+  if pos.floorNum == 0 then
+    limit = limit * 2
+  end
   return (info.id == "reception" and
-  room.assigned(roomId) <= com.limit)
+  room.assigned(roomId) <= limit)
 end
 local relaxFilter = function (com, roomId)
   local info = room.getInfo(roomId)
