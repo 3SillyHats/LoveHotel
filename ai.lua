@@ -71,6 +71,7 @@ local restockFilter = function (com, roomId)
   return (info.restockCost and
     info.restockCost <= gMoney and
     room.getStock(roomId) <= 1 and
+    room.isBroken(roomId) == false and
     room.reservations(roomId) == 0)
 end
 local serveFoodFilter = function (com, roomId)
@@ -1356,7 +1357,7 @@ local states = {
     exit = function (com)
       event.notify("sprite.play", com.entity, "idle")
       local info = room.getInfo(com.room)
-      if com.waitSuccess then
+      if com.waitSuccess and room.isBroken(com.room) == false then
         room.setStock(com.room, info.stock)
         local myPos = transform.getPos(com.entity)
         moneyChange(-info.restockCost,
