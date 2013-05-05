@@ -360,11 +360,19 @@ reputationChange = function (c)
   if gStars < STARS_MAX and gReputation >= REP_THRESHOLDS[gStars + 1] then
     gStars = gStars + 1
     gStarsBest = math.max(gStarsBest, gStars)
-    event.notify("stars", 0, gStars)
+    event.notify("stars", 0, {
+      current = gStars,
+      old = gStars - 1,
+      best = gStarsBest
+    })
   elseif gStars > 1 and gReputation < REP_THRESHOLDS[gStars] then
     gStars = gStars - 1
     gStarsBest = math.max(gStarsBest, gStars)
-    event.notify("stars", 0, gStars)
+    event.notify("stars", 0, {
+      current = gStars,
+      old = gStars - 1,
+      best = gStarsBest
+    })
   elseif not won and gReputation == REP_MAX then
     won = true
     event.notify("win", 0)
@@ -1112,7 +1120,11 @@ end)
 event.subscribe("training.end", 0, function ()
   event.notify("state.enter", 0, STATE_PLAY)
   -- Show starting title card
-  event.notify("stars", 0, 1)
+  event.notify("stars", 0, {
+    current = 1,
+    old = 0,
+    best = 1,
+  })
 end)
 
 local floorOccupation = 1
@@ -1477,12 +1489,13 @@ local initialised = false
 -- Create default rooms and staff
 local init = function ()
   newFloor(GROUND_FLOOR)
+  event.notify("menu.info", 0, {selected = "infrastructure"})
 
   if not save.load() then
     floorUp()
     staff.new("bellhop")
     staff.new("cleaner")
-    event.notify("menu.info", 0, {selected = "infrastructure"})
+    
     local id, pos
     
     pos = {roomNum = 4, floorNum = 0}

@@ -183,9 +183,9 @@ event.subscribe("pressed", 0, function (button)
 end)
 
 -- Setup some handlers to prompt decisions
-event.subscribe("stars", 0, function (stars)
-  if stars > gStarsBest then
-    M.prompt("star" .. stars)
+event.subscribe("stars", 0, function (e)
+  if e.current > e.old and e.current == e.best then
+    M.prompt("star" .. e.current)
   end
 end)
 event.subscribe("floor.new", 0, function (level)
