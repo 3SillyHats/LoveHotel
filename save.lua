@@ -70,6 +70,9 @@ M.save = function ()
   vars.gClientsSeen = gClientsSeen
 
   event.notify("room.all", 0, function (roomId, id)
+    if id == "elevator" or id == "reception" then
+      return
+    end
     local pos = transform.getPos(roomId)
     vars.rooms[#vars.rooms+1] = {
       id = id,

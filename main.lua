@@ -1490,17 +1490,17 @@ local initialised = false
 local init = function ()
   newFloor(GROUND_FLOOR)
   event.notify("menu.info", 0, {selected = "infrastructure"})
+  
+  local id, pos
+    
+  pos = {roomNum = 4, floorNum = 0}
+  id = room.new(STATE_PLAY, "reception", pos)
+  event.notify("build", 0, {id=id, pos=pos, type="reception"})
 
   if not save.load() then
     floorUp()
     staff.new("bellhop")
     staff.new("cleaner")
-    
-    local id, pos
-    
-    pos = {roomNum = 4, floorNum = 0}
-    id = room.new(STATE_PLAY, "reception", pos)
-    event.notify("build", 0, {id=id, pos=pos, type="reception"})
     
     pos = {roomNum = 1, floorNum = 1}
     id = room.new(STATE_PLAY, "missionary", pos)
