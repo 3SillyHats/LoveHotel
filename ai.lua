@@ -56,16 +56,6 @@ local mealFilter = function (com, roomId)
     info.profit <= com.money and
     room.reservations(roomId) < math.min(3, room.getStock(roomId)))
 end
-local bellhopFilter = function (com, roomId)
-  local info = room.getInfo(roomId)
-  local pos = room.getPos(roomId)
-  local limit = com.limit
-  if pos.floorNum == 0 then
-    limit = limit * 2
-  end
-  return (info.id == "reception" and
-  room.assigned(roomId) <= limit)
-end
 local relaxFilter = function (com, roomId)
   local info = room.getInfo(roomId)
   return (info.id == "spa" and
@@ -940,16 +930,34 @@ local states = {
     enter = function (com)
       -- Find the nearest reception
       local myPos = transform.getPos(com.entity)
-      for i = 0, 8 do
-        com.limit = i
-        com.room = room.getNearest(
-          com,
-          myPos.roomNum, myPos.floorNum,
-          bellhopFilter
-        )
-        if com.room ~= nil then break end
+      local rooms = room.all()
+      local minDist = 2^52
+      local minAssigned = 2^52
+      com.room = nil
+      for _,r in ipairs(rooms) do
+	if room.getInfo(r).id == "reception" then
+	  local assigned = room.assigned(r)
+	  local pos = room.getPos(r)
+	  if pos.floorNum == 0 then
+	    assigned = assigned / 2
+	  end
+	  if assigned <= minAssigned then
+	    local d
+	    if pos.floorNum == myPos.floorNum then
+	      d = math.abs(pos.roomNum - myPos.roomNum)
+	    else
+	      -- d = dist to elevator + floor dist + dist to room
+	      d = math.abs(pos.floorNum - myPos.floorNum) + 14 - (myPos.roomNum + pos.roomNum)
+	    end
+	    if assigned < minAssigned or d < minDist then
+	      minAssigned = assigned
+	      minDist = d
+	      com.room = r
+	    end
+	  end
+	end
       end
-      com.limit = nil
+
       if com.room == nil then
         com:pop()
         return
