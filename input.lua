@@ -162,14 +162,14 @@ local oldAxis = {}
 local oldHat = {}
 
 M.update = function (dt)
-  for i=0,love.joystick.getNumJoysticks() do
+  for i=1,love.joystick.getNumJoysticks() do
     if not oldAxis[i] then
       oldAxis[i] = {}
     end
     if not oldHat[i] then
       oldHat[i] = {}
     end
-    for j=0,love.joystick.getNumHats(i) do
+    for j=1,love.joystick.getNumHats(i) do
       if not oldHat[i][j] then
         oldHat[i][j] = 'c'
       end
@@ -204,7 +204,7 @@ M.update = function (dt)
       
       oldHat[i][j] = hat
     end
-     for j=0,love.joystick.getNumAxes(i) do
+     for j=1,love.joystick.getNumAxes(i) do
       if not oldAxis[i][j] then
         oldAxis[i][j] = 0
       end
