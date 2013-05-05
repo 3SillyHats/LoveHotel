@@ -18,7 +18,7 @@ local ACHIEVEMENTS = {
   },
   {
     name = "Electrical Dysfunction",
-    desc = "Had 5 machines being fixed at once.",
+    desc = "Had two machines being fixed at once.",
   },
   {
     name = "The Full Monty",
@@ -34,7 +34,7 @@ local ACHIEVEMENTS = {
   },
   {
     name = "Full Contact Spa-ing",
-    desc = "Had 6 couples in spas at once.",
+    desc = "Had three couples in spas at once.",
   },
   {
     name = "Mile High Club",
