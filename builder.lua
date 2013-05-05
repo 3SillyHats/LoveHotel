@@ -95,6 +95,7 @@ local placer = function (id, type, width, cost, t)
           love.audio.play(snd)
           
           clear = false
+	  return true
         else
           local snd = resource.get("snd/error.wav")
           love.audio.rewind(snd)

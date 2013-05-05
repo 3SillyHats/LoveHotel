@@ -82,6 +82,7 @@ local demolisher = function (id, cost, t)
           snd:setVolume(1)
           love.audio.rewind(snd)
           love.audio.play(snd)
+	  return true
         else
           local snd = resource.get("snd/error.wav")
           love.audio.rewind(snd)

@@ -357,15 +357,16 @@ reputationChange = function (c)
 
   if gStars < STARS_MAX and gReputation >= REP_THRESHOLDS[gStars + 1] then
     gStars = gStars + 1
+    gStarsBest = math.max(gStarsBest, gStars)
+    event.notify("stars", 0, gStars)
   elseif gStars > 1 and gReputation < REP_THRESHOLDS[gStars] then
     gStars = gStars - 1
+    gStarsBest = math.max(gStarsBest, gStars)
+    event.notify("stars", 0, gStars)
   elseif not won and gReputation == REP_MAX then
     won = true
     event.notify("win", 0)
   end
-  
-  gStarsBest = math.max(gStarsBest, gStars)
-  event.notify("stars", 0, gStars)
 end
 
 -- Font
@@ -604,6 +605,7 @@ local buildRoom = function (type)
       event.unsubscribe("build", buildUtility, onBuild)
       menu.enable(submenu)
       entity.delete(buildUtility)
+      return true
     end
   end
 
@@ -623,6 +625,7 @@ local demolishRoom = function ()
       event.unsubscribe("pressed", 0, back)
       menu.enable(submenu)
       entity.delete(demolishUtility)
+      return true
     end
   end
 
@@ -641,6 +644,7 @@ local stockRoom = function (gui)
       event.unsubscribe("pressed", 0, back)
       menu.enable(gui)
       entity.delete(stockUtility)
+      return true
     end
   end
 
@@ -658,6 +662,7 @@ local inspect = function (gui)
       event.unsubscribe("pressed", 0, back)
       menu.enable(gui)
       entity.delete(inspectUtility)
+      return true
     end
   end
 
@@ -676,6 +681,7 @@ local staffManage = function (type)
       event.unsubscribe("pressed", 0, back)
       menu.enable(submenu)
       entity.delete(staffUtility)
+      return true
     end
   end
 
@@ -737,9 +743,18 @@ end
 
 local onStars = function (e)
   if (submenu ~= nil) then
-    print("onStars")
+    selected = menu.selected(submenu)
+    enabled = menu.enabled(submenu)
+
     entity.delete(submenu)
-    submenu = submenuConstructor()
+    submenu = submenuConstructor(not enabled)
+
+    menu.select(submenu, selected)
+    if enabled then
+      menu.enable(submenu)
+    else
+      menu.disable(submenu)
+    end
 
     menu.setBack(submenu, function ()
       entity.delete(submenu)
@@ -754,8 +769,8 @@ event.subscribe("stars", 0, onStars)
 menu.setBack(gui, function ()
 end)
 
-local newSuiteMenu = function ()
-  local m = menu.new(STATE_PLAY, subMenuY)
+local newSuiteMenu = function (suppressInfo)
+  local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
 
   --Missionary
   menu.addButton(m, menu.newButton("missionary", function ()
@@ -812,8 +827,8 @@ local newSuiteMenu = function ()
   return m
 end
 
-local newInfrastructureMenu = function ()
-  local m = menu.new(STATE_PLAY, subMenuY)
+local newInfrastructureMenu = function (suppressInfo)
+  local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
 
   --Build floor up
   menu.addButton(m, menu.newButton("floorUp", function ()
@@ -831,8 +846,8 @@ local newInfrastructureMenu = function ()
   return m
 end
 
-local newServicesMenu = function ()
-  local m = menu.new(STATE_PLAY, subMenuY)
+local newServicesMenu = function (suppressInfo)
+  local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
 
   --Utility
   menu.addButton(m, menu.newButton("utility", function ()
@@ -858,8 +873,8 @@ local newServicesMenu = function ()
   return m
 end
 
-local newFoodMenu = function ()
-  local m = menu.new(STATE_PLAY, subMenuY)
+local newFoodMenu = function (suppressInfo)
+  local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
 
   --Vending machine
   menu.addButton(m, menu.newButton("vending", function ()
@@ -891,8 +906,8 @@ local newFoodMenu = function ()
   return m
 end
 
-local newStaffMenu = function ()
-  local m = menu.new(STATE_PLAY, subMenuY)
+local newStaffMenu = function (suppressInfo)
+  local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
 
   --Hire staff
   menu.addButton(m, menu.newButton("bellhop", function ()

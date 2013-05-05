@@ -130,6 +130,8 @@ local stocker = function (id, cost, t)
           local snd = resource.get("snd/select.wav")
           love.audio.rewind(snd)
           love.audio.play(snd)
+
+	  return true
         else
           local snd = resource.get("snd/error.wav")
           love.audio.rewind(snd)
