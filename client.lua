@@ -296,9 +296,12 @@ event.subscribe("floor.new", 0, function (level)
   end
   
   if pos then
-    pos.roomNum = 4
-    room.new(STATE_PLAY, "reception", pos)
-    event.notify("build", 0, {id=id, pos=pos, type="reception"})
+    local pos2 = {
+      roomNum = 4,
+      floorNum = pos.floorNum,
+    }
+    room.new(STATE_PLAY, "reception", pos2)
+    event.notify("build", 0, {id=id, pos=pos2, type="reception"})
   end
 end)
 
