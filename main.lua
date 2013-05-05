@@ -9,6 +9,7 @@ GROUND_FLOOR = 0
 
 FILE_SETTINGS = "settings"
 FILE_ACHIEVEMENTS = "achievements"
+FILE_SAVE = "save"
 
 STATE_TRAIN = 1
 STATE_PLAY = 2
@@ -114,6 +115,7 @@ local staff = require("staff")
 local client = require("client")
 local transform = require("transform")
 local decision = require("decision")
+local save = require("save")
 
 local thousandify = function (str)
   if (str:sub(1, 1) == "-" and str:len() > 4) or
@@ -688,7 +690,7 @@ local staffManage = function (type)
   event.subscribe("pressed", 0, back)
 end
 
-local floorUp = function()
+floorUp = function()
   if gTopFloor >= 16 then return end
   local cost = FLOOR_COSTS[gTopFloor + 1]
   if gMoney >= cost then
@@ -710,7 +712,7 @@ local floorUp = function()
   end
 end
 
-local floorDown = function()
+floorDown = function()
   if gBottomFloor <= -8 then return end
   local cost = FLOOR_COSTS[-gBottomFloor + 1] * 1.5
   if gMoney >= cost then
@@ -1475,26 +1477,28 @@ local initialised = false
 -- Create default rooms and staff
 local init = function ()
   newFloor(GROUND_FLOOR)
-  floorUp()
-  
-  staff.new("bellhop")
-  staff.new("cleaner")
-  event.notify("menu.info", 0, {selected = "infrastructure"})
-  local id, pos
-  
-  pos = {roomNum = 4, floorNum = 0}
-  id = room.new(STATE_PLAY, "reception", pos)
-  event.notify("build", 0, {id=id, pos=pos, type="reception"})
-  
-  pos = {roomNum = 1, floorNum = 1}
-  id = room.new(STATE_PLAY, "missionary", pos)
-  event.notify("build", 0, {id=id, pos=pos, type="missionary"})
-  
-  pos = {roomNum = 6, floorNum = 1}
-  id = room.new(STATE_PLAY, "utility", pos)
-  event.notify("build", 0, {id=id, pos=pos, type="utility"})
-  -- reduce initial stock
-  room.setStock(id, 3)
+
+  if not save.load() then
+    floorUp()
+    staff.new("bellhop")
+    staff.new("cleaner")
+    event.notify("menu.info", 0, {selected = "infrastructure"})
+    local id, pos
+    
+    pos = {roomNum = 4, floorNum = 0}
+    id = room.new(STATE_PLAY, "reception", pos)
+    event.notify("build", 0, {id=id, pos=pos, type="reception"})
+    
+    pos = {roomNum = 1, floorNum = 1}
+    id = room.new(STATE_PLAY, "missionary", pos)
+    event.notify("build", 0, {id=id, pos=pos, type="missionary"})
+    
+    pos = {roomNum = 6, floorNum = 1}
+    id = room.new(STATE_PLAY, "utility", pos)
+    event.notify("build", 0, {id=id, pos=pos, type="utility"})
+    -- reduce initial stock
+    room.setStock(id, 3)
+  end
 
   initialised = true
 end
@@ -1942,4 +1946,5 @@ end
 
 love.quit = function ()
   achievement.save()
+  save.save()
 end
