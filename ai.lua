@@ -698,7 +698,7 @@ local states = {
     enter = function (com)
       gCounts.spas = gCounts.spas + 1
       if gCounts.spas >= 3 then
-        achievement.achieve(achievment.SPA)
+        achievement.achieve(achievement.SPA)
       end
     end,
     exit = function (com)
@@ -1145,7 +1145,7 @@ local states = {
     enter = function (com)
       gCounts.fix = gCounts.fix + 1
       if gCounts.fix >= 2 then
-        achievement.achieve(achievment.FIX)
+        achievement.achieve(achievement.FIX)
       end
     end,
     exit = function (com)
