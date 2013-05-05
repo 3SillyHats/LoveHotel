@@ -1,6 +1,7 @@
 
 local AI_TICK = 0.05
 
+local achievement = require("achievement")
 local entity = require("entity")
 local event = require("event")
 local resource = require("resource")
@@ -320,6 +321,10 @@ local states = {
       end
     end,
     exit = function (com)
+      local pos = transform.getPos(com.entity)
+      if com.class == "space" and pos.floorNum == -8 then
+        achievement.achieve(achievement.DOWN)
+      end
       event.notify("sprite.flip", com.entity, true)
       event.notify("sprite.hide", com.entity, false)
       event.unsubscribe("sprite.onAnimationEnd", com.moveTo, com.moveHandler)
@@ -559,6 +564,9 @@ local states = {
         local myPos = transform.getPos(com.entity)
         moneyChange(roomInfo.profit, {roomNum = myPos.roomNum, floorNum = myPos.floorNum})
         reputationChange(myInfo.influence * roomInfo.desirability)
+        if roomInfo.id == "utility" then
+          achievement.achieve(achievement.CLOSET)
+        end
       end
       room.release(com.room)
       event.notify("sprite.play", com.room, "opening")
@@ -687,8 +695,14 @@ local states = {
     transition = pass,
   },
   useSpa = {
-    enter = pass,
+    enter = function (com)
+      gCounts.spas = gCounts.spas + 1
+      if gCounts.spas >= 3 then
+        achievement.achieve(achievment.SPA)
+      end
+    end,
     exit = function (com)
+      gCounts.spas = gCounts.spas - 1
       if com.waitSuccess and entity.get(com.room) then
         local myInfo = resource.get("scr/people/" .. com.class .. ".lua")
         local roomInfo = room.getInfo(com.room)
@@ -1128,8 +1142,14 @@ local states = {
     transition = pass,
   },
   fixMachine = {
-    enter = pass,
+    enter = function (com)
+      gCounts.fix = gCounts.fix + 1
+      if gCounts.fix >= 2 then
+        achievement.achieve(achievment.FIX)
+      end
+    end,
     exit = function (com)
+      gCounts.fix = gCounts.fix - 1
       event.notify("sprite.play", com.entity, "idle")
       local info = room.getInfo(com.room)
       if com.waitSuccess then
