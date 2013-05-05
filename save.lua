@@ -9,6 +9,12 @@ local vars
 
 local M = {}
 
+M.delete = function ()
+  if love.filesystem.exists(FILE_SAVE) then
+    love.filesystem.remove(FILE_SAVE)
+  end
+end
+
 M.load = function ()
   if love.filesystem.exists(FILE_SAVE) then
     local success, result = luatexts.load(

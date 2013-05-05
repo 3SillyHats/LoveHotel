@@ -321,6 +321,7 @@ local brokeCom = entity.newComponent({
           gStaffTotals["maintenance"] <= 0 and
           gStaffTotals["cook"] <= 0 and
           gStaffTotals["stocker"] <= 0 then
+        save.delete()
         event.notify("lose", 0, nil)
       else
         alert("broke")
@@ -1575,6 +1576,8 @@ local reset = function ()
   event.notify("state.enter", 0, STATE_PLAY)
   entity.update(0)
   
+  save.delete()
+  
   initialised = false
 end
 
@@ -1597,7 +1600,7 @@ local pauseCom = entity.newComponent({
     {
       text = "Restart",
       onPress = function ()
-        decision.confirm("Are you sure you want to restart? You will lose all progress!", reset)
+        decision.confirm("Are you sure you want to restart?\nYou will lose all progress!", reset)
       end,
     },
     {
@@ -1621,7 +1624,7 @@ local pauseCom = entity.newComponent({
     {
       text = "Quit",
       onPress = function ()
-        decision.confirm("Are you sure you want to quit? You will lose all progress!", function ()
+        decision.confirm("Are you sure you want to quit?\nYour progress will be saved.", function ()
           quit()
         end)
       end,
