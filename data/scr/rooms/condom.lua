@@ -1,6 +1,6 @@
 return {
   id = "condom",
-  name = "Condom Mach.",
+  name = "Condoms",
   cost = 1000,
   width = 1,
   profit = 150,

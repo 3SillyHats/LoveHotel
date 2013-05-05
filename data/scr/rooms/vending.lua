@@ -1,6 +1,6 @@
 return {
   id = "vending",
-  name = "Vending Mach.",
+  name = "Vending",
   cost = 500,
   width = 1,
   profit = 75,
