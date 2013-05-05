@@ -34,7 +34,7 @@ M.load = function ()
     floorUp()
   end
   gBottomFloor = 0
-  for i=1,vars.gBottomFloor do
+  for i=-1,vars.gBottomFloor,-1 do
     floorDown()
   end
   gScrollPos = vars.gScrollPos
