@@ -427,7 +427,6 @@ local states = {
       end
     end,
     exit = function (com)
-      
       entity.delete(com.entity)
     end,
     update = function (com, dt)
@@ -927,7 +926,9 @@ local states = {
       com.moveFloor = 0
       com:push("moveTo")
     end,
-    exit = pass,
+    exit = function (com)
+      entity.delete(com.entity)
+    end,
     update = pass,
     transition = pass,
   },
