@@ -929,7 +929,9 @@ local states = {
     exit = function (com)
       entity.delete(com.entity)
     end,
-    update = pass,
+    update = function (com)
+      com:pop()
+    end,
     transition = pass,
   },
 
