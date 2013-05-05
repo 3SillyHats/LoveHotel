@@ -357,16 +357,15 @@ reputationChange = function (c)
 
   if gStars < STARS_MAX and gReputation >= REP_THRESHOLDS[gStars + 1] then
     gStars = gStars + 1
-    event.notify("stars", 0, gStars)
   elseif gStars > 1 and gReputation < REP_THRESHOLDS[gStars] then
     gStars = gStars - 1
-    event.notify("stars", 0, gStars)
   elseif not won and gReputation == REP_MAX then
     won = true
     event.notify("win", 0)
   end
   
   gStarsBest = math.max(gStarsBest, gStars)
+  event.notify("stars", 0, gStars)
 end
 
 -- Font
@@ -738,6 +737,7 @@ end
 
 local onStars = function (e)
   if (submenu ~= nil) then
+    print("onStars")
     entity.delete(submenu)
     submenu = submenuConstructor()
 
