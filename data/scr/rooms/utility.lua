@@ -2,7 +2,7 @@ return {
   id = "utility",
   name = "Utility",
   cost = 1000,
-  profit = 50,
+  profit = 75,
   desirability = 0,
   width = 1,
   dirtyable = false,

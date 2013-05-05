@@ -2,7 +2,7 @@ return {
   name = "space",
 
   condoms = 1,
-  money = 30000,
+  money = 45000,
   horniness = 60,
   satiety = 40,
 

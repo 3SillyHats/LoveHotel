@@ -2,7 +2,7 @@ return {
   id = "moustache",
   name = "Chocolate",
   cost = 8000,
-  profit = 800,
+  profit = 1200,
   desirability = 15,
   width = 2,
   dirtyable = true,

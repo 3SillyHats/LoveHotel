@@ -3,7 +3,7 @@ return {
   name = "Condom Mach.",
   cost = 1000,
   width = 1,
-  profit = 100,
+  profit = 150,
   stock = 8,
   restockCost = 500,
   integrity = 13,

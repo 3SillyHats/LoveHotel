@@ -2,7 +2,7 @@ return {
   name = "ground",
 
   condoms = 0,
-  money = 10000,
+  money = 15000,
   horniness = 100,
   satiety = 40,
 

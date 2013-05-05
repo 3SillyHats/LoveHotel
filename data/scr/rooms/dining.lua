@@ -2,7 +2,7 @@ return {
   id = "dining",
   name = "Dining Room",
   cost = 5000,
-  profit = 2000,
+  profit = 3000,
   desirability = 15,
   width = 3,
   stock = 8,

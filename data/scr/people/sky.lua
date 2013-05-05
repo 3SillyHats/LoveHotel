@@ -2,7 +2,7 @@ return {
   name = "sky",
 
   condoms = 1,
-  money = 6000,
+  money = 9000,
   horniness = 60,
   satiety = 40,
 

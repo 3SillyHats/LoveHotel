@@ -2,7 +2,7 @@ return {
   id = "eco",
   name = "Tropical",
   cost = 50000,
-  profit = 5000,
+  profit = 7500,
   desirability = 20,
   width = 5,
   dirtyable = true,
