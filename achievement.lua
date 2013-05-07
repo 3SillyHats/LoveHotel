@@ -30,7 +30,7 @@ local ACHIEVEMENTS = {
   },
   {
     name = "Frisky Business",
-    desc = "Had $100,000 in the bank.",
+    desc = "Had $999,999 in the bank.",
   },
   {
     name = "Full Contact Spa-ing",

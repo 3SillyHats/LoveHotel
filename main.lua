@@ -339,7 +339,7 @@ moneyChange = function (c, pos)
   if c > 0 then
     love.audio.rewind(moneySnd)
     love.audio.play(moneySnd)
-    if gMoney >= 100000 then
+    if gMoney == 999999 then
       achievement.achieve(achievement.BANK)
     end
   elseif gMoney < 0 and brokeCom.timer == -1 then
