@@ -1,3 +1,4 @@
+#version 150
 uniform mat4 projection_matrix;
 uniform mat4 modelview_matrix;
 

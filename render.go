@@ -1,7 +1,8 @@
 package main
 
 import (
-	"fmt"
+	"errors"
+	"log"
 
 	"github.com/go-gl/gl"
 )
@@ -90,28 +91,28 @@ type Model struct {
 	buffers []gl.Buffer
 }
 
-func err() {
-	if e := gl.GetError(); e != gl.NO_ERROR {
-		fmt.Print("Error: ")
-		switch {
-		case e == gl.INVALID_ENUM:
-			fmt.Println("INVALID_ENUM")
-		case e == gl.INVALID_VALUE:
-			fmt.Println("INVALID_VALUE")
-		case e == gl.INVALID_OPERATION:
-			fmt.Println("INVALID_OPERATION")
-		case e == gl.STACK_OVERFLOW:
-			fmt.Println("STACK_OVERFLOW")
-		case e == gl.STACK_UNDERFLOW:
-			fmt.Println("STACK_UNDERFLOW")
-		case e == gl.OUT_OF_MEMORY:
-			fmt.Println("OUT_OF_MEMORY")
-		case e == gl.TABLE_TOO_LARGE:
-			fmt.Println("TABLE_TOO_LARGE")
-		default:
-			fmt.Println("UNDEFINED")
-		}
+func ToError(enum gl.GLenum) (err error) {
+	switch {
+	case enum == gl.NO_ERROR:
+		err = nil
+	case enum == gl.INVALID_ENUM:
+		err = errors.New("GLenum: INVALID_ENUM")
+	case enum == gl.INVALID_VALUE:
+		err = errors.New("GLenum: INVALID_VALUE")
+	case enum == gl.INVALID_OPERATION:
+		err = errors.New("GLenum: INVALID_OPERATION")
+	case enum == gl.STACK_OVERFLOW:
+		err = errors.New("GLenum: STACK_OVERFLOW")
+	case enum == gl.STACK_UNDERFLOW:
+		err = errors.New("GLenum: STACK_UNDERFLOW")
+	case enum == gl.OUT_OF_MEMORY:
+		err = errors.New("GLenum: OUT_OF_MEMORY")
+	case enum == gl.TABLE_TOO_LARGE:
+		err = errors.New("GLenum: TABLE_TOO_LARGE")
+	default:
+		err = errors.New("GLenum: undefined")
 	}
+	return
 }
 
 // NewModel creates a simple cube model.
@@ -142,7 +143,9 @@ func NewModel(program gl.Program) (m Model) {
 	m.buffers[0].Unbind(gl.ARRAY_BUFFER)
 	m.buffers[1].Unbind(gl.ELEMENT_ARRAY_BUFFER)
 
-	err()
+	if err := ToError(gl.GetError()); err != nil {
+		log.Fatal(err)
+	}
 
 	return
 }
@@ -152,5 +155,8 @@ func (m Model) Render() {
 	m.vao[POSITION].Bind()
 	m.buffers[1].Bind(gl.ELEMENT_ARRAY_BUFFER)
 	gl.DrawElements(gl.TRIANGLES, m.numIndices, gl.UNSIGNED_INT, nil)
-	err()
+	
+	if err := ToError(gl.GetError()); err != nil {
+		log.Fatal(err)
+	}
 }
