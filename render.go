@@ -12,36 +12,41 @@ const (
 )
 
 var (
+	TRIANGLE_VERTICES [3*3]float32 = [3*3]float32{
+		0.75, 0.75, 0.0,
+		-0.75, -0.75, 0.0,
+		0.75, -0.75, 0.0,
+	}
 	CUBE_VERTICES [3*4*6]float32 = [3*4*6]float32{
-		0., 0., 0.,	//front
-		0., 1., 0.,
-		1., 1., 0.,
-		1., 0., 0.,
+		-1., -1., -1.,	//front
+		-1., 1., -1.,
+		1., 1., -1.,
+		1., -1., -1.,
 
-		0., 0., 0.,	//bottom
-		1., 0., 0.,
-		1., 0., 1.,
-		0., 0., 1.,
+		-1., -1., -1.,	//bottom
+		1., -1., -1.,
+		1., -1., 1.,
+		-1., -1., 1.,
 
-		0., 0., 0.,	//left side
-		0., 0., 1.,
-		0., 1., 1.,
-		0., 1., 0.,
+		-1., -1., -1.,	//left side
+		-1., -1., 1.,
+		-1., 1., 1.,
+		-1., 1., -1.,
 
 		1., 1., 1.,	//back
-		0., 1., 1.,
-		0., 0., 1.,
-		1., 0., 1.,
+		-1., 1., 1.,
+		-1., -1., 1.,
+		1., -1., 1.,
 
 		1., 1., 1.,	//top
-		1., 1., 0.,
-		0., 1., 0.,
-		0., 1., 1.,
+		1., 1., -1.,
+		-1., 1., -1.,
+		-1., 1., 1.,
 
 		1., 1., 1.,	//right side
-		1., 0., 1.,
-		1., 0., 0.,
-		1., 1., 0.,
+		1., -1., 1.,
+		1., -1., -1.,
+		1., 1., -1.,
 	}
 	CUBE_COLORS [3*4*6]float32 = [3*4*6]float32{
 		1., 0., 0.,	//red
@@ -74,13 +79,24 @@ var (
 		0., 0., 1.,
 		0., 0., 1.,
 	}
-	CUBE_INDICES [4*6]uint = [4*6]uint{
-		0, 1, 2, 3,
-		4, 5, 6, 7,
-		8, 9, 10, 11,
-		12,13,14,15,
-		16,17,18,19,
-		20,21,22,23,
+	CUBE_INDICES [3*2*6]uint32 = [3*2*6]uint32{
+		0, 1, 3, //front
+		3, 1, 2,
+
+		4, 5, 7, //bottom
+		7, 5, 6,
+
+		8, 9, 11, //left side
+		11, 9, 10,
+
+		12, 13, 15, //back
+		15, 13, 14,
+
+		16, 17, 19, //top
+		19, 17, 18,
+
+		20, 21, 23, //right side
+		23, 21, 22,
 	}
 )
 
@@ -130,10 +146,10 @@ func NewModel(program gl.Program) (m Model) {
 	
 	// Vertex buffer
 	m.buffers[0].Bind(gl.ARRAY_BUFFER)
-	gl.BufferData(gl.ARRAY_BUFFER, 3*4*6*4, &CUBE_VERTICES, gl.STATIC_DRAW);
+	gl.BufferData(gl.ARRAY_BUFFER, 4*3*6*4, &CUBE_VERTICES, gl.STATIC_DRAW);
 	vertLoc.EnableArray();
 	vertLoc.AttribPointer(3, gl.FLOAT, false, 0, nil);
-	//vertLoc.DisableArray();
+	// vertLoc.DisableArray();
 	
 	// Index buffer
 	m.numIndices = len(CUBE_INDICES)
@@ -141,7 +157,6 @@ func NewModel(program gl.Program) (m Model) {
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 4*m.numIndices, &CUBE_INDICES, gl.STATIC_DRAW)
 	
 	m.buffers[0].Unbind(gl.ARRAY_BUFFER)
-	m.buffers[1].Unbind(gl.ELEMENT_ARRAY_BUFFER)
 
 	if err := ToError(gl.GetError()); err != nil {
 		log.Fatal(err)
@@ -153,7 +168,6 @@ func NewModel(program gl.Program) (m Model) {
 // Render draws the model using OpenGL.
 func (m Model) Render() {
 	m.vao[POSITION].Bind()
-	m.buffers[1].Bind(gl.ELEMENT_ARRAY_BUFFER)
 	gl.DrawElements(gl.TRIANGLES, m.numIndices, gl.UNSIGNED_INT, nil)
 	
 	if err := ToError(gl.GetError()); err != nil {
