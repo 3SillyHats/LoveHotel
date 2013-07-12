@@ -392,9 +392,9 @@ M.new = function (state, roomType, pos)
       gCounts.rooms["spoon"] and
       gCounts.rooms["balloon"] and
       gCounts.rooms["moustache"] and
-      gCounts.rooms["torture"] and
-      gCounts.rooms["eco"] and
-      gCounts.rooms["nazifurry"] then
+      gCounts.rooms["heaven"] and
+      gCounts.rooms["tropical"] and
+      gCounts.rooms["banana"] then
     achievement.achieve(achievement.SUITES)
   end
   

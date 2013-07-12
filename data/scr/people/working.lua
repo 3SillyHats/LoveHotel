@@ -10,7 +10,7 @@ return {
   demandsFood = true,
   influence = 2,
   preferences = {
-    "torture",
+    "heaven",
     "moustache",
     "balloon",
     "utility",

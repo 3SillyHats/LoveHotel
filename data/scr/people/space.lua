@@ -10,8 +10,8 @@ return {
   demandsFood = true,
   influence = 2,
   preferences = {
-    "nazifurry",
-    "eco",
+    "banana",
+    "tropical",
     "utility",
   },
 

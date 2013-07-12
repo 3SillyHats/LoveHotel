@@ -81,11 +81,11 @@ FLOOR_COSTS = {
   16000, -- 16th floor
 }
 
-MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 20000
+MONEY_INITIAL = 10000000000--FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 20000
 MONEY_MAX = 999999
-REP_INITIAL = 25
+REP_INITIAL = 239847329--25
 REP_MAX = 20000
-STARS_INITIAL = 1
+STARS_INITIAL = 5--1
 STARS_MAX = 5
 REP_THRESHOLDS = {
   0,
@@ -389,7 +389,7 @@ gFont = love.graphics.newImageFont(
 )
 
 -- Update menu tooltips (get names, costs of rooms)
-local maxProfit = math.sqrt(resource.get("scr/rooms/nazifurry.lua").profit)
+local maxProfit = math.sqrt(resource.get("scr/rooms/banana.lua").profit)
 local maxRep = resource.get("scr/rooms/spa.lua").desirability
 local clientInfo = {}
 for _,c in ipairs(CLIENTS) do
@@ -816,22 +816,22 @@ local newSuiteMenu = function (suppressInfo)
 
   if gStarsBest >= 4 then
     --Torture
-    menu.addButton(m, menu.newButton("torture", function ()
-      buildRoom("torture")
+    menu.addButton(m, menu.newButton("heaven", function ()
+      buildRoom("heaven")
     end))
   else
     addLockButton(m)
   end
 
   --Eco
-  menu.addButton(m, menu.newButton("eco", function ()
-    buildRoom("eco")
+  menu.addButton(m, menu.newButton("tropical", function ()
+    buildRoom("tropical")
   end))
 
   if gStarsBest >= 5 then
     --Nazi Furry
-    menu.addButton(m, menu.newButton("nazifurry", function ()
-      buildRoom("nazifurry")
+    menu.addButton(m, menu.newButton("banana", function ()
+      buildRoom("banana")
     end))
   else
     addLockButton(m)

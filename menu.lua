@@ -25,9 +25,9 @@ buttLoc = {
   spoon = 17,
   moustache = 18,
   balloon = 19,
-  torture = 20,
-  nazifurry = 21,
-  eco = 22,
+  heaven = 20,
+  banana = 21,
+  tropical = 22,
 
   vending = 24,
   dining = 25,

@@ -21,7 +21,7 @@ local decisions = {
   },
   spaceSpawn = {
     prompt = "Astronauts are arriving at Love Hotel!" ..
-    "\nThey will only use Tropical and Nazi Furry suites. " ..
+    "\nThey will only use Tropical and Banana suites. " ..
     "They have tons of space cash, so lighten their return trip by taking it all!",
     alert = true,
   },
@@ -43,12 +43,12 @@ local decisions = {
   },
   star4 = {
     prompt = "Excellent - 4 stars!\nYou can now hire Stockers and build " ..
-    "Torture suites and Freezers to speed up cooking time.",
+    "Heaven suites and Freezers to speed up cooking time.",
     alert = true,
   },
   star5 = {
     prompt = "Amazing - 5 stars!\nYou can now build " ..
-    "Nazi Furry suites and Spas so people can have a good time." ..
+    "Banana suites and Spas so people can have a good time." ..
     "\nGet to 6 stars to become the best love hotel in the world!",
     alert = true,
   },
