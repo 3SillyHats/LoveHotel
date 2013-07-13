@@ -70,15 +70,20 @@ local staffer = function (id, type)
       "center"
     )
 
-    -- Max staff number
+    -- TOTAL or MAX staff number
+    love.graphics.setColor(123, 126, 127)
     if gStaffTotals[type] == STAFF_MAX then
-      love.graphics.setColor(123, 126, 127)
       love.graphics.print(
         string.format("MAX"),
         156, 203
       )
-      love.graphics.setColor(255, 255, 255)
+    else
+      love.graphics.print(
+        string.format("TOTAL"),
+        156, 203
+      )  
     end
+    love.graphics.setColor(255, 255, 255)
     
     -- Arrows
     if gStaffTotals[type] > 0 then
