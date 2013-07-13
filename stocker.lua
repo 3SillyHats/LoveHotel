@@ -44,6 +44,9 @@ local stocker = function (id, cost, t)
   local stockable = false
 
   component.draw = function (self)
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.setLine(3, "rough")
+    love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
     if stockable then
       love.graphics.setColor(0,184,0)
     else
@@ -57,9 +60,9 @@ local stocker = function (id, cost, t)
     event.notify("entity.move", id, {roomNum = gRoomNum, floorNum = gScrollPos})
     
     local roomId, type = getRoom()
+    stockable = false
     if roomId ~= nil then
       local info = resource.get("scr/rooms/" .. string.lower(type) .. ".lua")
-      stockable = false
       if info.restockCost then
         if room.isBroken(roomId) then
           event.notify("menu.info", 0, {name = "Cost:", desc = "BROKEN"})

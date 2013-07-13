@@ -23,6 +23,10 @@ local demolisher = function (id, cost, t)
   local new = true
 
   component.draw = function (self)
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.setLine(3, "rough")
+    love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
+    
     love.graphics.setColor(228,96,24)
     love.graphics.setLine(1, "rough")
     love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
