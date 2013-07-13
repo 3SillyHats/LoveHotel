@@ -56,18 +56,38 @@ local hud = function (id, pos, suppressInfo)
   --Selected keeps track of the selected button
   local selected = 1
   local buttons = {}
+  local blink = false
+  local blinkTimer = 0
 
   --The draw component for the hud menu
   component.draw = function (self)
     love.graphics.setColor(255,255,255)
     for i = 1, #buttons do
-      if i == selected then
-        love.graphics.drawq(buttons[i].image, buttons[i].quadS,
-          16*(i-1), pos, 0, 1, 1, 0, 0)
-      else
+      if component.enabled then
+        if i == selected and not blink then
+          love.graphics.drawq(buttons[i].image, buttons[i].quadU,
+            16*(i-1), pos, 0, 1, 1, 0, 0)
+          love.graphics.setColor(193, 192, 193)
+          love.graphics.rectangle("line", 16*(i-1)+.5, pos+.5, 15, 15)
+          love.graphics.setColor(255, 255, 255)
+        else
+          love.graphics.drawq(buttons[i].image, buttons[i].quadU,
+            16*(i-1), pos, 0, 1, 1, 0, 0)
+        end
+      elseif i == selected then
         love.graphics.drawq(buttons[i].image, buttons[i].quadU,
           16*(i-1), pos, 0, 1, 1, 0, 0)
       end
+    end
+  end
+  
+  -- Update component for menu
+  component.update = function (self, dt)
+    blinkTimer = blinkTimer + dt
+    if (blink and blinkTimer > .5) or
+        (not blink and blinkTimer > 1) then
+      blinkTimer = 0
+      blink = not blink
     end
   end
 
@@ -95,6 +115,8 @@ local hud = function (id, pos, suppressInfo)
 
   component.enable =  function (self)
     component.enabled = true
+    blink = false
+    blinkTimer = 0
     event.notify("menu.info", 0, {selected = buttons[selected].type})
   end
 
@@ -106,6 +128,8 @@ local hud = function (id, pos, suppressInfo)
     if gState == STATE_PLAY then
       local snd = resource.get("snd/select.wav")
       if component.enabled then
+        blink = false
+        blinkTimer = 0
         if key == "left" then
           if selected > 1 then
             selected = selected - 1

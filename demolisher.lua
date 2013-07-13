@@ -21,30 +21,42 @@ local demolisher = function (id, cost, t)
   })
   
   local new = true
+  local blink = false
+  local blinkTimer = 0
 
   component.draw = function (self)
-    love.graphics.setColor(0, 0, 0)
-    love.graphics.setLine(3, "rough")
-    love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
-    
-    love.graphics.setColor(228,96,24)
-    love.graphics.setLine(1, "rough")
-    love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
+    if not blink then
+      love.graphics.setColor(0, 0, 0)
+      love.graphics.setLine(3, "rough")
+      love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
+      
+      love.graphics.setColor(228,96,24)
+      love.graphics.setLine(1, "rough")
+      love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
+    end
   end
     
   local updatePosition = function()
     event.notify("entity.move", id, {roomNum = gRoomNum, floorNum = gScrollPos})
   end
 
-  component.update = function (dt)
+  component.update = function (self, dt)
     if new then
       updatePosition()
       new = false
+    end
+    blinkTimer = blinkTimer + dt
+    if (blink and blinkTimer > .5) or
+        (not blink and blinkTimer > 1) then
+      blinkTimer = 0
+      blink = not blink
     end
   end
   
   local pressed = function (key)
     if gState == STATE_PLAY then
+      blink = false
+      blinkTimer = 0
       if key == "left" then
         if gRoomNum > 1 then
           gRoomNum = gRoomNum - 1

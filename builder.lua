@@ -25,6 +25,8 @@ local placer = function (id, type, width, cost, t)
   local clear = true
   local occupation = 0
   local new = true
+  local blink = false
+  local blinkTimer = 0
 
   local okay = function ()
     return (
@@ -36,13 +38,19 @@ local placer = function (id, type, width, cost, t)
   end
   
   component.draw = function (self)
-    if okay() then
-      love.graphics.setColor(0,184,0)
-    else
-      love.graphics.setColor(172,16,0)
+    if not blink then
+      love.graphics.setColor(0, 0, 0)
+      love.graphics.setLine(3, "rough")
+      love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
+      
+      if okay() then
+        love.graphics.setColor(0,184,0)
+      else
+        love.graphics.setColor(172,16,0)
+      end
+      love.graphics.setLine(1, "rough")
+      love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
     end
-    love.graphics.setLine(1, "rough")
-    love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
   end
     
   local updatePosition = function()
@@ -60,15 +68,23 @@ local placer = function (id, type, width, cost, t)
     end
   end
 
-  component.update = function (dt)
+  component.update = function (self, dt)
     if new then
       updatePosition()
       new = false
+    end
+    blinkTimer = blinkTimer + dt
+    if (blink and blinkTimer > .5) or
+        (not blink and blinkTimer > 1) then
+      blinkTimer = 0
+      blink = not blink
     end
   end
   
   local pressed = function (key)
     if gState == STATE_PLAY then
+      blink = false
+      blinkTimer = 0
       if key == "left" then
         if gRoomNum > 1 then
           gRoomNum = gRoomNum - 1

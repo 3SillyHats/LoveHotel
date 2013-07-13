@@ -47,6 +47,8 @@ local staffer = function (id, type)
   local component = entity.newComponent()
 
   local new = true
+  local blink = false
+  local blinkTimer = 0
 
   gScrollable = false
   
@@ -86,14 +88,14 @@ local staffer = function (id, type)
     love.graphics.setColor(255, 255, 255)
     
     -- Arrows
-    if gStaffTotals[type] > 0 then
+    if gStaffTotals[type] > 0 and not blink then
       love.graphics.drawq(
         resource.get("img/hud.png"), DArrowQuad,
         140, CANVAS_HEIGHT - 10,
         0
       )
     end
-    if gStaffTotals[type] < STAFF_MAX then
+    if gStaffTotals[type] < STAFF_MAX and not blink then
       love.graphics.drawq(
         resource.get("img/hud.png"), UArrowQuad,
         140, CANVAS_HEIGHT - 26,
@@ -107,10 +109,18 @@ local staffer = function (id, type)
       event.notify("menu.info", 0, {name = "", desc = ""})
       new = false
     end
+    blinkTimer = blinkTimer + dt
+    if (blink and blinkTimer > .5) or
+        (not blink and blinkTimer > 1) then
+      blinkTimer = 0
+      blink = not blink
+    end
   end
   
   local pressed = function (key)
     if gState ~= STATE_PLAY then return end
+    blink = false
+    blinkTimer = 0
 
     if key == "down" then
       if gStaffTotals[type] > 0 then
