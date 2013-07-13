@@ -360,18 +360,18 @@ reputationChange = function (c)
 
   if gStars < STARS_MAX and gReputation >= REP_THRESHOLDS[gStars + 1] then
     gStars = gStars + 1
+    local oldBest = gStarsBest
     gStarsBest = math.max(gStarsBest, gStars)
     event.notify("stars", 0, {
       current = gStars,
       old = gStars - 1,
-      best = gStarsBest
+      best = oldBest
     })
   elseif gStars > 1 and gReputation < REP_THRESHOLDS[gStars] then
     gStars = gStars - 1
-    gStarsBest = math.max(gStarsBest, gStars)
     event.notify("stars", 0, {
       current = gStars,
-      old = gStars - 1,
+      old = gStars + 1,
       best = gStarsBest
     })
   elseif not won and gReputation == REP_MAX then

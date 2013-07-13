@@ -184,7 +184,7 @@ end)
 
 -- Setup some handlers to prompt decisions
 event.subscribe("stars", 0, function (e)
-  if e.current > e.old and e.current == e.best then
+  if e.current > e.old and e.current > e.best then
     M.prompt("star" .. e.current)
   end
 end)
