@@ -235,7 +235,9 @@ gClientsSeen = {
 }
 
 event.subscribe("newSpawner", 0, function (type)
-  gClientsSeen[type] = true
+  if type ~= nil then
+    gClientsSeen[type] = true
+  end
 end)
 
 local alertEntity = entity.new(STATE_PLAY)
@@ -1574,6 +1576,7 @@ local reset = function ()
   event.notify("entity.move", roof, {roomNum=.5, floorNum=GROUND_FLOOR})
   
   event.notify("reset", 0, nil) -- deletes spawners
+  client.newSpawner(nil, {roomNum = -1, floorNum = GROUND_FLOOR})
   
   event.notify("state.enter", 0, STATE_PLAY)
   entity.update(0)
