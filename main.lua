@@ -81,7 +81,7 @@ FLOOR_COSTS = {
   16000, -- 16th floor
 }
 
-MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 200000
+MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 20000
 MONEY_MAX = 999999
 REP_INITIAL = 25
 REP_MAX = 20000
@@ -1583,6 +1583,8 @@ local reset = function ()
   
   save.delete()
   
+  won = false
+
   initialised = false
 end
 
