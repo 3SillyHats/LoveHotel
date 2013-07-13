@@ -81,7 +81,7 @@ FLOOR_COSTS = {
   16000, -- 16th floor
 }
 
-MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 20000
+MONEY_INITIAL = FLOOR_COSTS[1] + BELLHOP_WAGE + CLEANER_WAGE + 200000
 MONEY_MAX = 999999
 REP_INITIAL = 25
 REP_MAX = 20000
@@ -1572,6 +1572,8 @@ local reset = function ()
   end
   floors = {floors[GROUND_FLOOR]}
   event.notify("entity.move", roof, {roomNum=.5, floorNum=GROUND_FLOOR})
+  
+  event.notify("reset", 0, nil) -- deletes spawners
   
   event.notify("state.enter", 0, STATE_PLAY)
   entity.update(0)

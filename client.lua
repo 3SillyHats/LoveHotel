@@ -246,6 +246,10 @@ end
 M.newSpawner = function (type, pos)
   local spawner = entity.new(STATE_PLAY)
   local itime = SPAWN_MIN
+  
+  event.subscribe("reset", 0, function ()
+    entity.delete(spawner)
+  end)
 
   local com = entity.newComponent({
     timer = itime,
