@@ -15,7 +15,7 @@ local decisions = {
   },
   groundSpawn = {
     prompt = "Devilspawn are arriving at Love Hotel!" ..
-    "\nThey will only use Chocolate and Torture suites. " ..
+    "\nThey will only use Chocolate and Heaven suites. " ..
     "They didn't think to bring condoms, but they're all horny!",
     alert = true,
   },
