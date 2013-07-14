@@ -799,19 +799,18 @@ local newSuiteMenu = function (suppressInfo)
   menu.addButton(m, menu.newButton("missionary", function ()
     buildRoom("missionary")
   end))
+  
+  --Spoon
+  menu.addButton(m, menu.newButton("spoon", function ()
+    buildRoom("spoon")
+  end))
 
   if gStarsBest >= 2 then
-    --Spoon
-    menu.addButton(m, menu.newButton("spoon", function ()
-      buildRoom("spoon")
-    end))
-
     --Balloon
     menu.addButton(m, menu.newButton("balloon", function ()
       buildRoom("balloon")
     end))
   else
-    addLockButton(m)
     addLockButton(m)
   end
 
