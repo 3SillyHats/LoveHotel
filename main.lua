@@ -157,17 +157,17 @@ conf = {
       desc="",
     },
     locked = {
-      name="Locked",
-      desc="Needs stars"
+      name="Earn more",
+      desc="stars!"
     },
 
     -- Structure
     floorUp =  {
-      name="Build Up",
+      name="Skyscrape",
       desc="$" .. thousandify(tostring(FLOOR_COSTS[1])),
     },
     floorDown =  {
-      name="Build Down",
+      name="Underground",
       desc="$" .. thousandify(tostring(FLOOR_COSTS[1]*2)),
     },
     destroy =  {
@@ -715,6 +715,7 @@ floorUp = function()
       conf.menu["floorUp"].desc = "MAXED"
     end
     event.notify("menu.info", 0, {selected = "floorUp"})
+    event.notify("scroll", 0 , gTopFloor)
     local newFloor = newFloor(gTopFloor)
   else
     alert("funds")
@@ -738,6 +739,7 @@ floorDown = function()
       conf.menu["floorDown"].desc = "MAXED"
     end
     event.notify("menu.info", 0, {selected = "floorDown"})
+    event.notify("scroll", 0 , gBottomFloor)
     local newFloor = newFloor(gBottomFloor)
   else
     alert("funds")
