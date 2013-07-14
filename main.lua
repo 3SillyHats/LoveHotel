@@ -32,7 +32,13 @@ CLEANER_WAGE = 80
 MAINTENANCE_WAGE = 200
 COOK_WAGE = 500
 STOCKER_WAGE = 100
-STAFF_MAX = 25
+STAFF_MAX = {
+  bellhop = 20,
+  cleaner = 10,
+  maintenance = 5,
+  cook = 5,
+  stocker = 5,
+}
 
 SEX_HORNINESS = 20
 

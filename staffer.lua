@@ -74,7 +74,7 @@ local staffer = function (id, type)
 
     -- TOTAL or MAX staff number
     love.graphics.setColor(123, 126, 127)
-    if gStaffTotals[type] == STAFF_MAX then
+    if gStaffTotals[type] == STAFF_MAX[type] then
       love.graphics.print(
         string.format("MAX"),
         156, 203
@@ -95,7 +95,7 @@ local staffer = function (id, type)
         0
       )
     end
-    if gStaffTotals[type] < STAFF_MAX and not blink then
+    if gStaffTotals[type] < STAFF_MAX[type] and not blink then
       love.graphics.drawq(
         resource.get("img/hud.png"), UArrowQuad,
         140, CANVAS_HEIGHT - 26,
@@ -131,7 +131,7 @@ local staffer = function (id, type)
         love.audio.play(snd)
       end
     elseif key == "up" then
-      if gStaffTotals[type] < STAFF_MAX and gMoney >= WAGES[type] then
+      if gStaffTotals[type] < STAFF_MAX[type] and gMoney >= WAGES[type] then
         staff.new(type)
       else
         local snd = resource.get("snd/error.wav")
