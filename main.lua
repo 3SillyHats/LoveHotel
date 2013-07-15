@@ -139,7 +139,7 @@ conf = {
       desc=""
     },
     infrastructure =  {
-      name="Build",
+      name="Structure",
       desc=""
     },
     food = {
