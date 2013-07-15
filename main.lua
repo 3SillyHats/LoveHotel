@@ -135,11 +135,11 @@ conf = {
   menu = {
     -- Main menu
     suites =  {
-      name="Suites",
+      name="Rooms",
       desc=""
     },
     infrastructure =  {
-      name="Structure",
+      name="Build",
       desc=""
     },
     food = {
@@ -169,7 +169,7 @@ conf = {
 
     -- Structure
     floorUp =  {
-      name="Skyscrape",
+      name="Skyward",
       desc="$" .. thousandify(tostring(FLOOR_COSTS[1])),
     },
     floorDown =  {
