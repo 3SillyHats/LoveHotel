@@ -16,6 +16,7 @@ local staff = require("staff")
 
 local M = {}
 
+local menus = {}
 local IconQuad = love.graphics.newQuad(
   128, 64,
   16, 16,
@@ -161,12 +162,20 @@ M.new = function (state, type)
   --Create an entity and get the id for the new room
   local id = entity.new(state)
   entity.setOrder(id, 100)
+  menus[#menus+1] = id
 
   --Add staffer component
   entity.addComponent(id, staffer(id, type))
 
   --Function returns the rooms id
   return id
+end
+
+M.clear = function ()
+  for _,id in ipairs(menus) do
+    entity.delete(id)
+  end
+  menus = {}
 end
 
 --Return the module

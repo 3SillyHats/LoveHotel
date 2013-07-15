@@ -134,12 +134,12 @@ end
 conf = {
   menu = {
     -- Main menu
-    infrastructure =  {
-      name="Structure",
-      desc=""
-    },
     suites =  {
       name="Suites",
+      desc=""
+    },
+    infrastructure =  {
+      name="Structure",
       desc=""
     },
     food = {
@@ -599,8 +599,8 @@ local mainMenuY = 32*6.5
 local subMenuY = 32*6
 
 --Main menu
-local gui = menu.new(STATE_PLAY, mainMenuY)
-
+local gui = nil
+  
 local submenu = nil
 local submenuConstructor = nil
 
@@ -788,267 +788,274 @@ local onStars = function (e)
 end
 event.subscribe("stars", 0, onStars)
 
---The back button
-menu.setBack(gui, function ()
-end)
+local newGui = function ()
+  local gui = menu.new(STATE_PLAY, mainMenuY)
 
-local newSuiteMenu = function (suppressInfo)
-  local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
-
-  --Missionary
-  menu.addButton(m, menu.newButton("missionary", function ()
-    buildRoom("missionary")
+  --The back button
+  menu.setBack(gui, function ()
+  end)
+  
+  local newSuiteMenu = function (suppressInfo)
+    local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
+  
+    --Missionary
+    menu.addButton(m, menu.newButton("missionary", function ()
+      buildRoom("missionary")
+    end))
+    
+    --Spoon
+    menu.addButton(m, menu.newButton("spoon", function ()
+      buildRoom("spoon")
+    end))
+  
+    if gStarsBest >= 2 then
+      --Balloon
+      menu.addButton(m, menu.newButton("balloon", function ()
+        buildRoom("balloon")
+      end))
+    else
+      addLockButton(m)
+    end
+  
+    if gStarsBest >= 3 then
+      --Chocolate Moustache
+      menu.addButton(m, menu.newButton("moustache", function ()
+        buildRoom("moustache")
+      end))
+    else
+      addLockButton(m)
+    end
+  
+    if gStarsBest >= 4 then
+      --Torture
+      menu.addButton(m, menu.newButton("heaven", function ()
+        buildRoom("heaven")
+      end))
+    else
+      addLockButton(m)
+    end
+  
+    --Eco
+    menu.addButton(m, menu.newButton("tropical", function ()
+      buildRoom("tropical")
+    end))
+  
+    if gStarsBest >= 5 then
+      --Nazi Furry
+      menu.addButton(m, menu.newButton("banana", function ()
+        buildRoom("banana")
+      end))
+    else
+      addLockButton(m)
+    end
+    
+    return m
+  end
+  
+  local newInfrastructureMenu = function (suppressInfo)
+    local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
+  
+    --Build floor up
+    menu.addButton(m, menu.newButton("floorUp", function ()
+      floorUp()
+    end))
+    --Build floor down
+    menu.addButton(m, menu.newButton("floorDown", function ()
+      floorDown()
+    end))
+    --Destroy tool
+    menu.addButton(m, menu.newButton("destroy", function ()
+      demolishRoom(submenu)
+    end))
+    
+    return m
+  end
+  
+  local newServicesMenu = function (suppressInfo)
+    local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
+  
+    --Utility
+    menu.addButton(m, menu.newButton("utility", function ()
+      buildRoom("utility")
+    end))
+    if gStarsBest >= 2 then
+      --Condom machine
+      menu.addButton(m, menu.newButton("condom", function ()
+        buildRoom("condom")
+      end))
+    else
+      addLockButton(m)
+    end
+    if gStarsBest >= 5 then
+      --Spa room
+      menu.addButton(m, menu.newButton("spa", function ()
+        buildRoom("spa")
+      end))
+    else
+      addLockButton(m)
+    end
+  
+    return m
+  end
+  
+  local newFoodMenu = function (suppressInfo)
+    local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
+  
+    --Vending machine
+    menu.addButton(m, menu.newButton("vending", function ()
+      buildRoom("vending")
+    end))
+  
+    if gStarsBest >= 3 then
+      --Dining room
+      menu.addButton(m, menu.newButton("dining", function ()
+        buildRoom("dining")
+      end))
+      --Kitchen
+      menu.addButton(m, menu.newButton("kitchen", function ()
+        buildRoom("kitchen")
+      end))
+    else
+      addLockButton(m)
+      addLockButton(m)
+    end
+  
+    if gStarsBest >= 4 then
+      --Freezer Room
+      menu.addButton(m, menu.newButton("freezer", function ()
+        buildRoom("freezer")
+      end))
+    else
+      addLockButton(m)
+    end
+    return m
+  end
+  
+  local newStaffMenu = function (suppressInfo)
+    local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
+  
+    --Hire staff
+    menu.addButton(m, menu.newButton("bellhop", function ()
+      staffManage("bellhop")
+    end))
+    menu.addButton(m, menu.newButton("cleaner", function ()
+      staffManage("cleaner")
+    end))
+    menu.addButton(m, menu.newButton("maintenance", function ()
+      staffManage("maintenance")
+    end))
+    if gStarsBest >= 3 then
+      menu.addButton(m, menu.newButton("cook", function ()
+        staffManage("cook")
+      end))
+    else
+      addLockButton(m)
+    end
+    if gStarsBest >= 4 then
+      menu.addButton(m, menu.newButton("stocker", function ()
+        staffManage("stocker")
+      end))
+    else
+      addLockButton(m)
+    end
+  
+    return m
+  end
+  
+  --Suites button
+  menu.addButton(gui, menu.newButton("suites", function ()
+    menu.disable(gui)
+  
+    --Create the suites menu
+    submenu = newSuiteMenu()
+    submenuConstructor = newSuiteMenu
+  
+    --The back button deletes the submenu
+    menu.setBack(submenu, function ()
+      entity.delete(submenu)
+      submenu = nil
+      menu.enable(gui)
+    end)
   end))
   
-  --Spoon
-  menu.addButton(m, menu.newButton("spoon", function ()
-    buildRoom("spoon")
-  end))
-
-  if gStarsBest >= 2 then
-    --Balloon
-    menu.addButton(m, menu.newButton("balloon", function ()
-      buildRoom("balloon")
-    end))
-  else
-    addLockButton(m)
-  end
-
-  if gStarsBest >= 3 then
-    --Chocolate Moustache
-    menu.addButton(m, menu.newButton("moustache", function ()
-      buildRoom("moustache")
-    end))
-  else
-    addLockButton(m)
-  end
-
-  if gStarsBest >= 4 then
-    --Torture
-    menu.addButton(m, menu.newButton("heaven", function ()
-      buildRoom("heaven")
-    end))
-  else
-    addLockButton(m)
-  end
-
-  --Eco
-  menu.addButton(m, menu.newButton("tropical", function ()
-    buildRoom("tropical")
-  end))
-
-  if gStarsBest >= 5 then
-    --Nazi Furry
-    menu.addButton(m, menu.newButton("banana", function ()
-      buildRoom("banana")
-    end))
-  else
-    addLockButton(m)
-  end
+  --Infrastructure button
+  menu.addButton(gui, menu.newButton("infrastructure", function ()
+    menu.disable(gui)
   
-  return m
-end
-
-local newInfrastructureMenu = function (suppressInfo)
-  local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
-
-  --Build floor up
-  menu.addButton(m, menu.newButton("floorUp", function ()
-    floorUp()
-  end))
-  --Build floor down
-  menu.addButton(m, menu.newButton("floorDown", function ()
-    floorDown()
-  end))
-  --Destroy tool
-  menu.addButton(m, menu.newButton("destroy", function ()
-    demolishRoom(submenu)
+    --Create the infrastructure menu
+    submenu = newInfrastructureMenu()
+    submenuConstructor = newInfrastructureMenu
+  
+    --The back button deletes the submenu
+    menu.setBack(submenu, function ()
+      entity.delete(submenu)
+      submenu = nil
+      menu.enable(gui)
+    end)
   end))
   
-  return m
+  
+  --Services button
+  menu.addButton(gui, menu.newButton("services", function ()
+    menu.disable(gui)
+  
+    --Create the services menu
+    submenu = newServicesMenu()
+    submenuConstructor = newServicesMenu
+  
+     --The back button deletes the submenu
+    menu.setBack(submenu, function ()
+      entity.delete(submenu)
+      submenu = nil
+      menu.enable(gui)
+    end)
+  end))
+  
+  --Food button
+  menu.addButton(gui, menu.newButton("food", function ()
+    menu.disable(gui)
+  
+    --Create the food menu
+    submenu = newFoodMenu()
+    submenuConstructor = newFoodMenu
+  
+    --The back button deletes the submenu
+    menu.setBack(submenu, function ()
+      entity.delete(submenu)
+      submenu = nil
+      menu.enable(gui)
+    end)
+  end))
+  
+  --Staff button
+  menu.addButton(gui, menu.newButton("staff", function ()
+    menu.disable(gui)
+  
+    --Create the manage menu
+    submenu = newStaffMenu()
+    submenuConstructor = newStaffMenu
+  
+    --The back button deletes the submenu
+    menu.setBack(submenu, function ()
+      entity.delete(submenu)
+      submenu = nil
+      menu.enable(gui)
+    end)
+  end))
+  
+  --Stock tool
+  menu.addButton(gui, menu.newButton("stock", function ()
+    stockRoom(gui)
+  end))
+  
+  --Inspect tool
+  menu.addButton(gui, menu.newButton("inspect", function ()
+    inspect(gui)
+  end))
+  
+  return menu
 end
-
-local newServicesMenu = function (suppressInfo)
-  local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
-
-  --Utility
-  menu.addButton(m, menu.newButton("utility", function ()
-    buildRoom("utility")
-  end))
-  if gStarsBest >= 2 then
-    --Condom machine
-    menu.addButton(m, menu.newButton("condom", function ()
-      buildRoom("condom")
-    end))
-  else
-    addLockButton(m)
-  end
-  if gStarsBest >= 5 then
-    --Spa room
-    menu.addButton(m, menu.newButton("spa", function ()
-      buildRoom("spa")
-    end))
-  else
-    addLockButton(m)
-  end
-
-  return m
-end
-
-local newFoodMenu = function (suppressInfo)
-  local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
-
-  --Vending machine
-  menu.addButton(m, menu.newButton("vending", function ()
-    buildRoom("vending")
-  end))
-
-  if gStarsBest >= 3 then
-    --Dining room
-    menu.addButton(m, menu.newButton("dining", function ()
-      buildRoom("dining")
-    end))
-    --Kitchen
-    menu.addButton(m, menu.newButton("kitchen", function ()
-      buildRoom("kitchen")
-    end))
-  else
-    addLockButton(m)
-    addLockButton(m)
-  end
-
-  if gStarsBest >= 4 then
-    --Freezer Room
-    menu.addButton(m, menu.newButton("freezer", function ()
-      buildRoom("freezer")
-    end))
-  else
-    addLockButton(m)
-  end
-  return m
-end
-
-local newStaffMenu = function (suppressInfo)
-  local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
-
-  --Hire staff
-  menu.addButton(m, menu.newButton("bellhop", function ()
-    staffManage("bellhop")
-  end))
-  menu.addButton(m, menu.newButton("cleaner", function ()
-    staffManage("cleaner")
-  end))
-  menu.addButton(m, menu.newButton("maintenance", function ()
-    staffManage("maintenance")
-  end))
-  if gStarsBest >= 3 then
-    menu.addButton(m, menu.newButton("cook", function ()
-      staffManage("cook")
-    end))
-  else
-    addLockButton(m)
-  end
-  if gStarsBest >= 4 then
-    menu.addButton(m, menu.newButton("stocker", function ()
-      staffManage("stocker")
-    end))
-  else
-    addLockButton(m)
-  end
-
-  return m
-end
-
---Suites button
-menu.addButton(gui, menu.newButton("suites", function ()
-  menu.disable(gui)
-
-  --Create the suites menu
-  submenu = newSuiteMenu()
-  submenuConstructor = newSuiteMenu
-
-  --The back button deletes the submenu
-  menu.setBack(submenu, function ()
-    entity.delete(submenu)
-    submenu = nil
-    menu.enable(gui)
-  end)
-end))
-
---Infrastructure button
-menu.addButton(gui, menu.newButton("infrastructure", function ()
-  menu.disable(gui)
-
-  --Create the infrastructure menu
-  submenu = newInfrastructureMenu()
-  submenuConstructor = newInfrastructureMenu
-
-  --The back button deletes the submenu
-  menu.setBack(submenu, function ()
-    entity.delete(submenu)
-    submenu = nil
-    menu.enable(gui)
-  end)
-end))
-
-
---Services button
-menu.addButton(gui, menu.newButton("services", function ()
-  menu.disable(gui)
-
-  --Create the services menu
-  submenu = newServicesMenu()
-  submenuConstructor = newServicesMenu
-
-   --The back button deletes the submenu
-  menu.setBack(submenu, function ()
-    entity.delete(submenu)
-    submenu = nil
-    menu.enable(gui)
-  end)
-end))
-
---Food button
-menu.addButton(gui, menu.newButton("food", function ()
-  menu.disable(gui)
-
-  --Create the food menu
-  submenu = newFoodMenu()
-  submenuConstructor = newFoodMenu
-
-  --The back button deletes the submenu
-  menu.setBack(submenu, function ()
-    entity.delete(submenu)
-    submenu = nil
-    menu.enable(gui)
-  end)
-end))
-
---Staff button
-menu.addButton(gui, menu.newButton("staff", function ()
-  menu.disable(gui)
-
-  --Create the manage menu
-  submenu = newStaffMenu()
-  submenuConstructor = newStaffMenu
-
-  --The back button deletes the submenu
-  menu.setBack(submenu, function ()
-    entity.delete(submenu)
-    submenu = nil
-    menu.enable(gui)
-  end)
-end))
-
---Stock tool
-menu.addButton(gui, menu.newButton("stock", function ()
-  stockRoom(gui)
-end))
-
---Inspect tool
-menu.addButton(gui, menu.newButton("inspect", function ()
-  inspect(gui)
-end))
+gui = newGui()
 
 -- Background music
 event.subscribe("state.enter", 0, function (state)
@@ -1524,6 +1531,8 @@ local init = function ()
     -- reduce initial stock
     room.setStock(id, 3)
   end
+  
+  event.notify("menu.info", 0, {selected = "suites"})
 
   initialised = true
 end
@@ -1557,6 +1566,10 @@ local reset = function ()
   }
   upkeepCom.timer = 0 -- reset electricity bill timer
   brokeCom.timer = -1 -- disable game over timer
+  
+  -- reset floor costs
+  conf.menu.floorUp.desc = "$" .. thousandify(tostring(FLOOR_COSTS[1]))
+  conf.menu.floorDown.desc = "$" .. thousandify(tostring(FLOOR_COSTS[1]*2))
 
   event.notify("room.all", 0, function (roomId, type)
     local pos = transform.getPos(roomId)
@@ -1585,8 +1598,17 @@ local reset = function ()
   event.notify("reset", 0, nil) -- deletes spawners
   client.newSpawner(nil, {roomNum = -1, floorNum = GROUND_FLOOR})
   
+  menu.clear()
+  builder.clear()
+  demolisher.clear()
+  staffer.clear()
+  stocker.clear()
+  gui = newGui()
+  
   event.notify("state.enter", 0, STATE_PLAY)
   entity.update(0)
+  
+  event.notify("menu.info", 0, {selected = "suites"})
   
   save.delete()
   

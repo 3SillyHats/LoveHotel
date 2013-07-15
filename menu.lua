@@ -173,18 +173,27 @@ end
 local M = {}
 
 local huds = {}
+local menus = {}
 setmetatable(huds, {__mode='v'})
 
 --Create a new hud menu
 M.new = function (state, pos, suppressInfo)
   local id = entity.new(state)
   entity.setOrder(id, 100)
+  menus[#menus+1] = id
 
   huds[id] = hud(id, pos, suppressInfo)
 
   entity.addComponent(id, huds[id])
 
   return id
+end
+
+M.clear = function ()
+  for _,id in ipairs(menus) do
+    entity.delete(id)
+  end
+  menus = {}
 end
 
 --Creates a new button of set type and desired callback function.

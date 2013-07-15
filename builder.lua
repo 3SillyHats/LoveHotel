@@ -12,6 +12,8 @@ local room = require("room")
 --Create the module
 local M = {}
 
+local menus = {}
+
 local placer = function (id, type, width, cost, t)
   local component = entity.newComponent({
     width = width,
@@ -154,6 +156,8 @@ M.new = function (state, roomType)
   --Create an entity and get the id for the new room
   local id = entity.new(state)
   entity.setOrder(id, 100)
+  menus[#menus+1] = id
+  
   local room = resource.get("scr/rooms/" .. string.lower(roomType) .. ".lua")
   local roomWidth = room.width*32
   local roomHeight = 32
@@ -182,6 +186,13 @@ M.new = function (state, roomType)
 
   --Function returns the rooms id
   return id
+end
+
+M.clear = function ()
+  for _,id in ipairs(menus) do
+    entity.delete(id)
+  end
+  menus = {}
 end
 
 --Return the module

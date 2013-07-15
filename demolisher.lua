@@ -12,6 +12,8 @@ local room = require("room")
 --Create the module
 local M = {}
 
+local menus = {}
+
 local demolisher = function (id, cost, t)
   local component = entity.newComponent({
     x = 0,
@@ -137,6 +139,7 @@ M.new = function (state)
   --Create an entity and get the id for the new room
   local id = entity.new(state)
   entity.setOrder(id, 100)
+  menus[#menus+1] = id
 
   --Add position component
   entity.addComponent(id, transform.new(id, {roomNum = gRoomNum, floorNum = gScrollPos}))
@@ -148,6 +151,13 @@ M.new = function (state)
 
   --Function returns the rooms id
   return id
+end
+
+M.clear = function ()
+  for _,id in ipairs(menus) do
+    entity.delete(id)
+  end
+  menus = {}
 end
 
 --Return the module
