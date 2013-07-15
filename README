@@ -16,9 +16,9 @@ your six-star Love Hotel!
 
 Starting the Game
 -----------------
-*Windows* users run LoveHotel.exe to start the game.
-*Mac* users run LoveHotel.app to start the game.
-*Linux* and other OS users run LoveHotel.love with Love2D to start the game.
+- **Windows** users run LoveHotel.exe to start the game.
+- **Mac** users run LoveHotel.app to start the game.
+- **Linux** and other OS users run LoveHotel.love with Love2D to start the game.
 
 How to Play
 -----------
@@ -26,11 +26,11 @@ You map the controls to the keyboard and a gamepad (if connected) when the game
 starts. You can remap the controls later from the pause menu (or with F1).
 Cycle through display modes with F11.
 
-*D-Pad* moves around
-*A* accepts
-*B* cancels
-*Select* fast-forwards when held
-*Start* pauses the game
+- **D-Pad** moves around
+- **A** accepts
+- **B** cancels
+- **Select** fast-forwards when held
+- **Start** pauses the game
 
 License
 -------

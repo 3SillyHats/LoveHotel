@@ -7,7 +7,7 @@ function love.conf(t)
     t.identity = "lovehotel"
     t.version = "0.8.0"
     t.console = false
-    t.release = false
+    t.release = true
     t.screen.width = 256
     t.screen.height = 224
     t.screen.fullscreen = false
