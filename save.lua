@@ -48,7 +48,11 @@ M.load = function ()
       staff.new(s)
     end
   end
-  gCounts = vars.gCounts
+  gCounts = {
+    fix = 0,
+    rooms = {},
+    spas = 0,
+  }
   gClientsSeen = vars.gClientsSeen
 
   for _,t in ipairs(vars.rooms) do
@@ -72,7 +76,6 @@ M.save = function ()
   vars.gStars = gStars
   vars.gStarsBest = gStarsBest
   vars.gStaffTotals = gStaffTotals
-  vars.gCounts = gCounts
   vars.gClientsSeen = gClientsSeen
 
   event.notify("room.all", 0, function (roomId, id)
