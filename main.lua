@@ -20,6 +20,7 @@ STATE_START = 6
 STATE_ACHIEVMENTS = 7
 STATE_LOSE = 8
 STATE_CREDITS = 9
+STATE_HELP = 10
 
 PERSON_SPEED = 1
 ELEVATOR_SPEED = 1.2
@@ -1651,6 +1652,12 @@ local pauseCom = entity.newComponent({
       end,
     },
     {
+      text = "Help",
+      onPress = function ()
+        event.notify("state.enter", 0, STATE_HELP)
+      end,
+    },
+    {
       text = "Credits",
       onPress = function ()
         event.notify("state.enter", 0, STATE_CREDITS)
@@ -1682,7 +1689,7 @@ local pauseCom = entity.newComponent({
       end
       love.graphics.printf(
         option.text,
-        0, 112 + (16 * i),
+        0, 112 + (14 * i),
         256,
         "center"
       )
@@ -1783,7 +1790,25 @@ local creditsCom = entity.newComponent({
 })
 entity.addComponent(creditsScreen, creditsCom)
 event.subscribe("pressed", 0, function (button)
-  if gState == STATE_CREDITS then
+  if gState == STATE_CREDITS and
+      (button == "b" or button == "start") then
+    event.notify("state.enter", 0, STATE_PAUSE)
+  end
+end)
+
+-- GAME HELP SCREEN
+local helpScreen = entity.new(STATE_HELP)
+local helpCom = entity.newComponent({
+  draw = function (self)
+    -- Draw help screen
+    local img = resource.get("img/help.png")
+    love.graphics.draw(img, 0, 0)
+  end
+})
+entity.addComponent(helpScreen, helpCom)
+event.subscribe("pressed", 0, function (button)
+  if gState == STATE_HELP and
+      (button == "b" or button == "start") then
     event.notify("state.enter", 0, STATE_PAUSE)
   end
 end)
