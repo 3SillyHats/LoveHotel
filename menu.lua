@@ -50,7 +50,7 @@ local defaultAction = function ()
   print("action")
 end
 
-local hud = function (id, pos, suppressInfo)
+local hud = function (id, pos)
   local component = entity.newComponent()
 
   --Selected keeps track of the selected button
@@ -104,7 +104,7 @@ local hud = function (id, pos, suppressInfo)
 
   component.addButton = function (self, button)
     table.insert(buttons, button)
-    if #buttons == 1 and not suppressInfo then
+    if #buttons == 1 then
       event.notify("menu.info", 0, {selected = buttons[selected].type})
     end
   end
@@ -177,12 +177,12 @@ local menus = {}
 setmetatable(huds, {__mode='v'})
 
 --Create a new hud menu
-M.new = function (state, pos, suppressInfo)
+M.new = function (state, pos)
   local id = entity.new(state)
   entity.setOrder(id, 100)
   menus[#menus+1] = id
 
-  huds[id] = hud(id, pos, suppressInfo)
+  huds[id] = hud(id, pos)
 
   entity.addComponent(id, huds[id])
 

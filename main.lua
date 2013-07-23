@@ -770,7 +770,7 @@ local onStars = function (e)
     enabled = menu.enabled(submenu)
 
     entity.delete(submenu)
-    submenu = submenuConstructor(not enabled)
+    submenu = submenuConstructor()
 
     menu.select(submenu, selected)
     if enabled then
@@ -792,11 +792,10 @@ local newGui = function ()
   local gui = menu.new(STATE_PLAY, mainMenuY)
 
   --The back button
-  menu.setBack(gui, function ()
-  end)
+  menu.setBack(gui, function () end)
   
-  local newSuiteMenu = function (suppressInfo)
-    local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
+  local newSuiteMenu = function ()
+    local m = menu.new(STATE_PLAY, subMenuY)
   
     --Missionary
     menu.addButton(m, menu.newButton("missionary", function ()
@@ -852,8 +851,8 @@ local newGui = function ()
     return m
   end
   
-  local newInfrastructureMenu = function (suppressInfo)
-    local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
+  local newInfrastructureMenu = function ()
+    local m = menu.new(STATE_PLAY, subMenuY)
   
     --Build floor up
     menu.addButton(m, menu.newButton("floorUp", function ()
@@ -871,8 +870,8 @@ local newGui = function ()
     return m
   end
   
-  local newServicesMenu = function (suppressInfo)
-    local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
+  local newServicesMenu = function ()
+    local m = menu.new(STATE_PLAY, subMenuY)
   
     --Utility
     menu.addButton(m, menu.newButton("utility", function ()
@@ -898,8 +897,8 @@ local newGui = function ()
     return m
   end
   
-  local newFoodMenu = function (suppressInfo)
-    local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
+  local newFoodMenu = function ()
+    local m = menu.new(STATE_PLAY, subMenuY)
   
     --Vending machine
     menu.addButton(m, menu.newButton("vending", function ()
@@ -931,8 +930,8 @@ local newGui = function ()
     return m
   end
   
-  local newStaffMenu = function (suppressInfo)
-    local m = menu.new(STATE_PLAY, subMenuY, suppressInfo)
+  local newStaffMenu = function ()
+    local m = menu.new(STATE_PLAY, subMenuY)
   
     --Hire staff
     menu.addButton(m, menu.newButton("bellhop", function ()
@@ -1053,7 +1052,7 @@ local newGui = function ()
     inspect(gui)
   end))
   
-  return menu
+  return gui
 end
 gui = newGui()
 
