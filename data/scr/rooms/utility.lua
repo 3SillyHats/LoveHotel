@@ -58,7 +58,7 @@ return {
         },
         stocked0 = {
           first = 8,
-          last = 8,
+          last = 9,
           speed = 1,
         },
       },
