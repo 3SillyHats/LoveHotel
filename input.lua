@@ -42,6 +42,7 @@ event.subscribe("training.load", 0, function ()
       FILE_SETTINGS
     ))
     if success then
+      gShowHelp = false
       training = false
       current = nil
       map = result

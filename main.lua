@@ -240,6 +240,7 @@ gClientsSeen = {
   working = true,
   rich = true,
 }
+gShowHelp = true
 
 event.subscribe("newSpawner", 0, function (type)
   if type ~= nil then
@@ -1137,13 +1138,19 @@ event.subscribe("training.current", 0, function (current)
 end)
 
 event.subscribe("training.end", 0, function ()
-  event.notify("state.enter", 0, STATE_PLAY)
-  -- Show starting title card
-  event.notify("stars", 0, {
-    current = 1,
-    old = 0,
-    best = 1,
-  })
+  if gShowHelp then
+    event.notify("state.enter", 0, STATE_HELP)
+  else
+    event.notify("state.enter", 0, STATE_PLAY)
+    -- Show starting title card
+    submenu = nil -- XXX prevent rare crash when submenu is garbage
+    submenuConstructor = nil
+    event.notify("stars", 0, {
+      current = 1,
+      old = 0,
+      best = 1,
+    })
+  end
 end)
 
 local floorOccupation = 1
@@ -1798,18 +1805,54 @@ end)
 
 -- GAME HELP SCREEN
 local helpScreen = entity.new(STATE_HELP)
-local helpCom = entity.newComponent({
+local helpImgCom = sprite.new(helpScreen, {
+  image = resource.get("img/help.png"),
+  width = CANVAS_WIDTH,
+  height = CANVAS_HEIGHT,
+  animations = {
+    idle = {
+      first = 0,
+      last = 1,
+      speed = .5,
+    },
+  },
+  playing = "idle",
+})
+entity.addComponent(helpScreen, helpImgCom)
+local helpTextCom = entity.newComponent({
   draw = function (self)
-    -- Draw help screen
-    local img = resource.get("img/help.png")
-    love.graphics.draw(img, 0, 0)
+    -- Draw help screen text
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.printf(
+      "Restock when empty.",
+      110, 20,
+      150,
+      "left"
+    )
+    love.graphics.printf(
+      "Watch your electricity bill.",
+      0, 100,
+      140,
+      "right"
+    )
+    love.graphics.printf(
+      "See if your clients are happy, and what they've run out of.",
+      110, 170,
+      150,
+      "left"
+    )
   end
 })
-entity.addComponent(helpScreen, helpCom)
+entity.addComponent(helpScreen, helpTextCom)
 event.subscribe("pressed", 0, function (button)
   if gState == STATE_HELP and
-      (button == "b" or button == "start") then
-    event.notify("state.enter", 0, STATE_PAUSE)
+      (button == "a" or button == "b" or button == "start") then
+    if gShowHelp then
+      gShowHelp = false
+      event.notify("training.end", 0)
+    else
+      event.notify("state.enter", 0, STATE_PAUSE)
+    end
   end
 end)
 
