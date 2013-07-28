@@ -6,11 +6,7 @@ function love.conf(t)
     t.version = "0.8.0"
     t.console = false
     t.release = true
-    t.screen.width = 256
-    t.screen.height = 224
-    t.screen.fullscreen = true
-    t.screen.vsync = true
-    t.screen.fsaa = 0
+    t.screen = false
     t.modules.joystick = true
     t.modules.audio = true
     t.modules.keyboard = true

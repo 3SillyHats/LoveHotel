@@ -1,0 +1,12 @@
+v1.1 - 28 Jul 2013
+- New: help screen added on first play and in pause menu.
+- Changed: missionary rooms are now 3 wide.
+- Changed: utility rooms now flash when empty.
+- Improved: screen resolution only set once on launch.
+- Improved: reworded control screen.
+- Fixed: closing a menu after star change would cause crash.
+- Fixed: electricty bill would increase on loading a save.
+- Fixed: clients at least come into reception before leaving.
+
+v1.0 - 15 Jul 2013
+- Initial release.
