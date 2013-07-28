@@ -1105,9 +1105,25 @@ local trainText = entity.new(STATE_TRAIN)
 trainTextCom = entity.newComponent({
   text = "",
   draw = function (self)
-    local desc = [[Controller Setup
-
-    For each input pointed to, choose a key or gamepad button and press it.]]
+    local desc = [[Bind keys or controller buttons to the NES controller.
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    At any time press F1 to rebind controls,
+    or F11 to toggle screen mode.]]
     love.graphics.setColor(0, 0, 0)
     love.graphics.printf(
       desc,
@@ -1118,14 +1134,14 @@ trainTextCom = entity.newComponent({
     love.graphics.setColor(255, 255, 255)
     love.graphics.printf(
       desc,
-      0, 8,
+      0, 24,
       256,
       "center"
     )
     love.graphics.setFont(gFont)
     love.graphics.printf(
       self.text,
-      0, CANVAS_HEIGHT - 32,
+      0, CANVAS_HEIGHT - 60,
       256,
       "center"
     )
