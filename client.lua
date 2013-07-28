@@ -189,7 +189,7 @@ M.new = function (t)
   local aiComponent = ai.newClient(id, info)
   entity.addComponent(id, aiComponent)
   aiComponent.class = t.category
-  aiComponent.moveRoom = 1
+  aiComponent.moveRoom = 4
   aiComponent.moveFloor = pos.floorNum
   aiComponent:push("moveTo")
 
