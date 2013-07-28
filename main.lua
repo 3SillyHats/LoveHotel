@@ -767,7 +767,7 @@ local addLockButton = function (submenu)
 end
 
 local onStars = function (e)
-  if (submenu ~= nil) then
+  if submenu ~= nil then
     selected = menu.selected(submenu)
     enabled = menu.enabled(submenu)
 
