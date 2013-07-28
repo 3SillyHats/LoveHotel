@@ -1,5 +1,3 @@
--- conf.lua
-
 function love.conf(t)
     t.title = "Love Hotel"
     t.author = "3 Silly Hats"
@@ -7,10 +5,10 @@ function love.conf(t)
     t.identity = "lovehotel"
     t.version = "0.8.0"
     t.console = false
-    t.release = false
+    t.release = true
     t.screen.width = 256
     t.screen.height = 224
-    t.screen.fullscreen = false
+    t.screen.fullscreen = true
     t.screen.vsync = true
     t.screen.fsaa = 0
     t.modules.joystick = true
