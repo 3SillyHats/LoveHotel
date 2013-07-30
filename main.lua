@@ -1159,8 +1159,6 @@ event.subscribe("training.end", 0, function ()
   else
     event.notify("state.enter", 0, STATE_PLAY)
     -- Show starting title card
-    submenu = nil -- XXX prevent rare crash when submenu is garbage
-    submenuConstructor = nil
     event.notify("stars", 0, {
       current = 1,
       old = 0,
