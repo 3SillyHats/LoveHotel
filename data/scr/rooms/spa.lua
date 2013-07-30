@@ -4,7 +4,7 @@ return {
   cost = 20000,
   desirability = 25,
   width = 2,
-  integrity = 13,
+  integrity = 5,
   upkeep = 500,
 
   sprites = {
