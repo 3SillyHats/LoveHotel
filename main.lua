@@ -1061,7 +1061,9 @@ gui = newGui()
 -- Background music
 event.subscribe("state.enter", 0, function (state)
   local bgm = resource.get("snd/love-hotel.mp3")
-  if state == STATE_PLAY or state == STATE_DECISION then
+  if state == STATE_PLAY and gShowHelp then
+    event.notify("state.enter", 0, STATE_HELP)
+  elseif state == STATE_PLAY or state == STATE_DECISION then
     bgm:setVolume(0.1)
     love.audio.play(bgm)
   end
@@ -1154,17 +1156,17 @@ event.subscribe("training.current", 0, function (current)
 end)
 
 event.subscribe("training.end", 0, function ()
-  if gShowHelp then
-    event.notify("state.enter", 0, STATE_HELP)
-  else
-    event.notify("state.enter", 0, STATE_PLAY)
-    -- Show starting title card
-    event.notify("stars", 0, {
-      current = 1,
-      old = 0,
-      best = 1,
-    })
+  event.notify("state.enter", 0, STATE_PLAY)
+  -- Show starting title card
+  local oldBest = gStarsBest
+  if gStarsBest < 1 then
+    gStarsBest = 1
   end
+  event.notify("stars", 0, {
+    current = 1,
+    old = 0,
+    best = oldBest,
+  })
 end)
 
 local floorOccupation = 1
@@ -1863,7 +1865,7 @@ event.subscribe("pressed", 0, function (button)
       (button == "a" or button == "b" or button == "start") then
     if gShowHelp then
       gShowHelp = false
-      event.notify("training.end", 0)
+      event.notify("state.enter", 0, STATE_PLAY)
     else
       event.notify("state.enter", 0, STATE_PAUSE)
     end
