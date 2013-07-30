@@ -6,7 +6,7 @@ return {
   cookingSupplies = true,
   stock = 8,
   restockCost = 5000,
-  integrity = 13,
+  integrity = 5,
   upkeep = 500,
 
   sprites = {
