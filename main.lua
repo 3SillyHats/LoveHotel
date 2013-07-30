@@ -103,7 +103,7 @@ REP_THRESHOLDS = {
   20000,
 }
 
-local thousandify = function (str)
+thousandify = function (str)
   if (str:sub(1, 1) == "-" and str:len() > 4) or
       (str:sub(1, 1) ~= "-" and str:len() > 3) then
     str = str:sub(1, -4) .. "," .. str:sub(-3, -1)
@@ -563,7 +563,7 @@ end)
 local floors = {}
 
 -- Create an empty floor entity
-local newFloor = function (level)
+newFloor = function (level)
   local id = entity.new(STATE_PLAY)
   entity.setOrder(id, -50)
   local pos = {roomNum = .5, floorNum = level }
