@@ -103,27 +103,6 @@ REP_THRESHOLDS = {
   20000,
 }
 
-local luatexts = require("luatexts")
-local achievement = require("achievement")
-local event = require("event")
-local entity = require("entity")
-local input = require("input")
-local resource = require("resource")
-local sprite = require ("sprite")
-local room = require("room")
-local menu = require("menu")
-local ai = require("ai")
-local builder = require("builder")
-local demolisher = require("demolisher")
-local stocker = require("stocker")
-local inspector = require("inspector")
-local staffer = require("staffer")
-local staff = require("staff")
-local client = require("client")
-local transform = require("transform")
-local decision = require("decision")
-local save = require("save")
-
 local thousandify = function (str)
   if (str:sub(1, 1) == "-" and str:len() > 4) or
       (str:sub(1, 1) ~= "-" and str:len() > 3) then
@@ -205,6 +184,89 @@ conf = {
     },
   },
 }
+
+-- Setup the window
+local setupScreen = function (modes)
+  table.sort(modes, function (a, b)
+      return a.width * a.height < b.width * b.height
+  end)
+  local mode = modes[#modes]
+  local scale = 1
+  while CANVAS_WIDTH * (scale + 1) <= mode.width and
+        CANVAS_HEIGHT * (scale + 1) <= mode.height do
+      scale = scale + 1
+  end
+
+  return {
+    x = math.floor((mode.width - (CANVAS_WIDTH * scale)) / 2),
+    y = math.floor((mode.height - (CANVAS_HEIGHT * scale)) / 2),
+    width = mode.width,
+    height = mode.height,
+    scale = scale,
+    fullscreen = true,
+  }
+end
+conf.screen = {
+  modes = {
+    setupScreen(love.graphics.getModes()),
+    {
+      x = 0, y = 0,
+      width = CANVAS_WIDTH, height = CANVAS_HEIGHT,
+      scale = 1,
+      fullscreen = false,
+    },
+    {
+      x = 0, y = 0,
+      width = CANVAS_WIDTH * 2, height = CANVAS_HEIGHT * 2,
+      scale = 2,
+      fullscreen = false,
+    },
+    {
+      x = 0, y = 0,
+      width = CANVAS_WIDTH * 3, height = CANVAS_HEIGHT * 3,
+      scale = 3,
+      fullscreen = false,
+    },
+    {
+      x = 0, y = 0,
+      width = CANVAS_WIDTH * 4, height = CANVAS_HEIGHT * 4,
+      scale = 4,
+      fullscreen = false,
+    },
+  },
+  i = 1
+}
+
+-- Create the window
+love.graphics.setMode(
+  conf.screen.modes[conf.screen.i].width,
+  conf.screen.modes[conf.screen.i].height,
+  conf.screen.modes[conf.screen.i].fullscreen
+)
+love.graphics.setBackgroundColor(0, 0, 0)
+
+love.mouse.setVisible(false)
+
+local luatexts = require("luatexts")
+local achievement = require("achievement")
+local event = require("event")
+local entity = require("entity")
+local input = require("input")
+local resource = require("resource")
+local sprite = require ("sprite")
+local room = require("room")
+local menu = require("menu")
+local ai = require("ai")
+local builder = require("builder")
+local demolisher = require("demolisher")
+local stocker = require("stocker")
+local inspector = require("inspector")
+local staffer = require("staffer")
+local staff = require("staff")
+local client = require("client")
+local transform = require("transform")
+local decision = require("decision")
+local save = require("save")
 
 gTopFloor = GROUND_FLOOR
 gBottomFloor = GROUND_FLOOR
@@ -442,68 +504,6 @@ event.subscribe("released", 0, function (key)
     gGameSpeed = 1
   end
 end)
-
--- Setup the window
-local setupScreen = function (modes)
-  table.sort(modes, function (a, b)
-      return a.width * a.height < b.width * b.height
-  end)
-  local mode = modes[#modes]
-  local scale = 1
-  while CANVAS_WIDTH * (scale + 1) <= mode.width and
-        CANVAS_HEIGHT * (scale + 1) <= mode.height do
-      scale = scale + 1
-  end
-
-  return {
-    x = math.floor((mode.width - (CANVAS_WIDTH * scale)) / 2),
-    y = math.floor((mode.height - (CANVAS_HEIGHT * scale)) / 2),
-    width = mode.width,
-    height = mode.height,
-    scale = scale,
-    fullscreen = true,
-  }
-end
-conf.screen = {
-  modes = {
-    setupScreen(love.graphics.getModes()),
-    {
-      x = 0, y = 0,
-      width = CANVAS_WIDTH, height = CANVAS_HEIGHT,
-      scale = 1,
-      fullscreen = false,
-    },
-    {
-      x = 0, y = 0,
-      width = CANVAS_WIDTH * 2, height = CANVAS_HEIGHT * 2,
-      scale = 2,
-      fullscreen = false,
-    },
-    {
-      x = 0, y = 0,
-      width = CANVAS_WIDTH * 3, height = CANVAS_HEIGHT * 3,
-      scale = 3,
-      fullscreen = false,
-    },
-    {
-      x = 0, y = 0,
-      width = CANVAS_WIDTH * 4, height = CANVAS_HEIGHT * 4,
-      scale = 4,
-      fullscreen = false,
-    },
-  },
-  i = 1
-}
-
--- Create the window
-love.graphics.setMode(
-  conf.screen.modes[conf.screen.i].width,
-  conf.screen.modes[conf.screen.i].height,
-  conf.screen.modes[conf.screen.i].fullscreen
-)
-love.graphics.setBackgroundColor(0, 0, 0)
-
-love.mouse.setVisible(false)
 
 -- Create the canvas
 createCanvas = function ()
