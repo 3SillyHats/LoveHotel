@@ -1814,7 +1814,7 @@ local creditsCom = entity.newComponent({
 entity.addComponent(creditsScreen, creditsCom)
 event.subscribe("pressed", 0, function (button)
   if gState == STATE_CREDITS and
-      (button == "b" or button == "start") then
+      (button == "a" or button == "b" or button == "start") then
     event.notify("state.enter", 0, STATE_PAUSE)
   end
 end)
@@ -1936,7 +1936,7 @@ local achieveCom = entity.newComponent({
 entity.addComponent(achieveScreen, achieveCom)
 event.subscribe("pressed", 0, function (button)
   if gState == STATE_ACHIEVMENTS then
-    if button == "b" or button == "start" then
+    if button == "a" or button == "b" or button == "start" then
       event.notify("state.enter", 0, STATE_PAUSE)
     elseif button == "up" and achieveCom.selected > 3 then
       achieveCom.selected = achieveCom.selected - 4
@@ -2027,6 +2027,7 @@ love.update = function (dt)
 end
 
 local returnDown = false
+local escapeDown = false
 
 function love.keypressed(key)   -- we do not need the unicode, so we can leave it out
   if key == "escape" then
@@ -2038,6 +2039,11 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
       event.notify("state.enter", 0, STATE_PLAY)
     elseif gState == STATE_ACHIEVMENTS then
       event.notify("state.enter", 0, STATE_PAUSE)
+    elseif gState == STATE_CREDITS then
+      event.notify("state.enter", 0, STATE_PAUSE)
+    elseif gState == STATE_DECISION or gState == STATE_HELP then
+      escapeDown = true
+      event.notify("pressed", 0, "start")
     end
   elseif key == "f1" then
     event.notify("training.begin", 0)
@@ -2057,7 +2063,7 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
       pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
       pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.modes[conf.screen.i].scale, CANVAS_HEIGHT*conf.screen.modes[conf.screen.i].scale})
     end
-  elseif key == "return" and (gState == STATE_PAUSE or gState == STATE_DECISION) and not input.isMapped("return") then
+  elseif key == "return" and (gState == STATE_PAUSE or gState == STATE_DECISION or gState == STATE_HELP or gState == STATE_CREDITS or gState == STATE_ACHIEVMENTS) and not input.isMapped("return") then
     returnDown = true
     event.notify("pressed", 0, "a")
   else
@@ -2068,6 +2074,9 @@ end
 love.keyreleased = function (key)
   if returnDown and key == "return" then
     event.notify("released", 0, "a")
+    returnDown = false
+  elseif escapeDown and key == "escape" then
+    event.notify("released", 0, "start")
     returnDown = false
   end
   input.keyReleased(key)
