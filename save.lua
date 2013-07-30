@@ -31,12 +31,24 @@ M.load = function ()
 
   gTopFloor = 0
   for i=1,vars.gTopFloor do
-    floorUp()
+    gTopFloor = gTopFloor + 1
+    local newFloor = newFloor(gTopFloor)
   end
+  conf.menu["floorUp"].desc = "$" .. thousandify(tostring(FLOOR_COSTS[gTopFloor + 1]))
+  if gTopFloor >= 16 then
+    conf.menu["floorUp"].desc = "MAXED"
+  end
+
   gBottomFloor = 0
   for i=-1,vars.gBottomFloor,-1 do
-    floorDown()
+    gBottomFloor = gBottomFloor - 1
+    local newFloor = newFloor(gBottomFloor)
   end
+  conf.menu["floorDown"].desc = "$" .. thousandify(tostring(FLOOR_COSTS[-gBottomFloor + 1] * 1.5))
+  if gBottomFloor <= -8 then
+    conf.menu["floorDown"].desc = "MAXED"
+  end
+
   gScrollPos = vars.gScrollPos
   event.notify("scroll", 0 , gScrollPos)
   gMoney = vars.gMoney
