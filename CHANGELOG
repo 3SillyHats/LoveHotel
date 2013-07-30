@@ -1,3 +1,11 @@
+v1.2 - 31 Jul 2013
+- Changed: reduced integrity of spas and freezers.
+- Improved: input on different screens is now slightly more consistent.
+- Fixed: OSX build crashed on load.
+- Fixed: extra floors were not loading properly from save.
+- Fixed: game would break if controls were rebound with a submenu open.
+- Fixed: introductory screen was not displayed on launch.
+
 v1.1 - 28 Jul 2013
 - New: help screen added on first play and in pause menu.
 - Changed: missionary rooms are now 3 wide.
