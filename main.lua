@@ -243,6 +243,7 @@ love.graphics.setMode(
   conf.screen.modes[conf.screen.i].height,
   conf.screen.modes[conf.screen.i].fullscreen
 )
+love.graphics.setCaption("Love Hotel")
 love.graphics.setBackgroundColor(0, 0, 0)
 
 love.mouse.setVisible(false)
@@ -1990,16 +1991,16 @@ love.draw = function ()
     frameImage, frameQuad,
     0, 0,
     0,
-    conf.screen.modes[conf.screen.i].scale, conf.screen.modes[conf.screen.i].scale
+    conf.screen.scale, conf.screen.scale
   )
   -- Fill the screen area black for pixel effect
   love.graphics.setColor(0, 0, 0)
   love.graphics.rectangle(
     "fill",
-    conf.screen.modes[conf.screen.i].x,
-    conf.screen.modes[conf.screen.i].y,
-    CANVAS_WIDTH * conf.screen.modes[conf.screen.i].scale,
-    CANVAS_HEIGHT * conf.screen.modes[conf.screen.i].scale
+    conf.screen.x,
+    conf.screen.y,
+    CANVAS_WIDTH * conf.screen.scale,
+    CANVAS_HEIGHT * conf.screen.scale
   )
 
   if pixelEffect then
@@ -2008,11 +2009,11 @@ love.draw = function ()
   love.graphics.setColor(255, 255, 255)
   love.graphics.draw(
     canvas,
-    conf.screen.modes[conf.screen.i].x,
-    conf.screen.modes[conf.screen.i].y,
+    conf.screen.x,
+    conf.screen.y,
     0,
-    conf.screen.modes[conf.screen.i].scale,
-    conf.screen.modes[conf.screen.i].scale
+    conf.screen.scale,
+    conf.screen.scale
   )
 end
 
@@ -2047,22 +2048,6 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
     end
   elseif key == "f1" then
     event.notify("training.begin", 0)
-  elseif key == "f11" then
-    conf.screen.i = conf.screen.i + 1
-    if conf.screen.i > #conf.screen.modes then
-      conf.screen.i = 1
-    end
-    love.graphics.setMode(
-      conf.screen.modes[conf.screen.i].width,
-      conf.screen.modes[conf.screen.i].height,
-      conf.screen.modes[conf.screen.i].fullscreen
-    )
-    -- Need to force reload of fragment shader
-    if pixelEffect then
-      pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-      pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-      pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.modes[conf.screen.i].scale, CANVAS_HEIGHT*conf.screen.modes[conf.screen.i].scale})
-    end
   elseif key == "return" and (gState == STATE_PAUSE or gState == STATE_DECISION or gState == STATE_HELP or gState == STATE_CREDITS or gState == STATE_ACHIEVMENTS) and not input.isMapped("return") then
     returnDown = true
     event.notify("pressed", 0, "a")
