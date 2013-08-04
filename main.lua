@@ -1140,8 +1140,8 @@ trainTextCom = entity.newComponent({
     
     
     
-    
-    Press F1 any time to rebind controls.]]
+    Press F1 any time to rebind controls.
+    Press F11 any time to cycle screen modes.]]
     love.graphics.setColor(0, 0, 0)
     love.graphics.printf(
       desc,
@@ -1767,40 +1767,68 @@ end)
 -- GAME OPTIONS SCREEN
 local optionScreen = entity.new(STATE_OPTIONS)
 local optionCom = entity.newComponent({
-	mode = conf.screen.selected,
 	fullscreen = conf.screen.fullscreen,
+	mode = conf.screen.selected,
+	scale = conf.screen.scale,
     items = {
-    {
-      text = "",
-      onPress = function (com)
-        com.mode = com.mode % #conf.screen.modes
-        com.mode = com.mode + 1
-        com.items[1].text = "Resolution: " ..
-            conf.screen.modes[com.mode].width ..
-            " x " .. conf.screen.modes[com.mode].height
-      end,
-    },
     {
       text = "",
       onPress = function (com)
         com.fullscreen = not com.fullscreen
         if com.fullscreen then
-          com.items[2].text = "Fullscreen"
+          com.items[1].text = "Fullscreen"
+          com.items[2].text = "Resolution: " ..
+              conf.screen.modes[com.mode].width ..
+              " x " .. conf.screen.modes[com.mode].height
         else
-          com.items[2].text = "Windowed"
+          com.items[1].text = "Windowed"
+          com.items[2].text = "Scale: x" ..
+              com.scale
+        end
+      end,
+    },
+    {
+      text = "",
+      onPress = function (com)
+        if com.fullscreen then
+          com.mode = (com.mode % #conf.screen.modes) + 1
+          com.items[2].text = "Resolution: " ..
+              conf.screen.modes[com.mode].width ..
+              " x " .. conf.screen.modes[com.mode].height
+        else
+          com.scale = (com.scale % 8) + 1
+          com.items[2].text = "Scale: x" ..
+              com.scale
         end
       end,
     },
     {
       text = "Apply",
       onPress = function (com)
-        conf.screen.selected = com.mode
-        conf.screen.x = conf.screen.modes[conf.screen.selected].x
-        conf.screen.y = conf.screen.modes[conf.screen.selected].y
-        conf.screen.width = conf.screen.modes[conf.screen.selected].width
-        conf.screen.height = conf.screen.modes[conf.screen.selected].height
-        conf.screen.scale = conf.screen.modes[conf.screen.selected].scale
         conf.screen.fullscreen = com.fullscreen
+        
+        if com.fullscreen then
+          conf.screen.selected = com.mode
+          conf.screen.x = conf.screen.modes[conf.screen.selected].x
+          conf.screen.y = conf.screen.modes[conf.screen.selected].y
+          conf.screen.width = conf.screen.modes[conf.screen.selected].width
+          conf.screen.height = conf.screen.modes[conf.screen.selected].height
+          conf.screen.scale = conf.screen.modes[conf.screen.selected].scale
+          com.scale = conf.screen.scale
+        else
+          conf.screen.x = 0
+          conf.screen.y = 0
+          conf.screen.width = CANVAS_WIDTH * com.scale
+          conf.screen.height = CANVAS_HEIGHT * com.scale
+          conf.screen.scale = com.scale
+          conf.screen.selected = #conf.screen.modes
+          for i,mode in ipairs(conf.screen.modes) do
+            if mode.width == conf.screen.width and mode.height == conf.screen.height then
+              conf.screen.selected = i
+            end
+          end
+          com.mode = conf.screen.selected
+        end
         
         frameQuad:setViewport(
           0, 0,
@@ -1828,13 +1856,16 @@ local optionCom = entity.newComponent({
       onPress = function (com)
         com.mode = conf.screen.selected
         com.fullscreen = conf.screen.fullscreen
+        com.scale = conf.screen.scale
         
-        com.items[1].text = "Resolution: " ..
-            conf.screen.width .. " x " .. conf.screen.height
         if com.fullscreen then
-          com.items[2].text = "Fullscreen"
+          com.items[1].text = "Fullscreen"
+          com.items[2].text = "Resolution: " ..
+            conf.screen.width .. " x " .. conf.screen.height
         else
-          com.items[2].text = "Windowed"
+          com.items[1].text = "Windowed"
+          com.items[2].text = "Scale: " ..
+            conf.screen.scale
         end
         
         event.notify("state.enter", 0, STATE_PAUSE)
@@ -1860,13 +1891,6 @@ local optionCom = entity.newComponent({
     end
   end,
 })
-optionCom.items[1].text = "Resolution: " ..
-    conf.screen.width .. " x " .. conf.screen.height
-if optionCom.fullscreen then
-  optionCom.items[2].text = "Fullscreen"
-else
-  optionCom.items[2].text = "Windowed"
-end
 entity.addComponent(optionScreen, optionCom)
 event.subscribe("pressed", 0, function (button)
   if gState == STATE_OPTIONS then
@@ -1878,6 +1902,22 @@ event.subscribe("pressed", 0, function (button)
     elseif button == "down" then
       optionCom.selected = math.min(#optionCom.items, optionCom.selected + 1)
     end
+  end
+end)
+event.subscribe("state.enter", 0, function (state)
+  optionCom.fullscreen = conf.screen.fullscreen
+  optionCom.mode = conf.screen.selected
+  optionCom.scale = conf.screen.scale
+  
+  if optionCom.fullscreen then
+    optionCom.items[1].text = "Fullscreen"
+    optionCom.items[2].text = "Resolution: " ..
+      conf.screen.modes[conf.screen.selected].width ..
+      " x " .. conf.screen.modes[conf.screen.selected].height
+  else
+    optionCom.items[1].text = "Windowed"
+    optionCom.items[2].text = "Scale: x" ..
+      conf.screen.scale
   end
 end)
 
@@ -2186,6 +2226,48 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
     end
   elseif key == "f1" then
     event.notify("training.begin", 0)
+  elseif key == "f11" then
+    if conf.screen.fullscreen then
+      conf.screen.fullscreen = false
+      conf.screen.scale = 1
+    elseif conf.screen.scale < 4 then
+      conf.screen.scale = conf.screen.scale + 1
+    else
+      conf.screen.fullscreen = true
+      conf.screen.selected = #conf.screen.modes
+    end
+    
+    if conf.screen.fullscreen then
+      conf.screen.x = conf.screen.modes[conf.screen.selected].x
+      conf.screen.y = conf.screen.modes[conf.screen.selected].y
+      conf.screen.width = conf.screen.modes[conf.screen.selected].width
+      conf.screen.height = conf.screen.modes[conf.screen.selected].height
+      conf.screen.scale = conf.screen.modes[conf.screen.selected].scale
+    else
+      conf.screen.x = 0
+      conf.screen.y = 0
+      conf.screen.width = CANVAS_WIDTH * conf.screen.scale
+      conf.screen.height = CANVAS_HEIGHT * conf.screen.scale
+    end
+    
+    frameQuad:setViewport(
+      0, 0,
+      conf.screen.width / conf.screen.scale,
+      conf.screen.height / conf.screen.scale
+    )
+    
+    love.graphics.setMode(
+      conf.screen.width,
+      conf.screen.height,
+      conf.screen.fullscreen
+    )
+    -- Need to force reload of fragment shader
+    if pixelEffect then
+      pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+      pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+      pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
+    end
+    createScreenFile()
   elseif key == "return" and (gState == STATE_PAUSE or gState == STATE_DECISION or gState == STATE_HELP or gState == STATE_CREDITS or gState == STATE_ACHIEVMENTS) and not input.isMapped("return") then
     returnDown = true
     event.notify("pressed", 0, "a")
