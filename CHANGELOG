@@ -1,3 +1,8 @@
+v1.3 - 04 Aug 2013
+- New: in-game options for screen mode.
+- Fixed: fixed 2 star pop-up mentioning Spoon suites.
+- Fixed: set window caption.
+
 v1.2 - 31 Jul 2013
 - Changed: reduced integrity of spas and freezers.
 - Improved: input on different screens is now slightly more consistent.
