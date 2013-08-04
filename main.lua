@@ -10,6 +10,7 @@ GROUND_FLOOR = 0
 FILE_SETTINGS = "settings"
 FILE_ACHIEVEMENTS = "achievements"
 FILE_SAVE = "save"
+FILE_SCREEN = "screen.lua"
 
 STATE_TRAIN = 1
 STATE_PLAY = 2
@@ -21,6 +22,7 @@ STATE_ACHIEVMENTS = 7
 STATE_LOSE = 8
 STATE_CREDITS = 9
 STATE_HELP = 10
+STATE_OPTIONS = 11
 
 PERSON_SPEED = 1
 ELEVATOR_SPEED = 1.2
@@ -186,62 +188,76 @@ conf = {
 }
 
 -- Setup the window
-local setupScreen = function (modes)
+local getModes = function ()
+  local modes = love.graphics.getModes()
   table.sort(modes, function (a, b)
       return a.width * a.height < b.width * b.height
   end)
-  local mode = modes[#modes]
-  local scale = 1
-  while CANVAS_WIDTH * (scale + 1) <= mode.width and
-        CANVAS_HEIGHT * (scale + 1) <= mode.height do
-      scale = scale + 1
+  for _,mode in ipairs(modes) do
+    local scale = 1
+    while CANVAS_WIDTH * (scale + 1) <= mode.width and
+          CANVAS_HEIGHT * (scale + 1) <= mode.height do
+        scale = scale + 1
+    end
+    mode.scale = scale
+    mode.x = math.floor((mode.width - (CANVAS_WIDTH * scale)) / 2)
+    mode.y = math.floor((mode.height - (CANVAS_HEIGHT * scale)) / 2)
   end
-
-  return {
-    x = math.floor((mode.width - (CANVAS_WIDTH * scale)) / 2),
-    y = math.floor((mode.height - (CANVAS_HEIGHT * scale)) / 2),
-    width = mode.width,
-    height = mode.height,
-    scale = scale,
-    fullscreen = true,
-  }
+  
+  return modes
+end
+local createScreenFile = function ()
+  local fullscreen
+  if conf.screen.fullscreen then
+    fullscreen = "true"
+  else
+    fullscreen = "false"
+  end
+  love.filesystem.write(FILE_SCREEN, [[
+return {
+  width = ]] .. conf.screen.width .. [[,
+  height = ]] .. conf.screen.height .. [[,
+  scale = ]] .. conf.screen.scale .. [[,
+  fullscreen = ]] .. fullscreen .. [[,
+}
+]])
 end
 conf.screen = {
-  modes = {
-    setupScreen(love.graphics.getModes()),
-    {
-      x = 0, y = 0,
-      width = CANVAS_WIDTH, height = CANVAS_HEIGHT,
-      scale = 1,
-      fullscreen = false,
-    },
-    {
-      x = 0, y = 0,
-      width = CANVAS_WIDTH * 2, height = CANVAS_HEIGHT * 2,
-      scale = 2,
-      fullscreen = false,
-    },
-    {
-      x = 0, y = 0,
-      width = CANVAS_WIDTH * 3, height = CANVAS_HEIGHT * 3,
-      scale = 3,
-      fullscreen = false,
-    },
-    {
-      x = 0, y = 0,
-      width = CANVAS_WIDTH * 4, height = CANVAS_HEIGHT * 4,
-      scale = 4,
-      fullscreen = false,
-    },
-  },
-  i = 1
+  modes = getModes(),
 }
+if love.filesystem.exists(FILE_SCREEN) then
+  local screenFile = love.filesystem.load(FILE_SCREEN)
+  local screen = screenFile()
+  conf.screen.width = screen.width
+  conf.screen.height = screen.height
+  conf.screen.scale = screen.scale
+  conf.screen.fullscreen = screen.fullscreen
+  
+  conf.screen.selected = #conf.screen.modes
+  conf.screen.x = math.floor((screen.width - (CANVAS_WIDTH * screen.scale)) / 2)
+  conf.screen.y = math.floor((screen.height - (CANVAS_HEIGHT * screen.scale)) / 2)
+  for i,mode in ipairs(conf.screen.modes) do
+    if mode.width == screen.width and mode.height == screen.height then
+      conf.screen.selected = i
+    end
+  end
+else
+  conf.screen.selected = #conf.screen.modes
+  conf.screen.x = conf.screen.modes[conf.screen.selected].x
+  conf.screen.y = conf.screen.modes[conf.screen.selected].y
+  conf.screen.width = conf.screen.modes[conf.screen.selected].width
+  conf.screen.height = conf.screen.modes[conf.screen.selected].height
+  conf.screen.scale = conf.screen.modes[conf.screen.selected].scale
+  conf.screen.fullscreen = true
+  
+  createScreenFile()
+end
 
 -- Create the window
 love.graphics.setMode(
-  conf.screen.modes[conf.screen.i].width,
-  conf.screen.modes[conf.screen.i].height,
-  conf.screen.modes[conf.screen.i].fullscreen
+  conf.screen.width,
+  conf.screen.height,
+  conf.screen.fullscreen
 )
 love.graphics.setCaption("Love Hotel")
 love.graphics.setBackgroundColor(0, 0, 0)
@@ -527,7 +543,7 @@ else
   if pixelEffect then
     pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
     pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-    pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.modes[conf.screen.i].scale, CANVAS_HEIGHT*conf.screen.modes[conf.screen.i].scale})
+    pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
   end
 end
 
@@ -536,8 +552,8 @@ local frameImage = resource.get("img/frame.png")
 frameImage:setWrap("repeat", "repeat")
 local frameQuad = love.graphics.newQuad(
   0, 0,
-  conf.screen.modes[conf.screen.i].width / conf.screen.modes[conf.screen.i].scale,
-  conf.screen.modes[conf.screen.i].height / conf.screen.modes[conf.screen.i].scale,
+  conf.screen.width / conf.screen.scale,
+  conf.screen.height / conf.screen.scale,
   frameImage:getWidth(), frameImage:getHeight()
 )
 
@@ -1125,8 +1141,7 @@ trainTextCom = entity.newComponent({
     
     
     
-    At any time press F1 to rebind controls,
-    or F11 to toggle screen mode.]]
+    Press F1 any time to rebind controls.]]
     love.graphics.setColor(0, 0, 0)
     love.graphics.printf(
       desc,
@@ -1682,6 +1697,12 @@ local pauseCom = entity.newComponent({
       end,
     },
     {
+      text = "Options",
+      onPress = function ()
+        event.notify("state.enter", 0, STATE_OPTIONS)
+      end,
+    },
+    {
       text = "Credits",
       onPress = function ()
         event.notify("state.enter", 0, STATE_CREDITS)
@@ -1713,7 +1734,7 @@ local pauseCom = entity.newComponent({
       end
       love.graphics.printf(
         option.text,
-        0, 112 + (14 * i),
+        0, 112 + (12 * i),
         256,
         "center"
       )
@@ -1739,6 +1760,123 @@ event.subscribe("pressed", 0, function (button)
       pauseCom.selected = math.max(1, pauseCom.selected - 1)
     elseif button == "down" then
       pauseCom.selected = math.min(#pauseCom.options, pauseCom.selected + 1)
+    end
+  end
+end)
+
+-- GAME OPTIONS SCREEN
+local optionScreen = entity.new(STATE_OPTIONS)
+local optionCom = entity.newComponent({
+	mode = conf.screen.selected,
+	fullscreen = conf.screen.fullscreen,
+    items = {
+    {
+      text = "",
+      onPress = function (com)
+        com.mode = com.mode % #conf.screen.modes
+        com.mode = com.mode + 1
+        com.items[1].text = "Resolution: " ..
+            conf.screen.modes[com.mode].width ..
+            " x " .. conf.screen.modes[com.mode].height
+      end,
+    },
+    {
+      text = "",
+      onPress = function (com)
+        com.fullscreen = not com.fullscreen
+        if com.fullscreen then
+          com.items[2].text = "Fullscreen"
+        else
+          com.items[2].text = "Windowed"
+        end
+      end,
+    },
+    {
+      text = "Apply",
+      onPress = function (com)
+        conf.screen.selected = com.mode
+        conf.screen.x = conf.screen.modes[conf.screen.selected].x
+        conf.screen.y = conf.screen.modes[conf.screen.selected].y
+        conf.screen.width = conf.screen.modes[conf.screen.selected].width
+        conf.screen.height = conf.screen.modes[conf.screen.selected].height
+        conf.screen.scale = conf.screen.modes[conf.screen.selected].scale
+        conf.screen.fullscreen = com.fullscreen
+        
+        frameQuad:setViewport(
+          0, 0,
+          conf.screen.width / conf.screen.scale,
+          conf.screen.height / conf.screen.scale
+        )
+        
+        love.graphics.setMode(
+          conf.screen.width,
+          conf.screen.height,
+          conf.screen.fullscreen
+        )
+        -- Need to force reload of fragment shader
+        if pixelEffect then
+          pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+          pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+          pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
+        end
+        createScreenFile()
+        event.notify("state.enter", 0, STATE_PAUSE)
+      end,
+    },
+    {
+      text = "Cancel",
+      onPress = function (com)
+        com.mode = conf.screen.selected
+        com.fullscreen = conf.screen.fullscreen
+        
+        com.items[1].text = "Resolution: " ..
+            conf.screen.width .. " x " .. conf.screen.height
+        if com.fullscreen then
+          com.items[2].text = "Fullscreen"
+        else
+          com.items[2].text = "Windowed"
+        end
+        
+        event.notify("state.enter", 0, STATE_PAUSE)
+      end,
+    },
+  },
+  selected = 1,
+
+  draw = function (self)
+    love.graphics.setFont(gFont)
+    for i,item in ipairs(self.items) do
+      if i == self.selected then
+        love.graphics.setColor(255, 255, 255)
+      else
+        love.graphics.setColor(89, 89, 89)
+      end
+      love.graphics.printf(
+        item.text,
+        0, 112 + (14 * i),
+        256,
+        "center"
+      )
+    end
+  end,
+})
+optionCom.items[1].text = "Resolution: " ..
+    conf.screen.width .. " x " .. conf.screen.height
+if optionCom.fullscreen then
+  optionCom.items[2].text = "Fullscreen"
+else
+  optionCom.items[2].text = "Windowed"
+end
+entity.addComponent(optionScreen, optionCom)
+event.subscribe("pressed", 0, function (button)
+  if gState == STATE_OPTIONS then
+    if button == "a" then
+      optionCom.items[optionCom.selected].onPress(optionCom)
+      return true
+    elseif button == "up" then
+      optionCom.selected = math.max(1, optionCom.selected - 1)
+    elseif button == "down" then
+      optionCom.selected = math.min(#optionCom.items, optionCom.selected + 1)
     end
   end
 end)
