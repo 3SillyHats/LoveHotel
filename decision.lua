@@ -33,7 +33,7 @@ local decisions = {
   },
   star2 = {
     prompt = "Good job - 2 stars!\nYou can now build " ..
-    "Condom Machines, Spoon suites and Balloon suites.",
+    "Condom Machines and Balloon suites.",
     alert = true,
   },
   star3 = {
