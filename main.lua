@@ -1764,6 +1764,46 @@ event.subscribe("pressed", 0, function (button)
   end
 end)
 
+local toggleFullscreen = function (com)
+  com.fullscreen = not com.fullscreen
+  if com.fullscreen then
+    com.items[1].text = "Fullscreen"
+    com.items[2].text = "Resolution: " ..
+      conf.screen.modes[com.mode].width ..
+      " x " .. conf.screen.modes[com.mode].height
+  else
+    com.items[1].text = "Windowed"
+    com.items[2].text = "Scale: x" ..
+      com.scale
+  end
+end
+
+local resolutionUp = function (com)
+  if com.fullscreen then
+    com.mode = (com.mode % #conf.screen.modes) + 1
+    com.items[2].text = "Resolution: " ..
+      conf.screen.modes[com.mode].width ..
+      " x " .. conf.screen.modes[com.mode].height
+  else
+    com.scale = (com.scale % 8) + 1
+    com.items[2].text = "Scale: x" ..
+      com.scale
+  end
+end
+
+local resolutionDown = function (com)
+  if com.fullscreen then
+    com.mode = ((com.mode - 2) % #conf.screen.modes) + 1
+    com.items[2].text = "Resolution: " ..
+      conf.screen.modes[com.mode].width ..
+      " x " .. conf.screen.modes[com.mode].height
+  else
+    com.scale = ((com.scale - 2) % 8) + 1
+    com.items[2].text = "Scale: x" ..
+      com.scale
+  end
+end
+
 -- GAME OPTIONS SCREEN
 local optionScreen = entity.new(STATE_OPTIONS)
 local optionCom = entity.newComponent({
@@ -1773,34 +1813,15 @@ local optionCom = entity.newComponent({
     items = {
     {
       text = "",
-      onPress = function (com)
-        com.fullscreen = not com.fullscreen
-        if com.fullscreen then
-          com.items[1].text = "Fullscreen"
-          com.items[2].text = "Resolution: " ..
-              conf.screen.modes[com.mode].width ..
-              " x " .. conf.screen.modes[com.mode].height
-        else
-          com.items[1].text = "Windowed"
-          com.items[2].text = "Scale: x" ..
-              com.scale
-        end
-      end,
+      onPress = toggleFullscreen,
+      onLeft = toggleFullscreen,
+      onRight = toggleFullscreen,
     },
     {
       text = "",
-      onPress = function (com)
-        if com.fullscreen then
-          com.mode = (com.mode % #conf.screen.modes) + 1
-          com.items[2].text = "Resolution: " ..
-              conf.screen.modes[com.mode].width ..
-              " x " .. conf.screen.modes[com.mode].height
-        else
-          com.scale = (com.scale % 8) + 1
-          com.items[2].text = "Scale: x" ..
-              com.scale
-        end
-      end,
+      onPress = resolutionUp,
+      onLeft = resolutionDown,
+      onRight = resolutionUp,
     },
     {
       text = "Apply",
@@ -1854,20 +1875,6 @@ local optionCom = entity.newComponent({
     {
       text = "Cancel",
       onPress = function (com)
-        com.mode = conf.screen.selected
-        com.fullscreen = conf.screen.fullscreen
-        com.scale = conf.screen.scale
-        
-        if com.fullscreen then
-          com.items[1].text = "Fullscreen"
-          com.items[2].text = "Resolution: " ..
-            conf.screen.width .. " x " .. conf.screen.height
-        else
-          com.items[1].text = "Windowed"
-          com.items[2].text = "Scale: " ..
-            conf.screen.scale
-        end
-        
         event.notify("state.enter", 0, STATE_PAUSE)
       end,
     },
@@ -1901,23 +1908,33 @@ event.subscribe("pressed", 0, function (button)
       optionCom.selected = math.max(1, optionCom.selected - 1)
     elseif button == "down" then
       optionCom.selected = math.min(#optionCom.items, optionCom.selected + 1)
+    elseif button == "left" then
+      if optionCom.items[optionCom.selected].onLeft then
+        optionCom.items[optionCom.selected].onLeft(optionCom)
+      end
+    elseif button == "right" then
+      if optionCom.items[optionCom.selected].onRight then
+        optionCom.items[optionCom.selected].onRight(optionCom)
+      end
     end
   end
 end)
 event.subscribe("state.enter", 0, function (state)
-  optionCom.fullscreen = conf.screen.fullscreen
-  optionCom.mode = conf.screen.selected
-  optionCom.scale = conf.screen.scale
-  
-  if optionCom.fullscreen then
-    optionCom.items[1].text = "Fullscreen"
-    optionCom.items[2].text = "Resolution: " ..
-      conf.screen.modes[conf.screen.selected].width ..
-      " x " .. conf.screen.modes[conf.screen.selected].height
-  else
-    optionCom.items[1].text = "Windowed"
-    optionCom.items[2].text = "Scale: x" ..
-      conf.screen.scale
+  if state == STATE_OPTIONS then
+    optionCom.fullscreen = conf.screen.fullscreen
+    optionCom.mode = conf.screen.selected
+    optionCom.scale = conf.screen.scale
+    
+    if optionCom.fullscreen then
+      optionCom.items[1].text = "Fullscreen"
+      optionCom.items[2].text = "Resolution: " ..
+        conf.screen.modes[conf.screen.selected].width ..
+          " x " .. conf.screen.modes[conf.screen.selected].height
+    else
+      optionCom.items[1].text = "Windowed"
+      optionCom.items[2].text = "Scale: x" ..
+        conf.screen.scale
+    end
   end
 end)
 
@@ -2207,10 +2224,16 @@ end
 
 local returnDown = false
 local escapeDown = false
+local upDown = false
+local downDown = false
+local leftDown = false
+local rightDown = false
 
 function love.keypressed(key)   -- we do not need the unicode, so we can leave it out
   if key == "escape" then
     if gState == STATE_PLAY then
+      event.notify("state.enter", 0, STATE_PAUSE)
+    elseif gState == STATE_OPTIONS then
       event.notify("state.enter", 0, STATE_PAUSE)
     elseif gState == STATE_PAUSE then
       event.notify("state.enter", 0, STATE_PLAY)
@@ -2268,9 +2291,21 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
       pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
     end
     createScreenFile()
-  elseif key == "return" and (gState == STATE_PAUSE or gState == STATE_DECISION or gState == STATE_HELP or gState == STATE_CREDITS or gState == STATE_ACHIEVMENTS) and not input.isMapped("return") then
+  elseif key == "return" and (gState == STATE_PAUSE or gState == STATE_OPTIONS or gState == STATE_DECISION or gState == STATE_HELP or gState == STATE_CREDITS or gState == STATE_ACHIEVMENTS) and not input.isMapped("return") then
     returnDown = true
     event.notify("pressed", 0, "a")
+  elseif key == "up" and (gState == STATE_PAUSE or gState == STATE_OPTIONS or gState == STATE_DECISION or gState == STATE_HELP or gState == STATE_CREDITS or gState == STATE_ACHIEVMENTS) and not input.isMapped("up") then
+    upDown = true
+    event.notify("pressed", 0, "up")
+  elseif key == "down" and (gState == STATE_PAUSE or gState == STATE_OPTIONS or gState == STATE_DECISION or gState == STATE_HELP or gState == STATE_CREDITS or gState == STATE_ACHIEVMENTS) and not input.isMapped("down") then
+    downDown = true
+    event.notify("pressed", 0, "down")
+  elseif key == "left" and (gState == STATE_PAUSE or gState == STATE_OPTIONS or gState == STATE_DECISION or gState == STATE_HELP or gState == STATE_CREDITS or gState == STATE_ACHIEVMENTS) and not input.isMapped("left") then
+    leftDown = true
+    event.notify("pressed", 0, "left")
+  elseif key == "right" and (gState == STATE_PAUSE or gState == STATE_OPTIONS or gState == STATE_DECISION or gState == STATE_HELP or gState == STATE_CREDITS or gState == STATE_ACHIEVMENTS) and not input.isMapped("right") then
+    rightDown = true
+    event.notify("pressed", 0, "right")
   else
     input.keyPressed(key)
   end
@@ -2283,6 +2318,18 @@ love.keyreleased = function (key)
   elseif escapeDown and key == "escape" then
     event.notify("released", 0, "start")
     returnDown = false
+  elseif upDown and key == "up" then
+    event.notify("released", 0, "up")
+    upDown = false
+  elseif downDown and key == "down" then
+    event.notify("released", 0, "down")
+    downDown = false
+  elseif leftDown and key == "left" then
+    event.notify("released", 0, "left")
+    leftDown = false
+  elseif rightDown and key == "right" then
+    event.notify("released", 0, "right")
+    rightDown = false
   end
   input.keyReleased(key)
 end
