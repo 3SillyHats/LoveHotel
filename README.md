@@ -5,7 +5,7 @@ It's all about frisky business in 3 Silly Hats' debut game: Love Hotel!
 Build and manage a sexy hotel for lovestruck couples, making the most of a
 skimpy budget and showing your guests a great time.
 
-The rooms are perverse, the staff have peep holes in all the walls, and the
+The rooms are perverse, the staff are exceptionally discrete, and the
 clients just want to leave without an empty wallet!
 
 Satisfy your guests' fetishes with themed suites such as: spooning, tropical,
