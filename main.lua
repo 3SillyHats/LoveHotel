@@ -1,6 +1,7 @@
 -- main.lua
 
 -- Constants
+FULLSCREEN = true
 CANVAS_WIDTH = 256
 CANVAS_HEIGHT = 224
 ROOM_INDENT = 32*0.5
@@ -242,14 +243,27 @@ if love.filesystem.exists(FILE_SCREEN) then
     end
   end
 else
-  conf.screen.selected = #conf.screen.modes
-  conf.screen.x = conf.screen.modes[conf.screen.selected].x
-  conf.screen.y = conf.screen.modes[conf.screen.selected].y
-  conf.screen.width = conf.screen.modes[conf.screen.selected].width
-  conf.screen.height = conf.screen.modes[conf.screen.selected].height
-  conf.screen.scale = conf.screen.modes[conf.screen.selected].scale
-  conf.screen.fullscreen = true
-  
+  if FULLSCREEN then
+    conf.screen.selected = #conf.screen.modes
+    conf.screen.x = conf.screen.modes[conf.screen.selected].x
+    conf.screen.y = conf.screen.modes[conf.screen.selected].y
+    conf.screen.width = conf.screen.modes[conf.screen.selected].width
+    conf.screen.height = conf.screen.modes[conf.screen.selected].height
+    conf.screen.scale = conf.screen.modes[conf.screen.selected].scale
+    conf.screen.fullscreen = true
+  else
+    conf.screen.x = 0
+    conf.screen.y = 0
+    conf.screen.width = CANVAS_WIDTH * 3
+    conf.screen.height = CANVAS_HEIGHT * 3
+    conf.screen.scale = 3
+    conf.screen.selected = #conf.screen.modes
+    for i,mode in ipairs(conf.screen.modes) do
+      if mode.width == conf.screen.width and mode.height == conf.screen.height then
+        conf.screen.selected = i
+      end
+    end
+  end
   createScreenFile()
 end
 
