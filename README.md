@@ -18,7 +18,7 @@ Starting the Game
 -----------------
 - **Windows** users run LoveHotel.exe to start the game.
 - **Mac** users run LoveHotel.app to start the game.
-- **Linux** and other OS users run LoveHotel.love with Love2D to start the game.
+- **Linux** and other OS users run LoveHotel.love with [Love2D](https://love2d.org/) to start the game.
 
 How to Play
 -----------
