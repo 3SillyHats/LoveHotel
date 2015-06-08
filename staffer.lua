@@ -59,7 +59,7 @@ local staffer = function (id, type)
     love.graphics.setColor(255, 255, 255)
 
     -- Staff icon
-    love.graphics.drawq(
+    love.graphics.draw(
       resource.get("img/hud.png"), IconQuad,
       116, CANVAS_HEIGHT - 24,
       0
@@ -90,14 +90,14 @@ local staffer = function (id, type)
     
     -- Arrows
     if gStaffTotals[type] > 0 and not blink then
-      love.graphics.drawq(
+      love.graphics.draw(
         resource.get("img/hud.png"), DArrowQuad,
         140, CANVAS_HEIGHT - 10,
         0
       )
     end
     if gStaffTotals[type] < STAFF_MAX[type] and not blink then
-      love.graphics.drawq(
+      love.graphics.draw(
         resource.get("img/hud.png"), UArrowQuad,
         140, CANVAS_HEIGHT - 26,
         0

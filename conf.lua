@@ -3,7 +3,7 @@ function love.conf(t)
     t.author = "3 Silly Hats"
     t.url = "http://3sillyhats.com/lovehotel"
     t.identity = "lovehotel"
-    t.version = "0.8.0"
+    t.version = "0.9.2"
     t.console = false
     t.release = true
     t.screen = false

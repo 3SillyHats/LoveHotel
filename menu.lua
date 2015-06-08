@@ -65,17 +65,17 @@ local hud = function (id, pos)
     for i = 1, #buttons do
       if component.enabled then
         if i == selected and not blink then
-          love.graphics.drawq(buttons[i].image, buttons[i].quadU,
+          love.graphics.draw(buttons[i].image, buttons[i].quadU,
             16*(i-1), pos, 0, 1, 1, 0, 0)
           love.graphics.setColor(193, 192, 193)
           love.graphics.rectangle("line", 16*(i-1)+.5, pos+.5, 15, 15)
           love.graphics.setColor(255, 255, 255)
         else
-          love.graphics.drawq(buttons[i].image, buttons[i].quadU,
+          love.graphics.draw(buttons[i].image, buttons[i].quadU,
             16*(i-1), pos, 0, 1, 1, 0, 0)
         end
       elseif i == selected then
-        love.graphics.drawq(buttons[i].image, buttons[i].quadU,
+        love.graphics.draw(buttons[i].image, buttons[i].quadU,
           16*(i-1), pos, 0, 1, 1, 0, 0)
       end
     end

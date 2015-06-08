@@ -190,7 +190,7 @@ conf = {
 
 -- Setup the window
 local getModes = function ()
-  local modes = love.graphics.getModes()
+  local modes = love.window.getFullscreenModes()
   table.sort(modes, function (a, b)
       return a.width * a.height < b.width * b.height
   end)
@@ -268,12 +268,12 @@ else
 end
 
 -- Create the window
-love.graphics.setMode(
+love.window.setMode(
   conf.screen.width,
   conf.screen.height,
-  conf.screen.fullscreen
+  {fullscreen = conf.screen.fullscreen}
 )
-love.graphics.setCaption("Love Hotel")
+love.window.setTitle("Love Hotel")
 love.graphics.setBackgroundColor(0, 0, 0)
 
 love.mouse.setVisible(false)
@@ -498,7 +498,7 @@ local clientInfo = {}
 for _,c in ipairs(CLIENTS) do
   clientInfo[c] = resource.get("scr/people/" .. c .. ".lua")
 end
-for _,fname in ipairs(love.filesystem.enumerate("data/scr/rooms/")) do
+for _,fname in ipairs(love.filesystem.getDirectoryItems("data/scr/rooms/")) do
   local room = resource.get("scr/rooms/" .. fname)
   conf.menu[room.id] = {
     name = room.name,
@@ -1305,20 +1305,20 @@ hudCom.rep = nil
 hudCom.desirable = nil
 hudCom.draw = function (self)
   love.graphics.setColor(255, 255, 255)
-  love.graphics.drawq(
+  love.graphics.draw(
     resource.get("img/hud.png"), hudQuad,
     0, CANVAS_HEIGHT - 32,
     0
   )
   if self.inspector then
-    love.graphics.drawq(
+    love.graphics.draw(
       resource.get("img/hud.png"), inspectorQuad,
       112, CANVAS_HEIGHT - 32,
       0
     )
     -- draw condoms
     for i = 0, self.inspector.condoms - 1 do
-      love.graphics.drawq(
+      love.graphics.draw(
         resource.get("img/hud.png"), condomQuad,
         170 + (7 * i), 197,
         0
@@ -1355,7 +1355,7 @@ hudCom.draw = function (self)
   end
   -- draw stats bars
   if self.profit or self.rep then
-    love.graphics.drawq(
+    love.graphics.draw(
       resource.get("img/hud.png"), statsQuad,
       112, CANVAS_HEIGHT - 32,
       0
@@ -1378,7 +1378,7 @@ hudCom.draw = function (self)
         else
           quad = iconQuads[client.."Off"]
         end
-        love.graphics.drawq(
+        love.graphics.draw(
           resource.get("img/hud.png"), quad,
           iconPosX[client], iconPosY[client],
           0
@@ -1517,7 +1517,7 @@ repCom.draw = function (self)
   end
   love.graphics.setColor(255, 255, 255)
   for i=1,gStars do
-    love.graphics.drawq(
+    love.graphics.draw(
       hudImage, repQuad,
       184 + (i * 11), 208 -- x, y
     )
@@ -1546,7 +1546,7 @@ bdCom.draw = function (self)
   end
   local yOffset = 32 * (gScrollPos % 2) - 16
   for i = 0, 3 do
-    love.graphics.drawq(bdImg, bdQuad, 0, (64 * i) + yOffset)
+    love.graphics.draw(bdImg, bdQuad, 0, (64 * i) + yOffset)
   end
   love.graphics.draw(
     bdImg,
@@ -1871,10 +1871,10 @@ local optionCom = entity.newComponent({
           conf.screen.height / conf.screen.scale
         )
         
-        love.graphics.setMode(
+        love.window.setMode(
           conf.screen.width,
           conf.screen.height,
-          conf.screen.fullscreen
+          {fullscreen=conf.screen.fullscreen}
         )
         -- Need to force reload of fragment shader
         if pixelEffect then
@@ -2111,14 +2111,14 @@ local achieveCom = entity.newComponent({
         xoffset, 48 * i,
         48, 48
       )
-      love.graphics.drawq(
+      love.graphics.draw(
         resource.get("img/achievements.png"), achieveIconQuad,
         x, y
       ) 
     end
 
     -- cursor
-    love.graphics.drawq(
+    love.graphics.draw(
       resource.get("img/hud.png"),
       achieveCursorQuad,
       12 + (self.selected % 4) * 56, math.floor(self.selected / 4) * 56
@@ -2196,7 +2196,7 @@ love.draw = function ()
 
   -- Draw the screen frame
   love.graphics.setColor(255,255,255)
-  love.graphics.drawq(
+  love.graphics.draw(
     frameImage, frameQuad,
     0, 0,
     0,
@@ -2293,10 +2293,10 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
       conf.screen.height / conf.screen.scale
     )
     
-    love.graphics.setMode(
+    love.window.setMode(
       conf.screen.width,
       conf.screen.height,
-      conf.screen.fullscreen
+      {fullscreen=conf.screen.fullscreen}
     )
     -- Need to force reload of fragment shader
     if pixelEffect then

@@ -163,7 +163,7 @@ local oldAxis = {}
 local oldHat = {}
 
 M.update = function (dt)
-  for i=1,love.joystick.getNumJoysticks() do
+  for i=1,love.joystick.getJoystickCount() do
     if not oldAxis[i] then
       oldAxis[i] = {}
     end

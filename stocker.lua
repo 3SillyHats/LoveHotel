@@ -50,14 +50,16 @@ local stocker = function (id, cost, t)
   component.draw = function (self)
     if not blink then
       love.graphics.setColor(0, 0, 0)
-      love.graphics.setLine(3, "rough")
+      love.graphics.setLineWidth(3)
+      love.graphics.setLineStyle("rough")
       love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
       if stockable then
         love.graphics.setColor(0,184,0)
       else
         love.graphics.setColor(172,16,0)
       end
-      love.graphics.setLine(1, "rough")
+      love.graphics.setLineWidth(1)
+      love.graphics.setLineStyle("rough")
       love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
     end
   end
