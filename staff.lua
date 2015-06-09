@@ -29,8 +29,8 @@ M.new = function (type)
     hairimg = prefix .. "/woman/hair/curled.png"
     staffimg = "img/people/woman/staff/" .. type .. ".png"
   end
-  local nudes = love.filesystem.enumerate(nudeimg)
-  local hairs = love.filesystem.enumerate(hairimg)
+  local nudes = love.filesystem.getDirectoryItems(nudeimg)
+  local hairs = love.filesystem.getDirectoryItems(hairimg)
   nudeimg = nudeimg .. nudes[math.random(1,#nudes)]
   nudeimg = string.sub(nudeimg,5)  -- remove "data/"
   hairimg = string.sub(hairimg,5)

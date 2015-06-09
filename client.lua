@@ -13,7 +13,7 @@ local clients = {}
 
 local categories = {}
 local totalChance = {0, 0, 0, 0, 0}
-local files = love.filesystem.enumerate("data/scr/people/")
+local files = love.filesystem.getDirectoryItems("data/scr/people/")
 for _, fname in ipairs(files) do
   local info = resource.get("scr/people/" .. fname)
   table.insert(categories, info.name)
@@ -128,7 +128,7 @@ local addSprites = function (id, category, offset)
     else
       dir = categoryPrefix .. part
     end
-    local images = love.filesystem.enumerate(dir)
+    local images = love.filesystem.getDirectoryItems(dir)
 
     -- Skip part if no images exist, and only give a chance of a hat
     if #images > 0 and
