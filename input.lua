@@ -163,18 +163,18 @@ local oldAxis = {}
 local oldHat = {}
 
 M.update = function (dt)
-  for i=1,love.joystick.getJoystickCount() do
+  for i, joystick in  ipairs(love.joystick.getJoysticks()) do
     if not oldAxis[i] then
       oldAxis[i] = {}
     end
     if not oldHat[i] then
       oldHat[i] = {}
     end
-    for j=1,love.joystick.getNumHats(i) do
+    for j=1,joystick:getHatCount() do
       if not oldHat[i][j] then
         oldHat[i][j] = 'c'
       end
-      local hat = love.joystick.getHat(i,j)
+      local hat = joystick:getHat(j)
       if training then
         if hat ~= oldHat[i][j] and (hat == 'u' or hat == 'd' or hat == 'l' or hat == 'r') then
           if not map.joysticks[i] then
@@ -205,11 +205,11 @@ M.update = function (dt)
       
       oldHat[i][j] = hat
     end
-     for j=1,love.joystick.getNumAxes(i) do
+     for j=1,joystick:getAxisCount() do
       if not oldAxis[i][j] then
         oldAxis[i][j] = 0
       end
-      local axis = love.joystick.getAxis(i, j)
+      local axis = joystick:getAxis(j)
       if axis > 0.2 and oldAxis[i][j] <= 0.2 then
         joystickPushed(i, j)
       elseif axis <= 0.2 and oldAxis[i][j] > 0.2 then
