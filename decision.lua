@@ -173,10 +173,9 @@ event.subscribe("pressed", 0, function (button)
         end
       end
     elseif button == "up" then
-      decisionCom.selected = math.max(1, decisionCom.selected - 1)
+      decisionCom.selected = ((decisionCom.selected - 2) % #decisionCom.decision.options) + 1
     elseif button == "down" then
-      decisionCom.selected = math.min(#decisionCom.decision.options,
-          decisionCom.selected + 1)
+      decisionCom.selected = (decisionCom.selected % #decisionCom.decision.options) + 1
     end
     return true
   end

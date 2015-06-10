@@ -131,19 +131,21 @@ local hud = function (id, pos)
         blink = false
         blinkTimer = 0
         if key == "left" then
-          if selected > 1 then
-            selected = selected - 1
-            event.notify("menu.info", 0, {selected = buttons[selected].type})
-            love.audio.rewind(snd)
-            love.audio.play(snd)
+          selected = selected - 1
+          if selected < 1 then
+            selected = selected + #buttons
           end
+          event.notify("menu.info", 0, {selected = buttons[selected].type})
+          love.audio.rewind(snd)
+          love.audio.play(snd)
         elseif key == "right" then
-          if selected < #buttons then
-            selected = selected + 1
-            event.notify("menu.info", 0, {selected = buttons[selected].type})
-            love.audio.rewind(snd)
-            love.audio.play(snd)
+          selected = selected + 1
+          if selected > #buttons then
+            selected = selected - #buttons
           end
+          event.notify("menu.info", 0, {selected = buttons[selected].type})
+          love.audio.rewind(snd)
+          love.audio.play(snd)
         elseif key == "a" then
           if buttons[selected] then
             buttons[selected].action()

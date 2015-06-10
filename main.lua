@@ -1771,9 +1771,9 @@ event.subscribe("pressed", 0, function (button)
       pauseCom.options[pauseCom.selected].onPress()
       return true
     elseif button == "up" then
-      pauseCom.selected = math.max(1, pauseCom.selected - 1)
+      pauseCom.selected = ((pauseCom.selected - 2) % #pauseCom.options) + 1
     elseif button == "down" then
-      pauseCom.selected = math.min(#pauseCom.options, pauseCom.selected + 1)
+      pauseCom.selected = (pauseCom.selected % #pauseCom.options) + 1
     end
   end
 end)
@@ -1919,9 +1919,9 @@ event.subscribe("pressed", 0, function (button)
       optionCom.items[optionCom.selected].onPress(optionCom)
       return true
     elseif button == "up" then
-      optionCom.selected = math.max(1, optionCom.selected - 1)
+      optionCom.selected = ((optionCom.selected - 2) % #optionCom.items) + 1
     elseif button == "down" then
-      optionCom.selected = math.min(#optionCom.items, optionCom.selected + 1)
+      optionCom.selected = (optionCom.selected % #optionCom.items) + 1
     elseif button == "left" then
       if optionCom.items[optionCom.selected].onLeft then
         optionCom.items[optionCom.selected].onLeft(optionCom)
