@@ -382,10 +382,10 @@ local states = {
         result = "leave"
       elseif com.satiety < 30 then
         result = "getMeal"
+      elseif com.horniness < 20 then
+        result = "relax"
       elseif com.condoms == 0 then
         result = "getCondoms"
-      elseif com.horniness < 30 then
-        result = "relax"
       else
         result = "visit"
       end
