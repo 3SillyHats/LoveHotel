@@ -128,7 +128,7 @@ local staffer = function (id, type)
         gStaffTotals[type] = gStaffTotals[type] - 1
       else
         local snd = resource.get("snd/error.wav")
-        love.audio.rewind(snd)
+        snd:seek(0)
         love.audio.play(snd)
       end
     elseif key == "up" then
@@ -136,7 +136,7 @@ local staffer = function (id, type)
         staff.new(type)
       else
         local snd = resource.get("snd/error.wav")
-        love.audio.rewind(snd)
+        snd:seek(0)
         love.audio.play(snd)
         if WAGES[type] > gMoney then
           alert("funds")

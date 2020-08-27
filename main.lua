@@ -550,16 +550,19 @@ end
 createCanvas()
 
 -- Create the pixel effect
-if not love.graphics.newPixelEffect then
-  -- Support love2d versions before 0.8
-  love.graphics.setPixelEffect = function () end
-else
-  pixelEffect = resource.get("pfx/nes.glsl")
-  if pixelEffect then
-    pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-    pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-    pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
+if love.graphics.newPixelEffect then
+  love.graphics.setShader = love.graphics.setPixelEffect
+end
+if love.graphics.newShader or love.graphics.newPixelEffect then
+  shader = resource.get("pfx/nes.glsl")
+  if shader then
+    shader:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+    shader:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+    shader:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
   end
+else
+  -- Support love2d versions before 0.8
+  love.graphics.setShader = function () end
 end
 
 -- Create screen frame
@@ -1878,10 +1881,10 @@ local optionCom = entity.newComponent({
           {fullscreen=conf.screen.fullscreen}
         )
         -- Need to force reload of fragment shader
-        if pixelEffect then
-          pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-          pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-          pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
+        if shader then
+          shader:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+          shader:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+          shader:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
         end
         createScreenFile()
         event.notify("state.enter", 0, STATE_PAUSE)
@@ -2185,8 +2188,8 @@ love.draw = function ()
   -- Draw to canvas without scaling
   love.graphics.setCanvas(canvas)
   love.graphics.clear()
-  if pixelEffect then
-    love.graphics.setPixelEffect()
+  if shader then
+    love.graphics.setShader()
   end
   love.graphics.setColor(255.0/255.0, 255.0/255.0, 255.0/255.0)
 
@@ -2213,8 +2216,8 @@ love.draw = function ()
     CANVAS_HEIGHT * conf.screen.scale
   )
 
-  if pixelEffect then
-    love.graphics.setPixelEffect(pixelEffect)
+  if shader then
+    love.graphics.setShader(shader)
   end
   love.graphics.setColor(255.0/255.0, 255.0/255.0, 255.0/255.0)
   love.graphics.draw(
@@ -2300,10 +2303,10 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
       {fullscreen=conf.screen.fullscreen}
     )
     -- Need to force reload of fragment shader
-    if pixelEffect then
-      pixelEffect:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-      pixelEffect:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
-      pixelEffect:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
+    if shader then
+      shader:send("rubyTextureSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+      shader:send("rubyInputSize", {CANVAS_WIDTH, CANVAS_HEIGHT})
+      shader:send("rubyOutputSize", {CANVAS_WIDTH*conf.screen.scale, CANVAS_HEIGHT*conf.screen.scale})
     end
     createScreenFile()
   elseif key == "return" and (gState == STATE_PAUSE or gState == STATE_OPTIONS or gState == STATE_DECISION or gState == STATE_HELP or gState == STATE_CREDITS or gState == STATE_ACHIEVMENTS) and not input.isMapped("return") then

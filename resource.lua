@@ -31,17 +31,32 @@ loadRes[".mp3"] = function (name)
   snd:setLooping(true)
   return snd
 end
+
+local vertexcode = [[
+    vec4 position( mat4 transform_projection, vec4 vertex_position )
+    {
+        return transform_projection * vertex_position;
+    }
+]]
+
 loadRes[".glsl"] = function (name)
-  pixelEffect = nil
+  shader = nil
   local success, result = pcall(function ()
-    return love.graphics.newPixelEffect(
-        love.filesystem.read(name)
-    )
+    if love.graphics.newShader then
+        return love.graphics.newShader(
+            love.filesystem.read(name),
+            vertecode
+        )
+    else
+        return love.graphics.newPixelEffect(
+            love.filesystem.read(name)
+        )
+    end
   end)
   if success then
-    pixelEffect = result
+    shader = result
   end
-  return pixelEffect
+  return shader
 end
 loadRes[".lua"] = function (name)
   local script = love.filesystem.load(name)
