@@ -23,7 +23,7 @@ local placer = function (id, type, width, cost, t)
     pixelWidth = t.width,
     pixelHeight = t.height,
   })
-  
+
   local clear = true
   local occupation = 0
   local new = true
@@ -38,29 +38,29 @@ local placer = function (id, type, width, cost, t)
       cost <= gMoney
     )
   end
-  
+
   component.draw = function (self)
     if not blink then
-      love.graphics.setColor(0, 0, 0)
+      love.graphics.setColor(0.0/255.0, 0.0/255.0, 0.0/255.0)
       love.graphics.setLineWidth(3)
       love.graphics.setLineStyle("rough")
       love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
-      
+
       if okay() then
-        love.graphics.setColor(0,184,0)
+        love.graphics.setColor(0.0/255.0,184.0/255.0,0.0/255.0)
       else
-        love.graphics.setColor(172,16,0)
+        love.graphics.setColor(172.0/255.0,16.0/255.0,0.0/255.0)
       end
       love.graphics.setLineWidth(1)
       love.graphics.setLineStyle("rough")
       love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
     end
   end
-    
+
   local updatePosition = function()
     clear = true
     event.notify("entity.move", id, {roomNum = gRoomNum, floorNum = gScrollPos})
-    
+
     for i = 1,component.width do
       event.notify("room.check", 0, {
         roomNum = gRoomNum + i - 1,
@@ -111,14 +111,14 @@ local placer = function (id, type, width, cost, t)
           event.notify("build", id, {id=roomId, pos=pos, type=type})
           event.notify("build", 0, {id=roomId, pos=pos, type=type})
           local snd = resource.get("snd/build.wav")
-          love.audio.rewind(snd)
+          snd:seek(0)
           love.audio.play(snd)
-          
+
           clear = false
-	  return true
+      return true
         else
           local snd = resource.get("snd/error.wav")
-          love.audio.rewind(snd)
+          snd:seek(0)
           love.audio.play(snd)
           if cost > gMoney then
             alert("funds")

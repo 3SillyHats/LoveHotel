@@ -37,7 +37,7 @@ event.subscribe("training.begin", 0, function ()
 end)
 
 event.subscribe("training.load", 0, function ()
-  if love.filesystem.exists(FILE_SETTINGS) then
+  if love.filesystem.getInfo(FILE_SETTINGS) ~= nil then
     local success, result = luatexts.load(love.filesystem.read(
       FILE_SETTINGS
     ))
@@ -54,7 +54,7 @@ end)
 local trainNext = function ()
   current = current + 1
   local snd = resource.get("snd/select.wav")
-  love.audio.rewind(snd)
+  snd:seek(0)
   love.audio.play(snd)
   if current > #inputs then
     training = false

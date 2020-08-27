@@ -30,7 +30,7 @@ local getRoom = function ()
   if roomId == -1 then
     return
   end
-  
+
   return roomId, type
 end
 
@@ -41,7 +41,7 @@ local stocker = function (id, cost, t)
     pixelWidth = t.width,
     pixelHeight = t.height,
   })
-  
+
   local new = true
   local stockable = false
   local blink = false
@@ -49,24 +49,24 @@ local stocker = function (id, cost, t)
 
   component.draw = function (self)
     if not blink then
-      love.graphics.setColor(0, 0, 0)
+      love.graphics.setColor(0.0/255.0, 0.0/255.0, 0.0/255.0)
       love.graphics.setLineWidth(3)
       love.graphics.setLineStyle("rough")
       love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
       if stockable then
-        love.graphics.setColor(0,184,0)
+        love.graphics.setColor(0.0/255.0,184.0/255.0,0.0/255.0)
       else
-        love.graphics.setColor(172,16,0)
+        love.graphics.setColor(172.0/255.0,16.0/255.0,0.0/255.0)
       end
       love.graphics.setLineWidth(1)
       love.graphics.setLineStyle("rough")
       love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
     end
   end
-    
+
   local updatePosition = function()
     event.notify("entity.move", id, {roomNum = gRoomNum, floorNum = gScrollPos})
-    
+
     local roomId, type = getRoom()
     stockable = false
     if roomId ~= nil then
@@ -123,7 +123,7 @@ local stocker = function (id, cost, t)
 
         if roomId == nil then
           local snd = resource.get("snd/error.wav")
-          love.audio.rewind(snd)
+          snd:seek(0)
           love.audio.play(snd)
           return
         end
@@ -136,24 +136,24 @@ local stocker = function (id, cost, t)
             stock < info.stock and
             room.occupation(roomId) == 0 and
             gMoney > info.restockCost then
-          
+
           room.setStock(roomId, 8)
           moneyChange(-info.restockCost, {
             roomNum = gRoomNum,
             floorNum = gScrollPos,
           })
-          
+
           stockable = false
           event.notify("menu.info", 0, {name = "Cost:", desc = "FULL"})
 
           local snd = resource.get("snd/select.wav")
-          love.audio.rewind(snd)
+          snd:seek(0)
           love.audio.play(snd)
 
-	  return true
+      return true
         else
           local snd = resource.get("snd/error.wav")
-          love.audio.rewind(snd)
+          snd:seek(0)
           love.audio.play(snd)
           if info.restockCost and info.restockCost > gMoney then
             alert("funds")

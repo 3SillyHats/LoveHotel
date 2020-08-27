@@ -52,11 +52,11 @@ local staffer = function (id, type)
   local blinkTimer = 0
 
   gScrollable = false
-  
+
   IconQuad:setViewport(128 + offsets[type], 64, 16, 16)
 
   component.draw = function (self)
-    love.graphics.setColor(255, 255, 255)
+    love.graphics.setColor(255.0/255.0, 255.0/255.0, 255.0/255.0)
 
     -- Staff icon
     love.graphics.draw(
@@ -64,7 +64,7 @@ local staffer = function (id, type)
       116, CANVAS_HEIGHT - 24,
       0
     )
-    
+
     -- Current staff number
     love.graphics.printf(
       tostring(gStaffTotals[type]),
@@ -74,7 +74,7 @@ local staffer = function (id, type)
     )
 
     -- TOTAL or MAX staff number
-    love.graphics.setColor(123, 126, 127)
+    love.graphics.setColor(123.0/255.0, 126.0/255.0, 127.0/255.0)
     if gStaffTotals[type] == STAFF_MAX[type] then
       love.graphics.print(
         string.format("MAX"),
@@ -84,10 +84,10 @@ local staffer = function (id, type)
       love.graphics.print(
         string.format("TOTAL"),
         156, 203
-      )  
+      )
     end
-    love.graphics.setColor(255, 255, 255)
-    
+    love.graphics.setColor(255.0/255.0, 255.0/255.0, 255.0/255.0)
+
     -- Arrows
     if gStaffTotals[type] > 0 and not blink then
       love.graphics.draw(

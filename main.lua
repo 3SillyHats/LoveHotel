@@ -226,7 +226,7 @@ end
 conf.screen = {
   modes = getModes(),
 }
-if love.filesystem.exists(FILE_SCREEN) then
+if love.filesystem.getInfo(FILE_SCREEN) ~= nil then
   local screenFile = love.filesystem.load(FILE_SCREEN)
   local screen = screenFile()
   conf.screen.width = screen.width
@@ -440,7 +440,7 @@ local moneySnd = resource.get("snd/coin.wav")
 moneyChange = function (c, pos)
   gMoney = math.min(MONEY_MAX, gMoney + c)
   if c > 0 then
-    love.audio.rewind(moneySnd)
+    moneySnd:seek(0)
     love.audio.play(moneySnd)
     if gMoney == 999999 then
       achievement.achieve(achievement.BANK)
@@ -485,10 +485,11 @@ end
 
 -- Font
 gFont = love.graphics.newImageFont(
-  resource.get("img/font.png"),
+  "data/img/font.png",
   "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ..
   "abcdefghijklmnopqrstuvwxyz" ..
-  "1234567890!,.;:$*-+=/#_%^@\\&|?'\" "
+  "1234567890!,.;:$*-+=/#_%^@\\&|?'\" ",
+  1
 )
 
 -- Update menu tooltips (get names, costs of rooms)
@@ -621,7 +622,7 @@ newFloor = function (level)
   
   event.notify("floor.new", 0, level)
   local snd = resource.get("snd/build.wav")
-  love.audio.rewind(snd)
+  snd:seek(0)
   love.audio.play(snd)
   floors[level] = id
   return id
@@ -759,7 +760,7 @@ floorUp = function()
   else
     alert("funds")
     local snd = resource.get("snd/error.wav")
-    love.audio.rewind(snd)
+    snd:seek(0)
     love.audio.play(snd)
   end
 end
@@ -783,7 +784,7 @@ floorDown = function()
   else
     alert("funds")
     local snd = resource.get("snd/error.wav")
-    love.audio.rewind(snd)
+    snd:seek(0)
     love.audio.play(snd)
   end
 end
@@ -791,7 +792,7 @@ end
 local addLockButton = function (submenu)
   local callback = function ()
     local snd = resource.get("snd/error.wav")
-    love.audio.rewind(snd)
+    snd:seek(0)
     love.audio.play(snd)
   end
   menu.addButton(submenu, menu.newButton("locked", callback))
@@ -1156,14 +1157,14 @@ trainTextCom = entity.newComponent({
     
     Press F1 any time to rebind controls.
     Press F11 any time to cycle screen modes.]]
-    love.graphics.setColor(0, 0, 0)
+    love.graphics.setColor(0.0, 0.0, 0.0)
     love.graphics.printf(
       desc,
       1, 9,
       256,
       "center"
     )
-    love.graphics.setColor(255, 255, 255)
+    love.graphics.setColor(1.0, 1.0, 1.0)
     love.graphics.printf(
       desc,
       0, 24,
@@ -1304,7 +1305,7 @@ hudCom.profit = nil
 hudCom.rep = nil
 hudCom.desirable = nil
 hudCom.draw = function (self)
-  love.graphics.setColor(255, 255, 255)
+  love.graphics.setColor(1.0, 1.0, 1.0)
   love.graphics.draw(
     resource.get("img/hud.png"), hudQuad,
     0, CANVAS_HEIGHT - 32,
@@ -1325,13 +1326,13 @@ hudCom.draw = function (self)
       )
     end
     -- draw needs bars
-    love.graphics.setColor(0, 114, 0)
+    love.graphics.setColor(0.0, 0.45, 0.0)
     love.graphics.rectangle("fill", 124, 207, self.inspector.money * 26, 2)
-    love.graphics.setColor(172, 128, 0)
+    love.graphics.setColor(0.675, 0.5, 0)
     love.graphics.rectangle("fill", 163, 207, self.inspector.patience * 26, 2)
-    love.graphics.setColor(172, 16, 0)
+    love.graphics.setColor(0.675, 0.063, 0.0)
     love.graphics.rectangle("fill", 124, 215, self.inspector.horniness * 26, 2)
-    love.graphics.setColor(148, 0, 140)
+    love.graphics.setColor(0.58, 0.0, 0.549)
     love.graphics.rectangle("fill", 163, 215, self.inspector.hunger * 26, 2)
   end
   -- draw info text
@@ -1361,15 +1362,15 @@ hudCom.draw = function (self)
       0
     )
     local profit = self.profit or 0
-    love.graphics.setColor(0, 114, 0)
+    love.graphics.setColor(0.0, 0.447, 0.0)
     love.graphics.rectangle("fill", 169, 210, profit * 20, 2)
     local rep = self.rep or 0
-    love.graphics.setColor(252, 184, 0)
+    love.graphics.setColor(0.988, 0.722, 0.0)
     love.graphics.rectangle("fill", 169, 217, rep * 20, 2)
   end
   -- draw desirability icons
   if self.desirable then
-    love.graphics.setColor(255, 255, 255)
+    love.graphics.setColor(1.0, 1.0, 1.0)
     for _,client in ipairs(CLIENTS) do
       if gClientsSeen[client] then
         local quad
@@ -1413,12 +1414,12 @@ local moneyCom = entity.newComponent()
 moneyCom.change = 0
 moneyCom.changeTimer = 0
 moneyCom.draw = function (self)
-  local money 
+  local money
   if gMoney < 0 then
-    love.graphics.setColor(172, 16, 0)
+    love.graphics.setColor(0.675, 0.063, 0.0)
     money = "-$" .. thousandify(tostring(-gMoney))
   else
-    love.graphics.setColor(255, 255, 255)
+    love.graphics.setColor(1.0, 1.0, 1.0)
     money = "$" .. thousandify(tostring(gMoney))
   end
   love.graphics.setFont(gFont)
@@ -1470,10 +1471,10 @@ event.subscribe("money.change", 0, function (e)
       local colors = { {0, 0, 0} }
       local str = ""
       if self.amount > 0 then
-        colors[2] = {0, 184, 0}
+        colors[2] = {0, 0.722, 0}
         str = "+$"..thousandify(tostring(self.amount))
       elseif self.amount < 0 then
-        colors[2] = {172, 16, 0}
+        colors[2] = {0.675, 0.063, 0}
         str = "-$" .. thousandify(tostring(math.abs(self.amount)))
       end
       for i = 1, #colors do
@@ -1511,11 +1512,11 @@ repCom.draw = function (self)
   if gReputation > 0 then
     local a = gReputation - REP_THRESHOLDS[gStars]
     local b = REP_THRESHOLDS[gStars + 1] - REP_THRESHOLDS[gStars]
-    love.graphics.setColor(252, 184, 0)
+    love.graphics.setColor(0.988, 0.722, 0)
     local w = 57 * math.min(a / b, 1)
     love.graphics.rectangle("fill", 196, 219, w, 2)
   end
-  love.graphics.setColor(255, 255, 255)
+  love.graphics.setColor(1.0, 1.0, 1.0)
   for i=1,gStars do
     love.graphics.draw(
       hudImage, repQuad,
@@ -1536,7 +1537,7 @@ local bdQuad = love.graphics.newQuad(
 entity.setOrder(backdrop, -100)
 local bdCom = entity.newComponent()
 bdCom.draw = function (self)
-  love.graphics.setColor(255, 255, 255)
+  love.graphics.setColor(255.0/255.0, 255.0/255.0, 255.0/255.0)
   if gScrollPos > 0 then
     -- Aboveground
     bdQuad:setViewport(0, 0, 256, 64)
@@ -1562,9 +1563,9 @@ local initialised = false
 local init = function ()
   newFloor(GROUND_FLOOR)
   event.notify("menu.info", 0, {selected = "infrastructure"})
-  
+
   local id, pos
-    
+
   pos = {roomNum = 4, floorNum = 0}
   id = room.new(STATE_PLAY, "reception", pos)
   event.notify("build", 0, {id=id, pos=pos, type="reception"})
@@ -1573,24 +1574,24 @@ local init = function ()
     floorUp()
     staff.new("bellhop")
     staff.new("cleaner")
-    
+
     pos = {roomNum = 1, floorNum = 1}
     id = room.new(STATE_PLAY, "missionary", pos)
     event.notify("build", 0, {id=id, pos=pos, type="missionary"})
-    
+
     pos = {roomNum = 6, floorNum = 1}
     id = room.new(STATE_PLAY, "utility", pos)
     event.notify("build", 0, {id=id, pos=pos, type="utility"})
     -- reduce initial stock
     room.setStock(id, 3)
   end
-  
+
   event.notify("menu.info", 0, {selected = "suites"})
 
   initialised = true
 end
 init()
-  
+
 local reset = function ()
   gTopFloor = GROUND_FLOOR
   gBottomFloor = GROUND_FLOOR
@@ -1619,7 +1620,7 @@ local reset = function ()
   }
   upkeepCom.timer = 0 -- reset electricity bill timer
   brokeCom.timer = -1 -- disable game over timer
-  
+
   -- reset floor costs
   conf.menu.floorUp.desc = "$" .. thousandify(tostring(FLOOR_COSTS[1]))
   conf.menu.floorDown.desc = "$" .. thousandify(tostring(FLOOR_COSTS[1]*2))
@@ -1627,7 +1628,7 @@ local reset = function ()
   event.notify("room.all", 0, function (roomId, type)
     local pos = transform.getPos(roomId)
     entity.delete(roomId)
-    
+
     event.notify("destroy", id, {id=roomId, pos=pos, type=type})
     event.notify("destroy", roomId, {id=roomId, pos=pos, type=type})
     event.notify("destroy", 0, {id=roomId, pos=pos, type=type})
@@ -1639,7 +1640,7 @@ local reset = function ()
   for _,s in ipairs(staff.getAll()) do
     entity.delete(s.id)
   end
-  
+
   for k,v in pairs(floors) do
     if k ~= GROUND_FLOOR then
       entity.delete(v)
@@ -1647,24 +1648,24 @@ local reset = function ()
   end
   floors = {floors[GROUND_FLOOR]}
   event.notify("entity.move", roof, {roomNum=.5, floorNum=GROUND_FLOOR})
-  
+
   event.notify("reset", 0, nil) -- deletes spawners
   client.newSpawner(nil, {roomNum = -1, floorNum = GROUND_FLOOR})
-  
+
   menu.clear()
   builder.clear()
   demolisher.clear()
   staffer.clear()
   stocker.clear()
   gui = newGui()
-  
+
   event.notify("state.enter", 0, STATE_PLAY)
   entity.update(0)
-  
+
   event.notify("menu.info", 0, {selected = "suites"})
-  
+
   save.delete()
-  
+
   won = false
 
   initialised = false
@@ -1742,9 +1743,9 @@ local pauseCom = entity.newComponent({
     love.graphics.setFont(gFont)
     for i,option in ipairs(self.options) do
       if i == self.selected then
-        love.graphics.setColor(255, 255, 255)
+        love.graphics.setColor(255.0/255.0, 255.0/255.0, 255.0/255.0)
       else
-        love.graphics.setColor(89, 89, 89)
+        love.graphics.setColor(89.0/255.0, 89.0/255.0, 89.0/255.0)
       end
       love.graphics.printf(
         option.text,
@@ -1821,9 +1822,9 @@ end
 -- GAME OPTIONS SCREEN
 local optionScreen = entity.new(STATE_OPTIONS)
 local optionCom = entity.newComponent({
-	fullscreen = conf.screen.fullscreen,
-	mode = conf.screen.selected,
-	scale = conf.screen.scale,
+    fullscreen = conf.screen.fullscreen,
+    mode = conf.screen.selected,
+    scale = conf.screen.scale,
     items = {
     {
       text = "",
@@ -1841,7 +1842,7 @@ local optionCom = entity.newComponent({
       text = "Apply",
       onPress = function (com)
         conf.screen.fullscreen = com.fullscreen
-        
+
         if com.fullscreen then
           conf.screen.selected = com.mode
           conf.screen.x = conf.screen.modes[conf.screen.selected].x
@@ -1864,13 +1865,13 @@ local optionCom = entity.newComponent({
           end
           com.mode = conf.screen.selected
         end
-        
+
         frameQuad:setViewport(
           0, 0,
           conf.screen.width / conf.screen.scale,
           conf.screen.height / conf.screen.scale
         )
-        
+
         love.window.setMode(
           conf.screen.width,
           conf.screen.height,
@@ -1899,9 +1900,9 @@ local optionCom = entity.newComponent({
     love.graphics.setFont(gFont)
     for i,item in ipairs(self.items) do
       if i == self.selected then
-        love.graphics.setColor(255, 255, 255)
+        love.graphics.setColor(255.0/255.0, 255.0/255.0, 255.0/255.0)
       else
-        love.graphics.setColor(89, 89, 89)
+        love.graphics.setColor(89.0/255.0, 89.0/255.0, 89.0/255.0)
       end
       love.graphics.printf(
         item.text,
@@ -1938,7 +1939,7 @@ event.subscribe("state.enter", 0, function (state)
     optionCom.fullscreen = conf.screen.fullscreen
     optionCom.mode = conf.screen.selected
     optionCom.scale = conf.screen.scale
-    
+
     if optionCom.fullscreen then
       optionCom.items[1].text = "Fullscreen"
       optionCom.items[2].text = "Resolution: " ..
@@ -1961,7 +1962,7 @@ local winCom = entity.newComponent({
     love.graphics.draw(img, 0, 0)
 
     love.graphics.setFont(gFont)
-    love.graphics.setColor(255, 255, 255)
+    love.graphics.setColor(255.0/255.0, 255.0/255.0, 255.0/255.0)
     love.graphics.printf(
       "Press START",
       0, CANVAS_HEIGHT - 9,
@@ -1991,7 +1992,7 @@ local loseCom = entity.newComponent({
     love.graphics.draw(img, 0, 0)
 
     love.graphics.setFont(gFont)
-    love.graphics.setColor(255, 255, 255)
+    love.graphics.setColor(255.0/255.0, 255.0/255.0, 255.0/255.0)
     love.graphics.printf(
       "Press START",
       0, CANVAS_HEIGHT - 9,
@@ -2048,7 +2049,7 @@ entity.addComponent(helpScreen, helpImgCom)
 local helpTextCom = entity.newComponent({
   draw = function (self)
     -- Draw help screen text
-    love.graphics.setColor(255, 255, 255)
+    love.graphics.setColor(255.0/255.0, 255.0/255.0, 255.0/255.0)
     love.graphics.printf(
       "Restock when empty.",
       110, 20,
@@ -2099,8 +2100,8 @@ local achieveScreen = entity.new(STATE_ACHIEVMENTS)
 local achieveCom = entity.newComponent({
   selected = 0,
   draw = function (self)
-    love.graphics.setColor(255, 255, 255)
-    
+    love.graphics.setColor(255.0/255.0, 255.0/255.0, 255.0/255.0)
+
     -- icons
     for i = 0, 11 do
       local x = 20 + (i % 4) * 56
@@ -2133,7 +2134,7 @@ local achieveCom = entity.newComponent({
       "center"
     )
     if achievement.isDone(self.selected + 1) then
-      love.graphics.setColor(123, 126, 127)
+      love.graphics.setColor(123.0/255.0, 126.0/255.0, 127.0/255.0)
       love.graphics.printf(
         current.desc,
         0, CANVAS_HEIGHT - 28,
@@ -2187,7 +2188,7 @@ love.draw = function ()
   if pixelEffect then
     love.graphics.setPixelEffect()
   end
-  love.graphics.setColor(255, 255, 255)
+  love.graphics.setColor(255.0/255.0, 255.0/255.0, 255.0/255.0)
 
   entity.draw()
 
@@ -2195,7 +2196,7 @@ love.draw = function ()
   love.graphics.setCanvas()
 
   -- Draw the screen frame
-  love.graphics.setColor(255,255,255)
+  love.graphics.setColor(255.0/255.0,255.0/255.0,255.0/255.0)
   love.graphics.draw(
     frameImage, frameQuad,
     0, 0,
@@ -2203,7 +2204,7 @@ love.draw = function ()
     conf.screen.scale, conf.screen.scale
   )
   -- Fill the screen area black for pixel effect
-  love.graphics.setColor(0, 0, 0)
+  love.graphics.setColor(0.0/255.0, 0.0/255.0, 0.0/255.0)
   love.graphics.rectangle(
     "fill",
     conf.screen.x,
@@ -2215,7 +2216,7 @@ love.draw = function ()
   if pixelEffect then
     love.graphics.setPixelEffect(pixelEffect)
   end
-  love.graphics.setColor(255, 255, 255)
+  love.graphics.setColor(255.0/255.0, 255.0/255.0, 255.0/255.0)
   love.graphics.draw(
     canvas,
     conf.screen.x,
@@ -2230,7 +2231,7 @@ love.update = function (dt)
   if not initialised then
     init()
   end
-  
+
   local dt = dt * gGameSpeed
   entity.update(dt)
   input.update(dt)
@@ -2273,7 +2274,7 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
       conf.screen.fullscreen = true
       conf.screen.selected = #conf.screen.modes
     end
-    
+
     if conf.screen.fullscreen then
       conf.screen.x = conf.screen.modes[conf.screen.selected].x
       conf.screen.y = conf.screen.modes[conf.screen.selected].y
@@ -2286,13 +2287,13 @@ function love.keypressed(key)   -- we do not need the unicode, so we can leave i
       conf.screen.width = CANVAS_WIDTH * conf.screen.scale
       conf.screen.height = CANVAS_HEIGHT * conf.screen.scale
     end
-    
+
     frameQuad:setViewport(
       0, 0,
       conf.screen.width / conf.screen.scale,
       conf.screen.height / conf.screen.scale
     )
-    
+
     love.window.setMode(
       conf.screen.width,
       conf.screen.height,

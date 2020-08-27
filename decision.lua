@@ -68,11 +68,11 @@ local decisionCom = entity.newComponent({
   decision = nil,
   selected = nil,
   result = nil,
-  
+
   draw = function (self)
     love.graphics.setFont(gFont)
-    love.graphics.setColor(255, 255, 255)
-    
+    love.graphics.setColor(1.0, 1.0, 1.0)
+
     if self.result then
       love.graphics.printf(
         self.result,
@@ -82,10 +82,10 @@ local decisionCom = entity.newComponent({
         )
     else
       love.graphics.printf(
-      self.decision.prompt,
-      8, 32,
-      240,
-      "center"
+        self.decision.prompt,
+        8, 32,
+        240,
+        "center"
       )
 
       if self.decision.alert then
@@ -98,9 +98,9 @@ local decisionCom = entity.newComponent({
       else
         for i,option in ipairs(self.decision.options) do
           if i == self.selected then
-            love.graphics.setColor(255, 255, 255)
+            love.graphics.setColor(1.0, 1.0, 1.0)
           else
-            love.graphics.setColor(89, 89, 89)
+            love.graphics.setColor(0.35, 0.35, 0.35)
           end
           love.graphics.printf(
             option.text,

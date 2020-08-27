@@ -10,13 +10,13 @@ local vars
 local M = {}
 
 M.delete = function ()
-  if love.filesystem.exists(FILE_SAVE) then
+  if love.filesystem.getInfo(FILE_SAVE) ~= nil then
     love.filesystem.remove(FILE_SAVE)
   end
 end
 
 M.load = function ()
-  if love.filesystem.exists(FILE_SAVE) then
+  if love.filesystem.getInfo(FILE_SAVE) ~= nil then
     local success, result = luatexts.load(
       love.filesystem.read(FILE_SAVE)
     )

@@ -61,15 +61,15 @@ local hud = function (id, pos)
 
   --The draw component for the hud menu
   component.draw = function (self)
-    love.graphics.setColor(255,255,255)
+    love.graphics.setColor(255.0/255.0,255.0/255.0,255.0/255.0)
     for i = 1, #buttons do
       if component.enabled then
         if i == selected and not blink then
           love.graphics.draw(buttons[i].image, buttons[i].quadU,
             16*(i-1), pos, 0, 1, 1, 0, 0)
-          love.graphics.setColor(193, 192, 193)
+          love.graphics.setColor(193.0/255.0, 192.0/255.0, 193.0/255.0)
           love.graphics.rectangle("line", 16*(i-1)+.5, pos+.5, 15, 15)
-          love.graphics.setColor(255, 255, 255)
+          love.graphics.setColor(255.0/255.0, 255.0/255.0, 255.0/255.0)
         else
           love.graphics.draw(buttons[i].image, buttons[i].quadU,
             16*(i-1), pos, 0, 1, 1, 0, 0)
@@ -136,7 +136,7 @@ local hud = function (id, pos)
             selected = selected + #buttons
           end
           event.notify("menu.info", 0, {selected = buttons[selected].type})
-          love.audio.rewind(snd)
+          snd:seek(0)
           love.audio.play(snd)
         elseif key == "right" then
           selected = selected + 1
@@ -144,17 +144,17 @@ local hud = function (id, pos)
             selected = selected - #buttons
           end
           event.notify("menu.info", 0, {selected = buttons[selected].type})
-          love.audio.rewind(snd)
+          snd:seek(0)
           love.audio.play(snd)
         elseif key == "a" then
           if buttons[selected] then
             buttons[selected].action()
-            love.audio.rewind(snd)
+            snd:seek(0)
             love.audio.play(snd)
           end
         elseif key == "b" then
           component.back()
-          love.audio.rewind(snd)
+          snd:seek(0)
           love.audio.play(snd)
         end
       end

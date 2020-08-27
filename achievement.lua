@@ -91,7 +91,7 @@ M.save = function ()
 end
 
 -- Load achievements form filesystem
-if love.filesystem.exists(FILE_ACHIEVEMENTS) then
+if love.filesystem.getInfo(FILE_ACHIEVEMENTS) ~= nil then
   local success, result = luatexts.load(
     love.filesystem.read(FILE_ACHIEVEMENTS)
   )

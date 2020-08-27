@@ -28,12 +28,12 @@ local demolisher = function (id, cost, t)
 
   component.draw = function (self)
     if not blink then
-      love.graphics.setColor(0, 0, 0)
+      love.graphics.setColor(0.0/255.0, 0.0/255.0, 0.0/255.0)
       love.graphics.setLineWidth(3)
       love.graphics.setLineStyle("rough")      
       love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
       
-      love.graphics.setColor(228,96,24)
+      love.graphics.setColor(228.0/255.0,96.0/255.0,24.0/255.0)
       love.graphics.setLineWidth(1)
       love.graphics.setLineStyle("rough")
       love.graphics.rectangle("line", self.x-.5, self.y-.5, self.pixelWidth+1, self.pixelHeight+1)
@@ -86,7 +86,7 @@ local demolisher = function (id, cost, t)
         
         if roomId == -1 or type == "elevator" or type == "reception" then
           local snd = resource.get("snd/error.wav")
-          love.audio.rewind(snd)
+          snd:seek(0)
           love.audio.play(snd)
           return
         end
@@ -100,12 +100,12 @@ local demolisher = function (id, cost, t)
 
           local snd = resource.get("snd/destroy.wav")
           snd:setVolume(1)
-          love.audio.rewind(snd)
+          snd:seek(0)
           love.audio.play(snd)
 	  return true
         else
           local snd = resource.get("snd/error.wav")
-          love.audio.rewind(snd)
+          snd:seek(0)
           love.audio.play(snd)
         end
       end

@@ -77,7 +77,7 @@ local infoComponent = function (id, info, pos)
     event.notify("sprite.play", id, "stocked" .. stock)
     if stock == 0 then
       local snd = resource.get("snd/empty.wav")
-      love.audio.rewind(snd)
+      snd:seek(0)
       love.audio.play(snd)
     end
   end
@@ -200,7 +200,7 @@ local infoComponent = function (id, info, pos)
           pos = pos,
         })
         local snd = resource.get("snd/break.wav")
-        love.audio.rewind(snd)
+        snd:seek(0)
         love.audio.play(snd)
       end
       component.integrity = integrity
