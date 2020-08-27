@@ -38,7 +38,7 @@ COOK_WAGE = 500
 STOCKER_WAGE = 100
 STAFF_MAX = {
   bellhop = 20,
-  cleaner = 10,
+  cleaner = 20,
   maintenance = 5,
   cook = 5,
   stocker = 5,
@@ -204,7 +204,7 @@ local getModes = function ()
     mode.x = math.floor((mode.width - (CANVAS_WIDTH * scale)) / 2)
     mode.y = math.floor((mode.height - (CANVAS_HEIGHT * scale)) / 2)
   end
-  
+
   return modes
 end
 local createScreenFile = function ()
@@ -233,7 +233,7 @@ if love.filesystem.getInfo(FILE_SCREEN) ~= nil then
   conf.screen.height = screen.height
   conf.screen.scale = screen.scale
   conf.screen.fullscreen = screen.fullscreen
-  
+
   conf.screen.selected = #conf.screen.modes
   conf.screen.x = math.floor((screen.width - (CANVAS_WIDTH * screen.scale)) / 2)
   conf.screen.y = math.floor((screen.height - (CANVAS_HEIGHT * screen.scale)) / 2)
@@ -389,7 +389,7 @@ local upkeepCom = entity.newComponent({
     self.timer = self.timer + dt
     if self.timer >= UPKEEP_PERIOD then
       self.timer = self.timer - UPKEEP_PERIOD
-      
+
       -- charge upkeep
       local upkeep = 0
       for k,v in pairs(gCounts.rooms) do
@@ -398,7 +398,7 @@ local upkeepCom = entity.newComponent({
           upkeep = upkeep + (v * info.upkeep)
         end
       end
-      
+
       moneyChange(-upkeep)
       alert("upkeep", upkeep)
     end
@@ -622,7 +622,7 @@ newFloor = function (level)
   local epos = {roomNum = 7, floorNum = level}
   local eid = room.new(STATE_PLAY, "elevator", epos)
   event.notify("build", 0, {id=eid, pos=epos, type="elevator"})
-  
+
   event.notify("floor.new", 0, level)
   local snd = resource.get("snd/build.wav")
   snd:seek(0)
@@ -637,7 +637,7 @@ local subMenuY = 32*6
 
 --Main menu
 local gui = nil
-  
+
 local submenu = nil
 local submenuConstructor = nil
 
@@ -830,20 +830,20 @@ local newGui = function ()
 
   --The back button
   menu.setBack(gui, function () end)
-  
+
   local newSuiteMenu = function ()
     local m = menu.new(STATE_PLAY, subMenuY)
-  
+
     --Missionary
     menu.addButton(m, menu.newButton("missionary", function ()
       buildRoom("missionary")
     end))
-    
+
     --Spoon
     menu.addButton(m, menu.newButton("spoon", function ()
       buildRoom("spoon")
     end))
-  
+
     if gStarsBest >= 2 then
       --Balloon
       menu.addButton(m, menu.newButton("balloon", function ()
@@ -852,7 +852,7 @@ local newGui = function ()
     else
       addLockButton(m)
     end
-  
+
     if gStarsBest >= 3 then
       --Chocolate Moustache
       menu.addButton(m, menu.newButton("moustache", function ()
@@ -861,7 +861,7 @@ local newGui = function ()
     else
       addLockButton(m)
     end
-  
+
     if gStarsBest >= 4 then
       --Torture
       menu.addButton(m, menu.newButton("heaven", function ()
@@ -870,12 +870,12 @@ local newGui = function ()
     else
       addLockButton(m)
     end
-  
+
     --Eco
     menu.addButton(m, menu.newButton("tropical", function ()
       buildRoom("tropical")
     end))
-  
+
     if gStarsBest >= 5 then
       --Nazi Furry
       menu.addButton(m, menu.newButton("banana", function ()
@@ -884,13 +884,13 @@ local newGui = function ()
     else
       addLockButton(m)
     end
-    
+
     return m
   end
-  
+
   local newInfrastructureMenu = function ()
     local m = menu.new(STATE_PLAY, subMenuY)
-  
+
     --Build floor up
     menu.addButton(m, menu.newButton("floorUp", function ()
       floorUp()
@@ -903,13 +903,13 @@ local newGui = function ()
     menu.addButton(m, menu.newButton("destroy", function ()
       demolishRoom(submenu)
     end))
-    
+
     return m
   end
-  
+
   local newServicesMenu = function ()
     local m = menu.new(STATE_PLAY, subMenuY)
-  
+
     --Utility
     menu.addButton(m, menu.newButton("utility", function ()
       buildRoom("utility")
@@ -930,18 +930,18 @@ local newGui = function ()
     else
       addLockButton(m)
     end
-  
+
     return m
   end
-  
+
   local newFoodMenu = function ()
     local m = menu.new(STATE_PLAY, subMenuY)
-  
+
     --Vending machine
     menu.addButton(m, menu.newButton("vending", function ()
       buildRoom("vending")
     end))
-  
+
     if gStarsBest >= 3 then
       --Dining room
       menu.addButton(m, menu.newButton("dining", function ()
@@ -955,7 +955,7 @@ local newGui = function ()
       addLockButton(m)
       addLockButton(m)
     end
-  
+
     if gStarsBest >= 4 then
       --Freezer Room
       menu.addButton(m, menu.newButton("freezer", function ()
@@ -966,10 +966,10 @@ local newGui = function ()
     end
     return m
   end
-  
+
   local newStaffMenu = function ()
     local m = menu.new(STATE_PLAY, subMenuY)
-  
+
     --Hire staff
     menu.addButton(m, menu.newButton("bellhop", function ()
       staffManage("bellhop")
@@ -994,18 +994,18 @@ local newGui = function ()
     else
       addLockButton(m)
     end
-  
+
     return m
   end
-  
+
   --Suites button
   menu.addButton(gui, menu.newButton("suites", function ()
     menu.disable(gui)
-  
+
     --Create the suites menu
     submenu = newSuiteMenu()
     submenuConstructor = newSuiteMenu
-  
+
     --The back button deletes the submenu
     menu.setBack(submenu, function ()
       entity.delete(submenu)
@@ -1013,15 +1013,15 @@ local newGui = function ()
       menu.enable(gui)
     end)
   end))
-  
+
   --Infrastructure button
   menu.addButton(gui, menu.newButton("infrastructure", function ()
     menu.disable(gui)
-  
+
     --Create the infrastructure menu
     submenu = newInfrastructureMenu()
     submenuConstructor = newInfrastructureMenu
-  
+
     --The back button deletes the submenu
     menu.setBack(submenu, function ()
       entity.delete(submenu)
@@ -1029,16 +1029,16 @@ local newGui = function ()
       menu.enable(gui)
     end)
   end))
-  
-  
+
+
   --Services button
   menu.addButton(gui, menu.newButton("services", function ()
     menu.disable(gui)
-  
+
     --Create the services menu
     submenu = newServicesMenu()
     submenuConstructor = newServicesMenu
-  
+
      --The back button deletes the submenu
     menu.setBack(submenu, function ()
       entity.delete(submenu)
@@ -1046,15 +1046,15 @@ local newGui = function ()
       menu.enable(gui)
     end)
   end))
-  
+
   --Food button
   menu.addButton(gui, menu.newButton("food", function ()
     menu.disable(gui)
-  
+
     --Create the food menu
     submenu = newFoodMenu()
     submenuConstructor = newFoodMenu
-  
+
     --The back button deletes the submenu
     menu.setBack(submenu, function ()
       entity.delete(submenu)
@@ -1062,15 +1062,15 @@ local newGui = function ()
       menu.enable(gui)
     end)
   end))
-  
+
   --Staff button
   menu.addButton(gui, menu.newButton("staff", function ()
     menu.disable(gui)
-  
+
     --Create the manage menu
     submenu = newStaffMenu()
     submenuConstructor = newStaffMenu
-  
+
     --The back button deletes the submenu
     menu.setBack(submenu, function ()
       entity.delete(submenu)
@@ -1078,17 +1078,17 @@ local newGui = function ()
       menu.enable(gui)
     end)
   end))
-  
+
   --Stock tool
   menu.addButton(gui, menu.newButton("stock", function ()
     stockRoom(gui)
   end))
-  
+
   --Inspect tool
   menu.addButton(gui, menu.newButton("inspect", function ()
     inspect(gui)
   end))
-  
+
   return gui
 end
 gui = newGui()
@@ -1143,21 +1143,21 @@ trainTextCom = entity.newComponent({
   text = "",
   draw = function (self)
     local desc = [[Bind keys or controller buttons to the NES controller.
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     Press F1 any time to rebind controls.
     Press F11 any time to cycle screen modes.]]
     love.graphics.setColor(0.0, 0.0, 0.0)
@@ -2118,7 +2118,7 @@ local achieveCom = entity.newComponent({
       love.graphics.draw(
         resource.get("img/achievements.png"), achieveIconQuad,
         x, y
-      ) 
+      )
     end
 
     -- cursor
@@ -2127,7 +2127,7 @@ local achieveCom = entity.newComponent({
       achieveCursorQuad,
       12 + (self.selected % 4) * 56, math.floor(self.selected / 4) * 56
     )
-  
+
     -- name and description
     local current = achievement.getInfo(self.selected + 1)
     love.graphics.printf(

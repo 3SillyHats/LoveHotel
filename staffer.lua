@@ -104,7 +104,7 @@ local staffer = function (id, type)
       )
     end
   end
-  
+
   component.update = function (self, dt)
     if new then
       event.notify("menu.info", 0, {name = "", desc = ""})
@@ -117,7 +117,7 @@ local staffer = function (id, type)
       blink = not blink
     end
   end
-  
+
   local pressed = function (key)
     if gState ~= STATE_PLAY then return end
     blink = false
@@ -150,10 +150,10 @@ local staffer = function (id, type)
     event.unsubscribe("delete", id, delete)
     gScrollable = true
   end
-  
+
   event.subscribe("pressed", 0, pressed)
   event.subscribe("delete", id, delete)
-  
+
   return component
 end
 
